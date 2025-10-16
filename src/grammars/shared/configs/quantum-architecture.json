@@ -1,0 +1,33 @@
+{
+  "quantum": {
+    "enabled": false,
+    "scout": {
+      "enabled": true,
+      "cacheStructures": true,
+      "maxDepth": 50
+    },
+    "architect": {
+      "useScout": true,
+      "quantumJumps": true,
+      "preAllocation": true,
+      "complexityThreshold": 10
+    },
+    "prophet": {
+      "enabled": false,
+      "maxUniverses": 6,
+      "timeoutMs": 100,
+      "minConfidence": 60,
+      "adaptiveLearning": true
+    },
+    "fallback": {
+      "onProphetFailure": "traditional",
+      "onScoutFailure": "continue",
+      "maxRetries": 3
+    },
+    "monitoring": {
+      "collectMetrics": true,
+      "logLevel": "info",
+      "telemetry": false
+    }
+  }
+}

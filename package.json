@@ -1,0 +1,208 @@
+{
+  "name": "chahuadev-sentinel",
+  "displayName": "Chahuadev Sentinel",
+  "description": "Code quality checker for Chahua Development standards - VS Code Extension and CLI Tool",
+  "version": "1.0.0",
+  "author": "Chahua Development Co., Ltd.",
+  "license": "MIT",
+  "type": "module",
+  "keywords": [
+    "linter",
+    "code-quality",
+    "chahua",
+    "validation",
+    "typescript",
+    "javascript",
+    "vscode-extension",
+    "cli-tool"
+  ],
+  "engines": {
+    "vscode": "^1.74.0",
+    "node": ">=22.0.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "transform": {},
+    "moduleNameMapper": {
+      "^(\\.{1,2}/.*)\\.js$": "$1"
+    },
+    "testMatch": [
+      "**/__tests__/**/*.test.js"
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "!src/**/*.d.ts",
+      "!src/**/index.js"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 80,
+        "lines": 80,
+        "statements": 80
+      }
+    },
+    "globalSetup": "./__tests__/setup/global-setup.js",
+    "globalTeardown": "./__tests__/setup/global-teardown.js",
+    "reporters": [
+      "./__tests__/utils/custom-jest-reporter.js"
+    ],
+    "verbose": false,
+    "silent": true
+  },
+  "categories": [
+    "Linters"
+  ],
+  "activationEvents": [
+    "onLanguage:javascript",
+    "onLanguage:typescript",
+    "onLanguage:javascriptreact",
+    "onLanguage:typescriptreact"
+  ],
+  "main": "./extension-wrapper.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "chahuadev-sentinel.scanFile",
+        "title": "Scan Current File",
+        "category": "Chahuadev Sentinel"
+      },
+      {
+        "command": "chahuadev-sentinel.scanWorkspace",
+        "title": "Scan Entire Workspace",
+        "category": "Chahuadev Sentinel"
+      },
+      {
+        "command": "chahuadev-sentinel.toggleRules",
+        "title": "Configure Rules",
+        "category": "Chahuadev Sentinel"
+      },
+      {
+        "command": "chahuadev-sentinel.securityStatus",
+        "title": "Security Status",
+        "category": "Chahuadev Sentinel"
+      }
+    ],
+    "configuration": {
+      "title": "Chahuadev Sentinel",
+      "properties": {
+        "chahuadev-sentinel.enableRealTimeScanning": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable real-time scanning while typing"
+        },
+        "chahuadev-sentinel.scanOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically scan files when saved"
+        },
+        "chahuadev-sentinel.notificationStyle": {
+          "type": "string",
+          "enum": [
+            "subtle",
+            "normal",
+            "prominent"
+          ],
+          "default": "subtle",
+          "description": "Notification style (subtle = light blue, non-intrusive)"
+        },
+        "chahuadev-sentinel.rules.noMocking": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enforce NO_MOCKING rule"
+        },
+        "chahuadev-sentinel.rules.noHardcode": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enforce NO_HARDCODE rule"
+        },
+        "chahuadev-sentinel.rules.noSilentFallbacks": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enforce NO_SILENT_FALLBACKS rule"
+        },
+        "chahuadev-sentinel.rules.noInternalCaching": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enforce NO_INTERNAL_CACHING rule"
+        },
+        "chahuadev-sentinel.rules.noEmoji": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enforce NO_EMOJI rule"
+        },
+        "chahuadev-sentinel.securityLevel": {
+          "type": "string",
+          "enum": [
+            "MINIMAL",
+            "STANDARD",
+            "FORTRESS"
+          ],
+          "default": "FORTRESS",
+          "description": "Security protection level"
+        },
+        "chahuadev-sentinel.scanPatterns.include": {
+          "type": "string",
+          "default": "**/*.{js,ts,jsx,tsx}",
+          "description": "File patterns to include in scans"
+        },
+        "chahuadev-sentinel.scanPatterns.exclude": {
+          "type": "string",
+          "default": "**/node_modules/**",
+          "description": "File patterns to exclude from scans"
+        },
+        "chahuadev-sentinel.scanThrottleMs": {
+          "type": "number",
+          "default": 500,
+          "description": "Throttle delay for real-time scanning (milliseconds)"
+        },
+        "chahuadev-sentinel.ui.highlightLength": {
+          "type": "number",
+          "default": 15,
+          "description": "Length of code to highlight for violations"
+        },
+        "chahuadev-sentinel.statusMessageDurationMs": {
+          "type": "number",
+          "default": 3000,
+          "description": "Duration to show status bar messages (milliseconds)"
+        }
+      }
+    },
+    "menus": {
+      "editor/context": [
+        {
+          "when": "editorLangId == javascript || editorLangId == typescript || editorLangId == javascriptreact || editorLangId == typescriptreact",
+          "command": "chahuadev-sentinel.scanFile",
+          "group": "navigation"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "chahuadev-sentinel.scanWorkspace",
+          "group": "navigation"
+        }
+      ]
+    }
+  },
+  "files": [
+    "src/",
+    "cli.js",
+    "emoji-cleaner.js",
+    "scan-real-files.js",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node cli.js",
+    "lint": "node cli.js .",
+    "clean-emoji": "node emoji-cleaner.js ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chahuadev-com/Chahuadev-Sentinel.git"
+  },
+  "bugs": {
+    "url": "https://github.com/chahuadev-com/Chahuadev-Sentinel/issues"
+  },
+  "homepage": "https://github.com/chahuadev-com/Chahuadev-Sentinel#readme"
+}
