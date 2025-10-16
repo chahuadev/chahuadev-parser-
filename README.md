@@ -646,5 +646,4 @@ csharp.delta.json (Delta)
 
 **Result:** 63% less code, 75% faster maintenance
 
-### Principle 5: Universal Compatibility#   c h a h u a d e v - p a r s e r -  
- 
+### Principle 5: Universal Compatibility
