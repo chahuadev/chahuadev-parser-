@@ -15,13 +15,22 @@
 // ! ABSOLUTE RULES DEFINITION - 5 กฎเหล็กของ Chahuadev
 // ! ======================================================================
 import errorHandler from '../error-handler/ErrorHandler.js';
+import { RULE_IDS, resolveRuleSlug } from '../constants/rule-constants.js';
+import { RULE_SEVERITY_FLAGS } from '../constants/severity-constants.js';
+
+const RULE_ID = RULE_IDS.NO_SILENT_FALLBACKS;
+const RULE_SLUG = resolveRuleSlug(RULE_ID);
+const RULE_SEVERITY_ERROR = RULE_SEVERITY_FLAGS.ERROR;
+const RULE_SEVERITY_WARNING = RULE_SEVERITY_FLAGS.WARNING;
+const RULE_SEVERITY_CRITICAL = RULE_SEVERITY_FLAGS.CRITICAL;
 
 const ABSOLUTE_RULES = {
 // ! ======================================================================
 // ! NO_SILENT_FALLBACKS - ห้ามใช้ Fallback ที่ซ่อนปัญหา (กฎเหล็กข้อที่ 3)
 // ! ======================================================================
-    NO_SILENT_FALLBACKS: {
-        id: 'NO_SILENT_FALLBACKS',
+    [RULE_ID]: {
+        id: RULE_ID,
+        slug: RULE_SLUG,
         name: {
             en: 'No Silent Fallbacks',
             th: 'ห้ามใช้ Fallback ที่ซ่อนปัญหา'

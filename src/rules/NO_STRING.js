@@ -14,13 +14,21 @@
 // ! ABSOLUTE RULES DEFINITION - 7 กฎเหล็กของ Chahuadev
 // ! ======================================================================
 import errorHandler from '../error-handler/ErrorHandler.js';
+import { RULE_IDS, resolveRuleSlug } from '../constants/rule-constants.js';
+import { RULE_SEVERITY_FLAGS } from '../constants/severity-constants.js';
+
+const RULE_ID = RULE_IDS.NO_STRING;
+const RULE_SLUG = resolveRuleSlug(RULE_ID);
+const RULE_SEVERITY_ERROR = RULE_SEVERITY_FLAGS.ERROR;
+const RULE_SEVERITY_WARNING = RULE_SEVERITY_FLAGS.WARNING;
 
 const ABSOLUTE_RULES = {
 // ! ======================================================================
 // ! NO_STRING - ห้ามใช้ String Comparison ในตรรกะหลัก (กฎเหล็กข้อที่ 6)
 // ! ======================================================================
-	NO_STRING: {
-		id: 'NO_STRING',
+	[RULE_ID]: {
+		id: RULE_ID,
+		slug: RULE_SLUG,
 		name: { 
                 en: 'No String Comparison in Core Logic', 
                 th: 'ห้ามใช้การเปรียบเทียบสตริงในตรรกะหลัก' 
@@ -37,27 +45,27 @@ const ABSOLUTE_RULES = {
         // ! PATTERNS TO DETECT - รูปแบบที่ใช้ตรวจจับ
         // ! ======================================================================             
 		patterns: [
-			{ regex: /===\s*['"`][^'"`]+['"`]/g, name: 'Strict equality with string literal (left side)', severity: 'ERROR' },
-			{ regex: /['"`][^'"`]+['"`]\s*===/g, name: 'Strict equality with string literal (right side)', severity: 'ERROR' },
-			{ regex: /==\s*['"`][^'"`]+['"`]/g, name: 'Loose equality with string literal (left side)', severity: 'WARNING' },
-			{ regex: /['"`][^'"`]+['"`]\s*==/g, name: 'Loose equality with string literal (right side)', severity: 'WARNING' },
-			{ regex: /!==\s*['"`][^'"`]+['"`]/g, name: 'Strict inequality with string literal (left side)', severity: 'ERROR' },
-			{ regex: /['"`][^'"`]+['"`]\s*!==/g, name: 'Strict inequality with string literal (right side)', severity: 'ERROR' },
-			{ regex: /!=\s*['"`][^'"`]+['"`]/g, name: 'Loose inequality with string literal (left side)', severity: 'WARNING' },
-			{ regex: /['"`][^'"`]+['"`]\s*!=/g, name: 'Loose inequality with string literal (right side)', severity: 'WARNING' },
-			{ regex: /case\s+['"`][^'"`]+['"`]\s*:/g, name: 'Switch case using string literal', severity: 'ERROR' },
-			{ regex: /\.type\s*===\s*['"`][^'"`]+['"`]/g, name: 'Property .type compared with string literal', severity: 'ERROR' },
-			{ regex: /\.kind\s*===\s*['"`][^'"`]+['"`]/g, name: 'Property .kind compared with string literal', severity: 'ERROR' },
-			{ regex: /\.name\s*===\s*['"`][^'"`]+['"`]/g, name: 'Property .name compared with string literal', severity: 'WARNING' },
-			{ regex: /\.toLowerCase\(\)\s*===\s*['"`][^'"`]+['"`]/g, name: 'Case-insensitive comparison using .toLowerCase()', severity: 'ERROR' },
-			{ regex: /\.toUpperCase\(\)\s*===\s*['"`][^'"`]+['"`]/g, name: 'Case-insensitive comparison using .toUpperCase()', severity: 'ERROR' },
-			{ regex: /`[^`]+`\s*===/g, name: 'Template literal compared on right side', severity: 'ERROR' },
-			{ regex: /===\s*`[^`]+`/g, name: 'Template literal compared on left side', severity: 'ERROR' }
+			{ regex: /===\s*['"`][^'"`]+['"`]/g, name: 'Strict equality with string literal (left side)', severity: RULE_SEVERITY_ERROR },
+			{ regex: /['"`][^'"`]+['"`]\s*===/g, name: 'Strict equality with string literal (right side)', severity: RULE_SEVERITY_ERROR },
+			{ regex: /==\s*['"`][^'"`]+['"`]/g, name: 'Loose equality with string literal (left side)', severity: RULE_SEVERITY_WARNING },
+			{ regex: /['"`][^'"`]+['"`]\s*==/g, name: 'Loose equality with string literal (right side)', severity: RULE_SEVERITY_WARNING },
+			{ regex: /!==\s*['"`][^'"`]+['"`]/g, name: 'Strict inequality with string literal (left side)', severity: RULE_SEVERITY_ERROR },
+			{ regex: /['"`][^'"`]+['"`]\s*!==/g, name: 'Strict inequality with string literal (right side)', severity: RULE_SEVERITY_ERROR },
+			{ regex: /!=\s*['"`][^'"`]+['"`]/g, name: 'Loose inequality with string literal (left side)', severity: RULE_SEVERITY_WARNING },
+			{ regex: /['"`][^'"`]+['"`]\s*!=/g, name: 'Loose inequality with string literal (right side)', severity: RULE_SEVERITY_WARNING },
+			{ regex: /case\s+['"`][^'"`]+['"`]\s*:/g, name: 'Switch case using string literal', severity: RULE_SEVERITY_ERROR },
+			{ regex: /\.type\s*===\s*['"`][^'"`]+['"`]/g, name: 'Property .type compared with string literal', severity: RULE_SEVERITY_ERROR },
+			{ regex: /\.kind\s*===\s*['"`][^'"`]+['"`]/g, name: 'Property .kind compared with string literal', severity: RULE_SEVERITY_ERROR },
+			{ regex: /\.name\s*===\s*['"`][^'"`]+['"`]/g, name: 'Property .name compared with string literal', severity: RULE_SEVERITY_WARNING },
+			{ regex: /\.toLowerCase\(\)\s*===\s*['"`][^'"`]+['"`]/g, name: 'Case-insensitive comparison using .toLowerCase()', severity: RULE_SEVERITY_ERROR },
+			{ regex: /\.toUpperCase\(\)\s*===\s*['"`][^'"`]+['"`]/g, name: 'Case-insensitive comparison using .toUpperCase()', severity: RULE_SEVERITY_ERROR },
+			{ regex: /`[^`]+`\s*===/g, name: 'Template literal compared on right side', severity: RULE_SEVERITY_ERROR },
+			{ regex: /===\s*`[^`]+`/g, name: 'Template literal compared on left side', severity: RULE_SEVERITY_ERROR }
 		],
         // ! ======================================================================
         // ! PATTERNS TO DETECT - รูปแบบที่ใช้ตรวจจับ
         // ! ======================================================================
-		severity: 'ERROR',
+		severity: RULE_SEVERITY_ERROR,
 		violationExamples: {
 			en: [
 				'// @example NO_STRING violation\nif (token.type === "KEYWORD") {\n    processKeyword(token);\n}',

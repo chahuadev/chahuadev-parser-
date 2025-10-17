@@ -14,14 +14,23 @@
 // ! ABSOLUTE RULES DEFINITION - 5 กฎเหล็กของ Chahuadev
 // ! ======================================================================
 import errorHandler from '../error-handler/ErrorHandler.js';
+import { RULE_IDS, resolveRuleSlug } from '../constants/rule-constants.js';
+import { RULE_SEVERITY_FLAGS } from '../constants/severity-constants.js';
+
+const RULE_ID = RULE_IDS.NO_INTERNAL_CACHING;
+const RULE_SLUG = resolveRuleSlug(RULE_ID);
+const RULE_SEVERITY_ERROR = RULE_SEVERITY_FLAGS.ERROR;
+const RULE_SEVERITY_WARNING = RULE_SEVERITY_FLAGS.WARNING;
+const RULE_SEVERITY_CRITICAL = RULE_SEVERITY_FLAGS.CRITICAL;
 
 const ABSOLUTE_RULES = {
 
 // ! ======================================================================
 // ! NO_INTERNAL_CACHING - ห้ามสร้าง Cache ภายในฟังก์ชัน (กฎเหล็กข้อที่ 4)
 // ! ======================================================================
-    NO_INTERNAL_CACHING: {
-        id: 'NO_INTERNAL_CACHING',
+    [RULE_ID]: {
+        id: RULE_ID,
+        slug: RULE_SLUG,
         name: {
             en: 'No Internal Caching',
             th: 'ห้ามสร้าง Cache ภายในฟังก์ชัน'

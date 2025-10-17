@@ -500,7 +500,7 @@ class ErrorHandler {
 
         let reportContent = '# Chahuadev Sentinel: Validation Report\n\n';
         reportContent += `สร้างเมื่อ: ${generatedAt.toLocaleString('th-TH')}\n\n`;
-        reportContent += `## ❗ พบ ${totalViolations} ความผิดกฎใน ${totalFiles} ไฟล์\n\n`;
+        reportContent += `##  พบ ${totalViolations} ความผิดกฎใน ${totalFiles} ไฟล์\n\n`;
 
         if (ruleCounts.size > 0) {
             reportContent += '### สรุปตามกฎ\n\n';
@@ -534,7 +534,7 @@ class ErrorHandler {
                 return lineA - lineB;
             });
 
-            reportContent += `### 📄 ไฟล์: \`${displayPath}\`\n\n`;
+            reportContent += `###  ไฟล์: \`${displayPath}\`\n\n`;
 
             for (const violation of sortedViolations) {
                 const ruleId = violation.ruleId || 'UNKNOWN_RULE';
@@ -547,7 +547,7 @@ class ErrorHandler {
                 const lineInfo = typeof violation.line === 'number' ? violation.line : null;
                 const columnInfo = typeof violation.column === 'number' ? violation.column : null;
 
-                reportContent += `#### ❌ ${ruleId} — ${ruleName}\n`;
+                reportContent += `####  ${ruleId} — ${ruleName}\n`;
                 reportContent += `* ระดับความรุนแรง: **${severity}**\n`;
                 reportContent += `* ข้อความ: ${message}\n`;
                 if (lineInfo !== null) {

@@ -9,26 +9,26 @@
 ```
 แหล่งซอร์สโค้ด (.js/.ts/.jsx/.tsx)
     │
-    ▼
+    
 cli.js (CLI Entry)
     │  └─ โหลด cli-config.json, เตรียม SecurityManager และ ValidationEngine
-    ▼
+    
 SecurityManager (src/security/security-manager.js)
     │  └─ ตรวจนโยบายจาก security-config.js และ rate-limit-store-factory.js
-    ▼
+    
 ValidationEngine (src/rules/validator.js)
-    │  ├─ tokenize() จาก src/grammars/index.js → BinaryComputationTokenizer
+    │  ├─ tokenize() จาก src/grammars/index.js  BinaryComputationTokenizer
     │  ├─ GrammarIndex.loadGrammar() (shared/grammar-index.js)
     │  └─ PureBinaryParser / EnhancedBinaryParser วิเคราะห์ AST + ABSOLUTE_RULES
-    ▼
+    
 ผลจากกฎ (ละเมิด/ผ่าน)
     │
-    ▼
+    
 ErrorHandler (src/error-handler/ErrorHandler.js)
     │  ├─ ใช้ error-handler-config.js เป็นค่าอ้างอิง
     │  ├─ เรียก streamErrorReport() (error-log-stream.js) เพื่อเก็บ code snippet รายไฟล์
     │  └─ บันทึกไปยัง logs/errors/centralized-errors.log & file-reports/*.log
-    ▼
+    
 สรุปผล (CLI stdout / Markdown report / logs/*)
 ```
 
@@ -66,7 +66,7 @@ Chahuadev-Sentinel/
 ├─ cli-config.json            ─ คอนฟิก CLI (ข้อความ, รูปแบบรายงาน, แพทเทิร์นการสแกน)
 ├─ extension-wrapper.js       ─ จุดเข้า VS Code (ยังไม่ใช้ใน flow node cli.js)
 ├─ extension-config.json      ─ คอนฟิกส่วนขยาย
-├─ package.json               ─ สคริปต์ npm (test → node cli.js)
+├─ package.json               ─ สคริปต์ npm (test  node cli.js)
 ├─ docs/                      ─ เอกสารสถาปัตยกรรมและรายงาน (รวมไฟล์ฉบับนี้)
 ├─ src/
 │  ├─ error-handler/          ─ ระบบจัดการข้อผิดพลาดและบันทึกลง logs
@@ -82,7 +82,7 @@ Chahuadev-Sentinel/
 ```
 
 ## 6. สรุปการทดสอบล่าสุด
-- `npm run lint` (ชี้ไป `node cli.js .`) → **ผ่าน** : ยืนยันว่าเส้นทาง CLI หลักทำงานครบ (SecurityManager + ValidationEngine + ErrorHandler)
+- `npm run lint` (ชี้ไป `node cli.js .`)  **ผ่าน** : ยืนยันว่าเส้นทาง CLI หลักทำงานครบ (SecurityManager + ValidationEngine + ErrorHandler)
 - *(ปิดใช้งาน)* `node src/grammars/shared/logger.js` — เครื่องมือ logger เดิมถูกนำออกจาก flow
 
 ## 7. ข้อเสนอแนะเพิ่มเติม

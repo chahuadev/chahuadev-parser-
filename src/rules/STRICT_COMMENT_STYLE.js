@@ -7,6 +7,13 @@
 // ! ══════════════════════════════════════════════════════════════════════════════
 
 import errorHandler from '../error-handler/ErrorHandler.js';
+import { RULE_IDS, resolveRuleSlug } from '../constants/rule-constants.js';
+import { RULE_SEVERITY_FLAGS } from '../constants/severity-constants.js';
+
+const RULE_ID = RULE_IDS.STRICT_COMMENT_STYLE;
+const RULE_SLUG = resolveRuleSlug(RULE_ID);
+const RULE_SEVERITY_ERROR = RULE_SEVERITY_FLAGS.ERROR;
+const RULE_SEVERITY_CRITICAL = RULE_SEVERITY_FLAGS.CRITICAL;
 
 // ! ══════════════════════════════════════════════════════════════════════════════
 // ! ABSOLUTE RULE: STRICT_COMMENT_STYLE (กฎข้อที่ 9)
@@ -14,8 +21,9 @@ import errorHandler from '../error-handler/ErrorHandler.js';
 // ! ══════════════════════════════════════════════════════════════════════════════
 
 const ABSOLUTE_RULES = {
-    STRICT_COMMENT_STYLE: {
-        id: 'STRICT_COMMENT_STYLE',
+    [RULE_ID]: {
+        id: RULE_ID,
+        slug: RULE_SLUG,
         name: {
             en: 'Strict Comment Signature Enforcement',
             th: 'บังคับใช้รูปแบบคอมเมนต์แบบเข้มงวด'
@@ -33,16 +41,16 @@ const ABSOLUTE_RULES = {
                 // ! จับคอมเมนต์ที่ใช้ "//" แต่ไม่มี "!" ทันทีหลังช่องว่าง
                 regex: /(?<!:)\/\/(?!\s*!)/g,
                 name: 'Missing strict // ! signature',
-                severity: 'ERROR'
+                severity: RULE_SEVERITY_ERROR
             },
             {
                 // ! จับ block comment ทุกชนิดทั้งเปิดและปิด
                 regex: /\/\*|\*\//g,
                 name: 'Block comment detected',
-                severity: 'CRITICAL'
+                severity: RULE_SEVERITY_CRITICAL
             }
         ],
-        severity: 'ERROR',
+        severity: RULE_SEVERITY_ERROR,
         violationExamples: {
             en: [
                 '// bad comment without bang',

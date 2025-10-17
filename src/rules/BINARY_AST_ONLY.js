@@ -14,11 +14,19 @@
 // ! ======================================================================
 
 import errorHandler from '../error-handler/ErrorHandler.js';
+import { RULE_IDS, resolveRuleSlug } from '../constants/rule-constants.js';
+import { RULE_SEVERITY_FLAGS } from '../constants/severity-constants.js';
+
+const RULE_ID = RULE_IDS.BINARY_AST_ONLY;
+const RULE_SLUG = resolveRuleSlug(RULE_ID);
+const RULE_SEVERITY_CRITICAL = RULE_SEVERITY_FLAGS.CRITICAL;
+const RULE_SEVERITY_ERROR = RULE_SEVERITY_FLAGS.ERROR;
 
 const ABSOLUTE_RULES = {
     // RULE:BINARY_AST_ONLY - หัวใจของการบังคับใช้ Binary AST ใน production
-    BINARY_AST_ONLY: {
-        id: 'BINARY_AST_ONLY',
+    [RULE_ID]: {
+        id: RULE_ID,
+        slug: RULE_SLUG,
         name: {
             en: 'Binary AST Pipeline Required',
             th: 'ระบบวิเคราะห์ต้องใช้ Binary AST เท่านั้น'
@@ -36,22 +44,22 @@ const ABSOLUTE_RULES = {
                 // RULE:BINARY_AST_ONLY - กันการเรียก parser.parse ที่คืน AST object
                 regex: /\bparser\s*\.\s*parse\s*\(/g,
                 name: 'Legacy parser.parse usage',
-                severity: 'CRITICAL'
+                severity: RULE_SEVERITY_CRITICAL
             },
             {
                 // RULE:BINARY_AST_ONLY - กันการเข้าถึง node.children ที่บ่งบอกว่าเป็น object AST
                 regex: /\.children\b/g,
                 name: 'Direct AST children traversal',
-                severity: 'ERROR'
+                severity: RULE_SEVERITY_ERROR
             },
             {
                 // RULE:BINARY_AST_ONLY - กันการเข้าถึง node.type โดยตรง
                 regex: /\.type\b/g,
                 name: 'Direct AST type inspection',
-                severity: 'ERROR'
+                severity: RULE_SEVERITY_ERROR
             }
         ],
-        severity: 'CRITICAL',
+        severity: RULE_SEVERITY_CRITICAL,
         violationExamples: {
             en: [
                 '// @example BINARY_AST_ONLY violation\nconst ast = parser.parse(tokens);\nfor (const child of ast.body) {\n    console.log(child.type);\n}',
