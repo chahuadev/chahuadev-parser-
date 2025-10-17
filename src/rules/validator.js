@@ -40,6 +40,7 @@ import { ABSOLUTE_RULES as STRING_RULE } from './NO_STRING.js';
 import { ABSOLUTE_RULES as CONSOLE_RULE } from './NO_CONSOLE.js';
 import { ABSOLUTE_RULES as BINARY_AST_RULE } from './BINARY_AST_ONLY.js';
 import { ABSOLUTE_RULES as STRICT_COMMENT_RULE } from './STRICT_COMMENT_STYLE.js';
+import { ABSOLUTE_RULES as MUST_HANDLE_ERRORS_RULE } from './MUST_HANDLE_ERRORS.js';
 
 // ! ══════════════════════════════════════════════════════════════════════════════
 // !  COMBINE - รวมกฎทั้ง 9 ข้อเป็น ABSOLUTE_RULES เดียว
@@ -56,7 +57,8 @@ export const ABSOLUTE_RULES = {
     // RULE:BINARY_AST_ONLY - รวมกฎข้อที่ 8 เพื่อบังคับ Binary AST
     ...BINARY_AST_RULE,
     // RULE:STRICT_COMMENT_STYLE - รวมกฎข้อที่ 9 บังคับใช้รูปแบบคอมเมนต์
-    ...STRICT_COMMENT_RULE
+    ...STRICT_COMMENT_RULE,
+    ...MUST_HANDLE_ERRORS_RULE
 };
 
 // ! ══════════════════════════════════════════════════════════════════════════════
@@ -110,6 +112,7 @@ export class ValidationEngine {
             
             return {
                 fileName,
+                filePath: fileName,
                 violations: violations || [],
                 success: (violations || []).length === 0
             };
@@ -136,7 +139,10 @@ export class ValidationEngine {
                 if (typeof rule.check === 'function') {
                     const ruleViolations = rule.check(ast, code, fileName);
                     if (ruleViolations && ruleViolations.length > 0) {
-                        violations.push(...ruleViolations);
+                        const enriched = ruleViolations.map(violation =>
+                            this.enrichViolationWithRuleMetadata(violation, ruleId, rule)
+                        );
+                        violations.push(...enriched);
                     }
                 }
             } catch (ruleError) {
@@ -161,6 +167,86 @@ export class ValidationEngine {
             throw new Error(`Rule '${ruleId}' not found. Available: ${Object.keys(this.rules).join(', ')}`);
         }
         return this.rules[ruleId];
+    }
+
+    enrichViolationWithRuleMetadata(violation, ruleId, rule) {
+        const normalized = {
+            ...violation,
+        };
+
+        if (!normalized.ruleId) {
+            normalized.ruleId = ruleId;
+        }
+
+        if (!normalized.severity && rule?.severity) {
+            normalized.severity = rule.severity;
+        }
+
+        const name = this.normalizeLocalizedField(rule?.name);
+        const description = this.normalizeLocalizedField(rule?.description);
+        const explanation = this.normalizeLocalizedField(rule?.explanation);
+        const fix = this.normalizeLocalizedField(rule?.fix);
+        const violationExamples = this.cloneLocalizedArrayMap(rule?.violationExamples);
+        const correctExamples = this.cloneLocalizedArrayMap(rule?.correctExamples);
+
+        const existingMetadata = (normalized.ruleMetadata && typeof normalized.ruleMetadata === 'object')
+            ? normalized.ruleMetadata
+            : {};
+
+        normalized.ruleMetadata = {
+            ...existingMetadata,
+            id: ruleId,
+            name,
+            description,
+            explanation,
+            fix,
+            severity: rule?.severity || normalized.severity || 'ERROR',
+            violationExamples,
+            correctExamples
+        };
+
+        const existingGuidance = (normalized.guidance && typeof normalized.guidance === 'object')
+            ? normalized.guidance
+            : {};
+
+        normalized.guidance = {
+            ...existingGuidance,
+            why: description,
+            how: fix,
+            context: explanation
+        };
+
+        return normalized;
+    }
+
+    normalizeLocalizedField(field) {
+        if (!field) {
+            return null;
+        }
+
+        if (typeof field === 'string') {
+            return { en: field };
+        }
+
+        if (typeof field === 'object') {
+            return { ...field };
+        }
+
+        return null;
+    }
+
+    cloneLocalizedArrayMap(value) {
+        if (!value || typeof value !== 'object') {
+            return null;
+        }
+
+        const cloned = {};
+
+        for (const [lang, items] of Object.entries(value)) {
+            cloned[lang] = Array.isArray(items) ? [...items] : items;
+        }
+
+        return cloned;
     }
 }
 

@@ -21,6 +21,7 @@ export const ERROR_HANDLER_CONFIG = {
     LOG_ERROR_SUBDIR: 'errors',
     LOG_FILENAME: 'centralized-errors.log',
     LOG_CRITICAL_FILENAME: 'critical-errors.log',
+    STREAM_ERRORS: true,
     
     // Default Error Values
     DEFAULT_ERROR_NAME: 'UnknownError',

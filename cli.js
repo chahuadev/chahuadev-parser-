@@ -14,9 +14,7 @@
 
 import { ABSOLUTE_RULES, ValidationEngine } from './src/rules/validator.js';
 import { SecurityManager } from './src/security/security-manager.js';
-import { createSecurityConfig } from './src/security/security-config.js';
 import errorHandler from './src/error-handler/ErrorHandler.js';
-import { ErrorDetectionValidator } from './src/error-handler/ast-error-detection-validator.js';
 
 import fs from 'fs';
 import path from 'path';// Load CLI configuration from JSON 
@@ -34,6 +32,7 @@ class ChahuadevCLI {
             processedFiles: 0
         };
         this.securityManager = null;
+        this.currentScanOptions = null;
     }
 
     async initialize() {
@@ -113,7 +112,7 @@ ${cliConfig.helpText.footer}`);
         try {
             // Log progress for each file
             this.stats.processedFiles++;
-            if (!options.quiet) {
+            if (!options.quiet && options.verbose) {
                 console.log(`[${this.stats.processedFiles}/${this.stats.totalFiles}] Scanning: ${filePath}`);
             }
             
@@ -123,19 +122,11 @@ ${cliConfig.helpText.footer}`);
 
             const content = fs.readFileSync(filePath, 'utf8');
             const results = await this.engine.validateCode(content, filePath);
-            
-            this.stats.processedFiles++;
             this.stats.totalViolations += results.violations.length;
 
-            if (!options.quiet && results.violations.length > 0) {
-                console.log(`\\n${filePath}:`);
-                results.violations.forEach(violation => {
-                    const location = violation.location ? `${violation.location.line}:${violation.location.column}` : '?:?';
-                    const severityLabel = this.getSeverityLabel(violation.severity);
-                    console.log(`  ${severityLabel} ${location} - ${violation.message} [${violation.ruleId}]`);
-                });
-            } else if (options.verbose && results.violations.length === 0) {
-                console.log(`${filePath} - ${cliConfig.messages.noViolations}`);
+            if (!options.quiet && options.verbose) {
+                const prefix = results.violations.length > 0 ? '[VIOLATIONS]' : '[PASS]';
+                console.log(`${prefix} ${filePath}`);
             }
 
             return results;
@@ -151,6 +142,7 @@ ${cliConfig.helpText.footer}`);
     }
 
     async scanPattern(pattern, options = {}) {
+        this.currentScanOptions = options;
         try {
             // Use configured patterns with fallback
             const scanPattern = pattern || cliConfig.defaultPatterns.include;
@@ -161,10 +153,10 @@ ${cliConfig.helpText.footer}`);
                 return [];
             }
 
-            this.stats.totalFiles = files.length;
+            this.stats.totalFiles += files.length;
             
-            if (!options.quiet) {
-                console.log(`\\n${cliConfig.messages.scanningFiles} (${files.length} files)`);
+            if (!options.quiet && options.verbose) {
+                console.log(`\n${cliConfig.messages.scanningFiles} (${files.length} files)`);
             }
 
             const results = [];
@@ -189,7 +181,91 @@ ${cliConfig.helpText.footer}`);
         } catch (error) {
             console.error(`${cliConfig.messages.errorScanning}: ${error.message}`);
             throw error;
+        } finally {
+            this.currentScanOptions = null;
         }
+    }
+
+    aggregateViolations(results) {
+        const grouped = {};
+
+        for (const entry of results) {
+            if (!entry || !entry.violations || entry.violations.length === 0) {
+                continue;
+            }
+
+            const fileKey = entry.file || entry.filePath || entry.fileName || 'unknown-file';
+            if (!grouped[fileKey]) {
+                grouped[fileKey] = [];
+            }
+
+            for (const violation of entry.violations) {
+                if (!violation) {
+                    continue;
+                }
+
+                const line = this.extractLineNumber(violation);
+                const column = this.extractColumnNumber(violation);
+
+                grouped[fileKey].push({
+                    ruleId: violation.ruleId,
+                    message: violation.message,
+                    severity: violation.severity || violation.ruleMetadata?.severity || 'INFO',
+                    line,
+                    column,
+                    ruleMetadata: violation.ruleMetadata || null,
+                    guidance: violation.guidance || null
+                });
+            }
+        }
+
+        return grouped;
+    }
+
+    extractLineNumber(violation) {
+        if (!violation) {
+            return null;
+        }
+
+        if (typeof violation.line === 'number') {
+            return violation.line;
+        }
+
+        if (violation.location) {
+            if (typeof violation.location.line === 'number') {
+                return violation.location.line;
+            }
+            if (violation.location.start && typeof violation.location.start.line === 'number') {
+                return violation.location.start.line;
+            }
+        }
+
+        return null;
+    }
+
+    extractColumnNumber(violation) {
+        if (!violation) {
+            return null;
+        }
+
+        if (typeof violation.column === 'number') {
+            return violation.column;
+        }
+
+        if (violation.location) {
+            if (typeof violation.location.column === 'number') {
+                return violation.location.column;
+            }
+            if (violation.location.start && typeof violation.location.start.column === 'number') {
+                return violation.location.start.column;
+            }
+        }
+
+        return null;
+    }
+
+    shouldLogVerbose() {
+        return Boolean(this.currentScanOptions) && this.currentScanOptions.verbose && !this.currentScanOptions.quiet;
     }
 
     /**
@@ -207,8 +283,10 @@ ${cliConfig.helpText.footer}`);
         const extensionsToScan = this.config.fileExtensions || ['.js', '.ts', '.jsx', '.tsx'];
         const ignoreDirs = new Set(this.config.ignoreDirectories || ['node_modules', '.git', '.vscode']);
 
-        console.log(`Scanning for extensions: [${extensionsToScan.join(', ')}]`);
-        console.log(`Ignoring directories: [${Array.from(ignoreDirs).join(', ')}]`);
+        if (this.shouldLogVerbose()) {
+            console.log(`Scanning for extensions: [${extensionsToScan.join(', ')}]`);
+            console.log(`Ignoring directories: [${Array.from(ignoreDirs).join(', ')}]`);
+        }
 
         const scan = (dir) => {
             // FIX: ตรวจสอบ path ที่เคยสแกนและ path ที่ต้อง ignore ให้แม่นยำขึ้น
@@ -255,7 +333,9 @@ ${cliConfig.helpText.footer}`);
         // FIX: ปรับปรุง Logic การหา "จุดเริ่มต้น" ของการสแกนให้ฉลาดขึ้น
         const startPath = pattern ? path.resolve(process.cwd(), pattern) : process.cwd();
         
-        console.log(` Starting scan from: "${startPath}"`);
+        if (this.shouldLogVerbose()) {
+            console.log(` Starting scan from: "${startPath}"`);
+        }
 
         if (fs.existsSync(startPath)) {
             const stat = fs.statSync(startPath);
@@ -272,11 +352,13 @@ ${cliConfig.helpText.footer}`);
             throw new Error(`The specified path or pattern "${pattern}" does not exist.`);
         }
 
-        console.log(`\n✓ Scanned ${totalScanned} files (${errorCount} errors skipped)`);
+        if (this.shouldLogVerbose()) {
+            console.log(`\n✓ Scanned ${totalScanned} files (${errorCount} errors skipped)`);
+        }
         return files;
     }
 
-    showSummary(results, options = {}) {
+    showSummary(results, options = {}, aggregatedViolations = {}) {
         const hasViolations = this.stats.totalViolations > 0;
         
         if (options.json) {
@@ -286,18 +368,19 @@ ${cliConfig.helpText.footer}`);
                     processedFiles: this.stats.processedFiles,
                     totalViolations: this.stats.totalViolations
                 },
-                results: results
+                results: results,
+                aggregatedViolations,
+                reportPath: errorHandler.getReportPath(),
+                hasViolations
             };
             console.log(JSON.stringify(jsonOutput, null, 2));
         } else {
-            console.log(`\\n${cliConfig.messages.summaryHeader}`);
-            console.log(`   ${cliConfig.messages.filesScanned} ${this.stats.processedFiles}/${this.stats.totalFiles}`);
-            console.log(`   ${cliConfig.messages.totalViolations} ${this.stats.totalViolations}`);
-            
-            if (hasViolations) {
-                console.log(`\\n${cliConfig.messages.qualityCheckFailed}`);
-            } else {
-                console.log(`\\n${cliConfig.messages.qualityCheckPassed}`);
+            if (!options.quiet) {
+                if (hasViolations) {
+                    console.log('\nValidation FAILED. ดูรายละเอียดได้ที่ validation-report.md');
+                } else {
+                    console.log('\nValidation PASSED. ไม่พบการผิดกฎ');
+                }
             }
         }
         
@@ -312,17 +395,17 @@ async function main() {
         verbose: args.includes('--verbose'),
         json: args.includes('--json'),
         help: args.includes('--help') || args.includes('-h'),
-        version: args.includes('--version') || args.includes('-v'),
-        withLogs: args.includes('--with-logs') || args.includes('-l')
+        version: args.includes('--version') || args.includes('-v')
     };
 
-    // WHY: If --with-logs is enabled, delegate to professional logger system (NO_HARDCODE)
-    if (options.withLogs) {
-        const { main: loggerMain } = await import('./src/grammars/shared/logger.js');
-        return loggerMain();
-    }
-
     const cli = new ChahuadevCLI();
+
+    cli.stats = {
+        totalFiles: 0,
+        totalViolations: 0,
+        processedFiles: 0
+    };
+    cli.currentScanOptions = null;
 
     if (options.help) {
         cli.showHelp();
@@ -350,19 +433,21 @@ async function main() {
     
     try {
         let results = [];
-        
+
         if (patterns.length === 0) {
-            // Use default pattern
-            results = await cli.scanPattern(undefined, options);
+            const defaultResults = await cli.scanPattern(undefined, options);
+            results.push(...defaultResults);
         } else {
-            // Process each pattern
             for (const pattern of patterns) {
                 const patternResults = await cli.scanPattern(pattern, options);
                 results.push(...patternResults);
             }
         }
 
-        const exitCode = cli.showSummary(results, options);
+        const aggregatedViolations = cli.aggregateViolations(results);
+        await errorHandler.handleViolations(aggregatedViolations, cli.rules);
+
+        const exitCode = cli.showSummary(results, options, aggregatedViolations);
         return exitCode;
         
     } catch (error) {

@@ -38,6 +38,8 @@ class ErrorHandler {
         );
         this.errorLogPath = path.join(this.logDir, ERROR_HANDLER_CONFIG.LOG_FILENAME);
         this.criticalErrorPath = path.join(this.logDir, ERROR_HANDLER_CONFIG.LOG_CRITICAL_FILENAME);
+        this.reportPath = path.resolve(process.cwd(), 'validation-report.md');
+        this.hasIssues = false;
         // ! คิวงานเขียนไฟล์แบบ Async ป้องกันการ block event loop
         this.logWriteQueue = Promise.resolve();
         this.backgroundTasks = new Set();
@@ -59,12 +61,15 @@ class ErrorHandler {
     // ! ══════════════════════════════════════════════════════════════════════════════
     handleError(error, context = {}) {
         try {
+            this.hasIssues = true;
             // 1. จัดประเภท Error
             const errorInfo = this.categorizeError(error, context);
             
             // 2. บันทึกลง Log ทันที (ผ่านคิว Async)
             this.scheduleBackgroundTask(this.logError(errorInfo));
-            this.scheduleBackgroundTask(streamErrorReport(errorInfo));
+            if (ERROR_HANDLER_CONFIG.STREAM_ERRORS !== false) {
+                this.scheduleBackgroundTask(streamErrorReport(errorInfo));
+            }
             
             // 3. ตัดสินใจว่าจะปิด Process หรือไม่
             this.decideProcessFate(errorInfo);
@@ -443,6 +448,198 @@ class ErrorHandler {
         const pending = Array.from(this.backgroundTasks);
         pending.push(this.logWriteQueue.catch(() => undefined));
         return Promise.allSettled(pending);
+    }
+
+    async handleViolations(violationsByFile, allRules = {}) {
+        const hasViolations = violationsByFile && Object.keys(violationsByFile).length > 0;
+
+        if (!hasViolations) {
+            this.hasIssues = false;
+            await this.clearValidationReport();
+            return;
+        }
+
+        this.hasIssues = true;
+
+        try {
+            const markdownContent = await this.generateMarkdownReport(violationsByFile, allRules);
+
+            this.logWriteQueue = this.logWriteQueue
+                .catch(() => undefined)
+                .then(async () => {
+                    await fsPromises.writeFile(this.reportPath, markdownContent, 'utf8');
+                });
+
+            await this.logWriteQueue;
+        } catch (reportError) {
+            this.handleError(reportError, {
+                source: 'ReportGenerator',
+                method: 'handleViolations',
+                severity: ERROR_HANDLER_CONFIG.SEVERITY_MEDIUM,
+                isFatal: false
+            });
+        }
+    }
+
+    async generateMarkdownReport(violationsByFile, allRules = {}) {
+        const entries = Object.entries(violationsByFile)
+            .map(([filePath, violations]) => [path.resolve(filePath), violations])
+            .sort((a, b) => a[0].localeCompare(b[0]));
+
+        const totalViolations = entries.reduce((acc, [, violations]) => acc + violations.length, 0);
+        const totalFiles = entries.length;
+        const generatedAt = new Date();
+
+        const ruleCounts = new Map();
+        for (const [, violations] of entries) {
+            for (const violation of violations) {
+                const ruleId = violation.ruleId || 'UNKNOWN_RULE';
+                ruleCounts.set(ruleId, (ruleCounts.get(ruleId) || 0) + 1);
+            }
+        }
+
+        let reportContent = '# Chahuadev Sentinel: Validation Report\n\n';
+        reportContent += `สร้างเมื่อ: ${generatedAt.toLocaleString('th-TH')}\n\n`;
+        reportContent += `## ❗ พบ ${totalViolations} ความผิดกฎใน ${totalFiles} ไฟล์\n\n`;
+
+        if (ruleCounts.size > 0) {
+            reportContent += '### สรุปตามกฎ\n\n';
+            reportContent += '| กฎ | จำนวน |\n| --- | ---: |\n';
+            const sortedRuleCounts = Array.from(ruleCounts.entries())
+                .sort((a, b) => {
+                    if (b[1] === a[1]) {
+                        return a[0].localeCompare(b[0]);
+                    }
+                    return b[1] - a[1];
+                });
+
+            for (const [ruleId, count] of sortedRuleCounts) {
+                const ruleMeta = allRules?.[ruleId] || {};
+                const ruleName = this.resolveLocalizedText(ruleMeta.name, ruleId);
+                reportContent += `| ${ruleId} — ${ruleName} | ${count} |\n`;
+            }
+
+            reportContent += '\n';
+        }
+
+        for (const [filePath, violations] of entries) {
+            const relativePath = path.relative(process.cwd(), filePath);
+            const displayPath = relativePath.startsWith('..') ? filePath : relativePath;
+            const sortedViolations = [...violations].sort((a, b) => {
+                const lineA = typeof a.line === 'number' ? a.line : Number.MAX_SAFE_INTEGER;
+                const lineB = typeof b.line === 'number' ? b.line : Number.MAX_SAFE_INTEGER;
+                if (lineA === lineB) {
+                    return (a.ruleId || '').localeCompare(b.ruleId || '');
+                }
+                return lineA - lineB;
+            });
+
+            reportContent += `### 📄 ไฟล์: \`${displayPath}\`\n\n`;
+
+            for (const violation of sortedViolations) {
+                const ruleId = violation.ruleId || 'UNKNOWN_RULE';
+                const ruleMeta = allRules?.[ruleId] || violation.ruleMetadata || {};
+                const severity = (violation.severity || ruleMeta.severity || 'INFO').toString().toUpperCase();
+                const ruleName = this.resolveLocalizedText(ruleMeta.name, ruleId);
+                const description = this.resolveLocalizedText(ruleMeta.description, 'ไม่มีคำอธิบาย');
+                const fix = this.resolveLocalizedText(ruleMeta.fix || violation.guidance?.how, 'ไม่มีคำแนะนำเพิ่มเติม');
+                const message = violation.message || 'ไม่ระบุข้อความแจ้งเตือน';
+                const lineInfo = typeof violation.line === 'number' ? violation.line : null;
+                const columnInfo = typeof violation.column === 'number' ? violation.column : null;
+
+                reportContent += `#### ❌ ${ruleId} — ${ruleName}\n`;
+                reportContent += `* ระดับความรุนแรง: **${severity}**\n`;
+                reportContent += `* ข้อความ: ${message}\n`;
+                if (lineInfo !== null) {
+                    const location = columnInfo !== null ? `${lineInfo}:${columnInfo}` : lineInfo;
+                    reportContent += `* ตำแหน่ง: บรรทัด ${location}\n`;
+                }
+                reportContent += `* คำอธิบายกฎ: ${description}\n`;
+                reportContent += `* วิธีแก้ไข:\n    > ${fix}\n`;
+
+                const snippet = await this.getCodeSnippet(filePath, lineInfo);
+                reportContent += `* บริบทโค้ด:\n\n${snippet}\n\n---\n\n`;
+            }
+        }
+
+        reportContent += '\n> รายงานนี้สร้างโดย ErrorHandler ของ Chahuadev Sentinel';
+
+        return reportContent;
+    }
+
+    async getCodeSnippet(filePath, lineNumber) {
+        if (!filePath) {
+            return '*ไม่พบข้อมูลไฟล์สำหรับสร้างบริบทโค้ด*\n';
+        }
+
+        try {
+            const resolvedPath = path.resolve(filePath);
+            const content = await fsPromises.readFile(resolvedPath, 'utf8');
+            const lines = content.split(/\r?\n/);
+
+            if (lines.length === 0) {
+                return '*ไฟล์ไม่มีเนื้อหา*\n';
+            }
+
+            const index = typeof lineNumber === 'number' && !Number.isNaN(lineNumber)
+                ? Math.max(0, Math.min(lineNumber - 1, lines.length - 1))
+                : 0;
+
+            const windowSize = 2;
+            const start = Math.max(0, index - windowSize);
+            const end = Math.min(lines.length - 1, index + windowSize);
+            const snippetLines = [];
+
+            for (let i = start; i <= end; i += 1) {
+                const currentLine = i + 1;
+                const indicator = (lineNumber && currentLine === lineNumber) ? '>' : ' ';
+                snippetLines.push(`${indicator} ${String(currentLine).padStart(4, ' ')} | ${lines[i]}`);
+            }
+
+            const language = path.extname(resolvedPath).replace('.', '') || 'text';
+            return ['```' + language, ...snippetLines, '```'].join('\n');
+        } catch (error) {
+            return '*ไม่สามารถอ่านโค้ดอ้างอิงได้*\n';
+        }
+    }
+
+    async clearValidationReport() {
+        try {
+            await fsPromises.unlink(this.reportPath);
+        } catch (error) {
+            if (error?.code !== 'ENOENT') {
+                process.stderr.write(`[REPORT] Failed to remove validation report: ${error.message}\n`);
+            }
+        }
+    }
+
+    resolveLocalizedText(value, fallback = '') {
+        if (!value) {
+            return fallback;
+        }
+
+        if (typeof value === 'string') {
+            return value;
+        }
+
+        if (typeof value === 'object') {
+            if (value.th) {
+                return value.th;
+            }
+            if (value.en) {
+                return value.en;
+            }
+            const [firstKey] = Object.keys(value);
+            if (firstKey) {
+                return value[firstKey];
+            }
+        }
+
+        return fallback;
+    }
+
+    getReportPath() {
+        return this.reportPath;
     }
     
      // ! ══════════════════════════════════════════════════════════════════════════════
