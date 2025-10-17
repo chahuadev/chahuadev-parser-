@@ -15,6 +15,8 @@
 import { ABSOLUTE_RULES, ValidationEngine } from './src/rules/validator.js';
 import { SecurityManager } from './src/security/security-manager.js';
 import errorHandler from './src/error-handler/ErrorHandler.js';
+import { coerceRuleId, resolveRuleSlug } from './src/constants/rule-constants.js';
+import { RULE_SEVERITY_FLAGS, coerceRuleSeverity, resolveRuleSeveritySlug } from './src/constants/severity-constants.js';
 
 import fs from 'fs';
 import path from 'path';// Load CLI configuration from JSON 
@@ -137,7 +139,8 @@ ${cliConfig.helpText.footer}`);
     }
 
     getSeverityLabel(severity) {
-        const level = severity?.toUpperCase() || 'INFO';
+        const severityCode = coerceRuleSeverity(severity, RULE_SEVERITY_FLAGS.INFO);
+        const level = resolveRuleSeveritySlug(severityCode);
         return cliConfig.severityLabels[level] || cliConfig.severityLabels.INFO;
     }
 
@@ -206,11 +209,20 @@ ${cliConfig.helpText.footer}`);
 
                 const line = this.extractLineNumber(violation);
                 const column = this.extractColumnNumber(violation);
+                const ruleId = coerceRuleId(violation.ruleId) ?? coerceRuleId(violation.ruleMetadata?.id) ?? null;
+                const ruleSlug = violation.ruleMetadata?.slug || resolveRuleSlug(ruleId);
+                const severityCode = coerceRuleSeverity(
+                    violation.severity ?? violation.ruleMetadata?.severity,
+                    RULE_SEVERITY_FLAGS.ERROR
+                );
+                const severityLabel = resolveRuleSeveritySlug(severityCode);
 
                 grouped[fileKey].push({
-                    ruleId: violation.ruleId,
+                    ruleId,
+                    ruleSlug,
                     message: violation.message,
-                    severity: violation.severity || violation.ruleMetadata?.severity || 'INFO',
+                    severity: severityCode,
+                    severityLabel,
                     line,
                     column,
                     ruleMetadata: violation.ruleMetadata || null,

@@ -14,13 +14,21 @@
 // ! ABSOLUTE RULES DEFINITION - 5 กฎเหล็กของ Chahuadev
 // ! ======================================================================
 import errorHandler from '../error-handler/ErrorHandler.js';
+import { RULE_IDS, resolveRuleSlug } from '../constants/rule-constants.js';
+import { RULE_SEVERITY_FLAGS } from '../constants/severity-constants.js';
+
+const RULE_ID = RULE_IDS.NO_EMOJI;
+const RULE_SLUG = resolveRuleSlug(RULE_ID);
+const RULE_SEVERITY_ERROR = RULE_SEVERITY_FLAGS.ERROR;
+const RULE_SEVERITY_WARNING = RULE_SEVERITY_FLAGS.WARNING;
 
 const ABSOLUTE_RULES = {
 // ! ======================================================================
 // ! NO_EMOJI - ห้ามใช้อิโมจิในโค้ด (กฎเหล็กข้อที่ 5)
 // ! ======================================================================
-    NO_EMOJI: {
-        id: 'NO_EMOJI',
+    [RULE_ID]: {
+        id: RULE_ID,
+        slug: RULE_SLUG,
         name: {
             en: 'No Emoji in Code',
             th: 'ห้ามใช้อิโมจิในโค้ด'
@@ -399,196 +407,196 @@ const ABSOLUTE_RULES = {
             // ═══════════════════════════════════════════════════════════════════
             // CORE EMOJI RANGES (Unicode 15.1+) - จับอิโมจิหลักทุกตัว
             // ═══════════════════════════════════════════════════════════════════
-            { regex: /[\u{1F600}-\u{1F64F}]/gu, name: 'Emoticons (U+1F600-U+1F64F) - faces, gestures', severity: 'ERROR' },
-            { regex: /[\u{1F300}-\u{1F5FF}]/gu, name: 'Symbols & Pictographs (U+1F300-U+1F5FF) - weather, objects', severity: 'ERROR' },
-            { regex: /[\u{1F680}-\u{1F6FF}]/gu, name: 'Transport & Map (U+1F680-U+1F6FF) - vehicles, places', severity: 'ERROR' },
-            { regex: /[\u{1F700}-\u{1F77F}]/gu, name: 'Alchemical Symbols (U+1F700-U+1F77F) - ancient symbols', severity: 'ERROR' },
-            { regex: /[\u{1F780}-\u{1F7FF}]/gu, name: 'Geometric Shapes Extended (U+1F780-U+1F7FF)', severity: 'ERROR' },
-            { regex: /[\u{1F800}-\u{1F8FF}]/gu, name: 'Supplemental Arrows-C (U+1F800-U+1F8FF)', severity: 'ERROR' },
-            { regex: /[\u{1F900}-\u{1F9FF}]/gu, name: 'Supplemental Symbols (U+1F900-U+1F9FF) - modern emoji', severity: 'ERROR' },
-            { regex: /[\u{1FA00}-\u{1FA6F}]/gu, name: 'Chess & Playing Cards Symbols (U+1FA00-U+1FA6F)', severity: 'ERROR' },
-            { regex: /[\u{1FA70}-\u{1FAFF}]/gu, name: 'Symbols Extended-A (U+1FA70-U+1FAFF) - newest emoji', severity: 'ERROR' },
-            { regex: /[\u{1FB00}-\u{1FBFF}]/gu, name: 'Symbols Extended-B (U+1FB00-U+1FBFF) - Unicode 15+', severity: 'ERROR' },
+            { regex: /[\u{1F600}-\u{1F64F}]/gu, name: 'Emoticons (U+1F600-U+1F64F) - faces, gestures', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{1F300}-\u{1F5FF}]/gu, name: 'Symbols & Pictographs (U+1F300-U+1F5FF) - weather, objects', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{1F680}-\u{1F6FF}]/gu, name: 'Transport & Map (U+1F680-U+1F6FF) - vehicles, places', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{1F700}-\u{1F77F}]/gu, name: 'Alchemical Symbols (U+1F700-U+1F77F) - ancient symbols', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{1F780}-\u{1F7FF}]/gu, name: 'Geometric Shapes Extended (U+1F780-U+1F7FF)', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{1F800}-\u{1F8FF}]/gu, name: 'Supplemental Arrows-C (U+1F800-U+1F8FF)', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{1F900}-\u{1F9FF}]/gu, name: 'Supplemental Symbols (U+1F900-U+1F9FF) - modern emoji', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{1FA00}-\u{1FA6F}]/gu, name: 'Chess & Playing Cards Symbols (U+1FA00-U+1FA6F)', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{1FA70}-\u{1FAFF}]/gu, name: 'Symbols Extended-A (U+1FA70-U+1FAFF) - newest emoji', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{1FB00}-\u{1FBFF}]/gu, name: 'Symbols Extended-B (U+1FB00-U+1FBFF) - Unicode 15+', severity: RULE_SEVERITY_ERROR },
 
             // ═══════════════════════════════════════════════════════════════════
             // EXTENDED SYMBOL RANGES - จับสัญลักษณ์พิเศษทั้งหมด
             // ═══════════════════════════════════════════════════════════════════
-            { regex: /[\u{2600}-\u{26FF}]/gu, name: 'Miscellaneous Symbols (U+2600-U+26FF) - sun, star, weather', severity: 'ERROR' },
-            { regex: /[\u{2700}-\u{27BF}]/gu, name: 'Dingbats (U+2700-U+27BF) - scissors, checkmarks, arrows', severity: 'ERROR' },
-            { regex: /[\u{1F1E0}-\u{1F1FF}]/gu, name: 'Regional Indicator (U+1F1E0-U+1F1FF) - flag letters', severity: 'ERROR' },
+            { regex: /[\u{2600}-\u{26FF}]/gu, name: 'Miscellaneous Symbols (U+2600-U+26FF) - sun, star, weather', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{2700}-\u{27BF}]/gu, name: 'Dingbats (U+2700-U+27BF) - scissors, checkmarks, arrows', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{1F1E0}-\u{1F1FF}]/gu, name: 'Regional Indicator (U+1F1E0-U+1F1FF) - flag letters', severity: RULE_SEVERITY_ERROR },
 
             // ═══════════════════════════════════════════════════════════════════
             // SKIN TONE MODIFIERS - จับ skin tone modifiers ทั้งหมด
             // ═══════════════════════════════════════════════════════════════════
-            { regex: /[\u{1F3FB}-\u{1F3FF}]/gu, name: 'Skin Tone Modifiers (U+1F3FB-U+1F3FF) - light to dark skin', severity: 'ERROR' },
+            { regex: /[\u{1F3FB}-\u{1F3FF}]/gu, name: 'Skin Tone Modifiers (U+1F3FB-U+1F3FF) - light to dark skin', severity: RULE_SEVERITY_ERROR },
 
             // ═══════════════════════════════════════════════════════════════════
             // VARIATION SELECTORS - จับ emoji vs text presentation selectors
             // ═══════════════════════════════════════════════════════════════════
-            { regex: /[\u{FE0E}\u{FE0F}]/gu, name: 'Variation Selectors (U+FE0E text, U+FE0F emoji)', severity: 'ERROR' },
-            { regex: /\u{2764}\u{FE0F}/gu, name: 'Red Heart with Emoji Variation Selector', severity: 'ERROR' },
-            { regex: /\u{2665}\u{FE0F}/gu, name: 'Black Heart with Variation Selector', severity: 'ERROR' },
+            { regex: /[\u{FE0E}\u{FE0F}]/gu, name: 'Variation Selectors (U+FE0E text, U+FE0F emoji)', severity: RULE_SEVERITY_ERROR },
+            { regex: /\u{2764}\u{FE0F}/gu, name: 'Red Heart with Emoji Variation Selector', severity: RULE_SEVERITY_ERROR },
+            { regex: /\u{2665}\u{FE0F}/gu, name: 'Black Heart with Variation Selector', severity: RULE_SEVERITY_ERROR },
 
             // ═══════════════════════════════════════════════════════════════════
             // ZWJ SEQUENCES - จับ Zero Width Joiner emoji sequences (family, profession)
             // ═══════════════════════════════════════════════════════════════════
-            { regex: /\u{200D}/gu, name: 'Zero Width Joiner (U+200D) - used in multi-person emoji', severity: 'ERROR' },
-            { regex: /\u{1F469}\u{200D}\u{2695}\u{FE0F}/gu, name: 'Woman Health Worker ZWJ sequence', severity: 'ERROR' },
-            { regex: /\u{1F468}\u{200D}\u{1F4BB}/gu, name: 'Man Technologist ZWJ sequence', severity: 'ERROR' },
-            { regex: /\u{1F469}\u{200D}\u{1F373}/gu, name: 'Woman Cook ZWJ sequence', severity: 'ERROR' },
-            { regex: /\u{1F468}\u{200D}\u{1F692}/gu, name: 'Man Firefighter ZWJ sequence', severity: 'ERROR' },
+            { regex: /\u{200D}/gu, name: 'Zero Width Joiner (U+200D) - used in multi-person emoji', severity: RULE_SEVERITY_ERROR },
+            { regex: /\u{1F469}\u{200D}\u{2695}\u{FE0F}/gu, name: 'Woman Health Worker ZWJ sequence', severity: RULE_SEVERITY_ERROR },
+            { regex: /\u{1F468}\u{200D}\u{1F4BB}/gu, name: 'Man Technologist ZWJ sequence', severity: RULE_SEVERITY_ERROR },
+            { regex: /\u{1F469}\u{200D}\u{1F373}/gu, name: 'Woman Cook ZWJ sequence', severity: RULE_SEVERITY_ERROR },
+            { regex: /\u{1F468}\u{200D}\u{1F692}/gu, name: 'Man Firefighter ZWJ sequence', severity: RULE_SEVERITY_ERROR },
 
             // ═══════════════════════════════════════════════════════════════════
             // FAMILY AND COUPLE SEQUENCES - จับ family emoji combinations
             // ═══════════════════════════════════════════════════════════════════
-            { regex: /\u{1F468}\u{200D}\u{1F469}\u{200D}/gu, name: 'Family: Man, Woman... ZWJ sequence', severity: 'ERROR' },
-            { regex: /\u{1F469}\u{200D}\u{1F469}\u{200D}/gu, name: 'Family: Woman, Woman... ZWJ sequence', severity: 'ERROR' },
-            { regex: /\u{1F468}\u{200D}\u{1F468}\u{200D}/gu, name: 'Family: Man, Man... ZWJ sequence', severity: 'ERROR' },
-            { regex: /\u{1F48F}\u{1F3FB}/gu, name: 'Kiss with Skin Tone Modifier', severity: 'ERROR' },
-            { regex: /\u{1F491}\u{1F3FC}/gu, name: 'Couple with Heart with Skin Tone', severity: 'ERROR' },
+            { regex: /\u{1F468}\u{200D}\u{1F469}\u{200D}/gu, name: 'Family: Man, Woman... ZWJ sequence', severity: RULE_SEVERITY_ERROR },
+            { regex: /\u{1F469}\u{200D}\u{1F469}\u{200D}/gu, name: 'Family: Woman, Woman... ZWJ sequence', severity: RULE_SEVERITY_ERROR },
+            { regex: /\u{1F468}\u{200D}\u{1F468}\u{200D}/gu, name: 'Family: Man, Man... ZWJ sequence', severity: RULE_SEVERITY_ERROR },
+            { regex: /\u{1F48F}\u{1F3FB}/gu, name: 'Kiss with Skin Tone Modifier', severity: RULE_SEVERITY_ERROR },
+            { regex: /\u{1F491}\u{1F3FC}/gu, name: 'Couple with Heart with Skin Tone', severity: RULE_SEVERITY_ERROR },
 
             // ═══════════════════════════════════════════════════════════════════
             // KEYCAP SEQUENCES - จับ keycap emoji (numbers with enclosing keycap)
             // ═══════════════════════════════════════════════════════════════════
-            { regex: /[\u{0030}-\u{0039}]\u{FE0F}\u{20E3}/gu, name: 'Number Keycap (0-9 with keycap)', severity: 'ERROR' },
-            { regex: /\u{0023}\u{FE0F}\u{20E3}/gu, name: 'Hash Keycap "[HASH_KEYCAP]"', severity: 'ERROR' },
-            { regex: /\u{002A}\u{FE0F}\u{20E3}/gu, name: 'Asterisk Keycap "[ASTERISK_KEYCAP]"', severity: 'ERROR' },
+            { regex: /[\u{0030}-\u{0039}]\u{FE0F}\u{20E3}/gu, name: 'Number Keycap (0-9 with keycap)', severity: RULE_SEVERITY_ERROR },
+            { regex: /\u{0023}\u{FE0F}\u{20E3}/gu, name: 'Hash Keycap "[HASH_KEYCAP]"', severity: RULE_SEVERITY_ERROR },
+            { regex: /\u{002A}\u{FE0F}\u{20E3}/gu, name: 'Asterisk Keycap "[ASTERISK_KEYCAP]"', severity: RULE_SEVERITY_ERROR },
 
             // ═══════════════════════════════════════════════════════════════════
             // TAG SEQUENCES - จับ tag characters used in flag sequences
             // ═══════════════════════════════════════════════════════════════════
-            { regex: /[\u{E0020}-\u{E007F}]/gu, name: 'Tag Characters (U+E0020-U+E007F) - used in subdivision flags', severity: 'ERROR' },
-            { regex: /\u{1F3F4}\u{E0067}\u{E0062}/gu, name: 'England Flag Tag Sequence', severity: 'ERROR' },
-            { regex: /\u{1F3F4}\u{E0067}\u{E0062}\u{E0073}\u{E0063}\u{E0074}/gu, name: 'Scotland Flag Tag Sequence', severity: 'ERROR' },
+            { regex: /[\u{E0020}-\u{E007F}]/gu, name: 'Tag Characters (U+E0020-U+E007F) - used in subdivision flags', severity: RULE_SEVERITY_ERROR },
+            { regex: /\u{1F3F4}\u{E0067}\u{E0062}/gu, name: 'England Flag Tag Sequence', severity: RULE_SEVERITY_ERROR },
+            { regex: /\u{1F3F4}\u{E0067}\u{E0062}\u{E0073}\u{E0063}\u{E0074}/gu, name: 'Scotland Flag Tag Sequence', severity: RULE_SEVERITY_ERROR },
 
             // ═══════════════════════════════════════════════════════════════════
             // HTML ENTITIES FOR EMOJI - จับ HTML entity ของ emoji
             // ═══════════════════════════════════════════════════════════════════
-            { regex: /&#{1,2}[0-9]{4,6};/g, name: 'HTML Numeric Entity (possible emoji)', severity: 'WARNING' },
-            { regex: /||/g, name: 'HTML Entity for Face Emoji "[GRINNING_FACE][BEAMING_FACE][CRYING_LAUGHING]"', severity: 'ERROR' },
-            { regex: /&#9989;||/g, name: 'HTML Entity for Check/Cross/Button "[CHECK_MARK][CROSS_MARK][CIRCLE]"', severity: 'ERROR' },
+            { regex: /&#{1,2}[0-9]{4,6};/g, name: 'HTML Numeric Entity (possible emoji)', severity: RULE_SEVERITY_WARNING },
+            { regex: /||/g, name: 'HTML Entity for Face Emoji "[GRINNING_FACE][BEAMING_FACE][CRYING_LAUGHING]"', severity: RULE_SEVERITY_ERROR },
+            { regex: /&#9989;||/g, name: 'HTML Entity for Check/Cross/Button "[CHECK_MARK][CROSS_MARK][CIRCLE]"', severity: RULE_SEVERITY_ERROR },
 
             // ═══════════════════════════════════════════════════════════════════
             // UNICODE ESCAPE SEQUENCES - จับ Unicode escape ของ emoji ใน string
             // ═══════════════════════════════════════════════════════════════════
-            { regex: /\\u\{1F[0-9A-Fa-f]{3}\}/g, name: 'Unicode escape for emoji (\\u{1F...})', severity: 'ERROR' },
-            { regex: /\\u1F[0-9A-Fa-f]{2}[0-9A-Fa-f]/g, name: 'Unicode escape for emoji (\\u1F...)', severity: 'ERROR' },
-            { regex: /\\x{1F[0-9A-Fa-f]+}/g, name: 'Hex escape for emoji (\\x{1F...})', severity: 'ERROR' },
+            { regex: /\\u\{1F[0-9A-Fa-f]{3}\}/g, name: 'Unicode escape for emoji (\\u{1F...})', severity: RULE_SEVERITY_ERROR },
+            { regex: /\\u1F[0-9A-Fa-f]{2}[0-9A-Fa-f]/g, name: 'Unicode escape for emoji (\\u1F...)', severity: RULE_SEVERITY_ERROR },
+            { regex: /\\x{1F[0-9A-Fa-f]+}/g, name: 'Hex escape for emoji (\\x{1F...})', severity: RULE_SEVERITY_ERROR },
 
             // ═══════════════════════════════════════════════════════════════════
             // COMMON EMOJI IN STRING LITERALS - จับ emoji ที่มักใช้ใน string
             // ═══════════════════════════════════════════════════════════════════
-            { regex: /["'].*[\u{1F600}-\u{1F64F}].*["']/gu, name: 'String containing face emoji', severity: 'ERROR' },
-            { regex: /["'].*[\u{2764}\u{1F49C}\u{1F49B}\u{1F49A}\u{1F499}\u{1F9E1}].*["']/gu, name: 'String containing heart emoji', severity: 'ERROR' },
-            { regex: /["'].*[\u{1F44D}\u{1F44E}\u{1F44F}\u{1F590}].*["']/gu, name: 'String containing hand gesture emoji', severity: 'ERROR' },
-            { regex: /["'].*[\u{1F525}\u{1F4A5}\u{2728}\u{1F31F}].*["']/gu, name: 'String containing fire/sparkle emoji', severity: 'ERROR' },
+            { regex: /["'].*[\u{1F600}-\u{1F64F}].*["']/gu, name: 'String containing face emoji', severity: RULE_SEVERITY_ERROR },
+            { regex: /["'].*[\u{2764}\u{1F49C}\u{1F49B}\u{1F49A}\u{1F499}\u{1F9E1}].*["']/gu, name: 'String containing heart emoji', severity: RULE_SEVERITY_ERROR },
+            { regex: /["'].*[\u{1F44D}\u{1F44E}\u{1F44F}\u{1F590}].*["']/gu, name: 'String containing hand gesture emoji', severity: RULE_SEVERITY_ERROR },
+            { regex: /["'].*[\u{1F525}\u{1F4A5}\u{2728}\u{1F31F}].*["']/gu, name: 'String containing fire/sparkle emoji', severity: RULE_SEVERITY_ERROR },
 
             // ═══════════════════════════════════════════════════════════════════
             // COMMENT EMOJI - จับ emoji ใน comments
             // ═══════════════════════════════════════════════════════════════════
-            { regex: /\/\/.*[\u{1F600}-\u{1F64F}]/gu, name: 'Single-line comment containing emoji', severity: 'ERROR' },
-            { regex: /\/\*[\s\S]*[\u{1F600}-\u{1F64F}][\s\S]*\*\//gu, name: 'Multi-line comment containing emoji', severity: 'ERROR' },
-            { regex: /#.*[\u{1F600}-\u{1F64F}]/gu, name: 'Hash comment containing emoji (Python, Shell)', severity: 'ERROR' },
+            { regex: /\/\/.*[\u{1F600}-\u{1F64F}]/gu, name: 'Single-line comment containing emoji', severity: RULE_SEVERITY_ERROR },
+            { regex: /\/\*[\s\S]*[\u{1F600}-\u{1F64F}][\s\S]*\*\//gu, name: 'Multi-line comment containing emoji', severity: RULE_SEVERITY_ERROR },
+            { regex: /#.*[\u{1F600}-\u{1F64F}]/gu, name: 'Hash comment containing emoji (Python, Shell)', severity: RULE_SEVERITY_ERROR },
 
             // ═══════════════════════════════════════════════════════════════════
             // VARIABLE NAMES WITH EMOJI - จับชื่อตัวแปรที่มี emoji
             // ═══════════════════════════════════════════════════════════════════
-            { regex: /(?:const|let|var)\s+\w*[\u{1F600}-\u{1F64F}]\w*/gu, name: 'Variable name containing emoji', severity: 'ERROR' },
-            { regex: /function\s+\w*[\u{1F600}-\u{1F64F}]\w*/gu, name: 'Function name containing emoji', severity: 'ERROR' },
-            { regex: /class\s+\w*[\u{1F600}-\u{1F64F}]\w*/gu, name: 'Class name containing emoji', severity: 'ERROR' },
-            { regex: /[\u{1F100}-\u{1F1FF}]/gu, name: 'Enclosed Alphanumeric Supplement', severity: 'ERROR' },
-            { regex: /[\u{2B00}-\u{2BFF}]/gu, name: 'Miscellaneous Symbols and Arrows', severity: 'ERROR' },
+            { regex: /(?:const|let|var)\s+\w*[\u{1F600}-\u{1F64F}]\w*/gu, name: 'Variable name containing emoji', severity: RULE_SEVERITY_ERROR },
+            { regex: /function\s+\w*[\u{1F600}-\u{1F64F}]\w*/gu, name: 'Function name containing emoji', severity: RULE_SEVERITY_ERROR },
+            { regex: /class\s+\w*[\u{1F600}-\u{1F64F}]\w*/gu, name: 'Class name containing emoji', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{1F100}-\u{1F1FF}]/gu, name: 'Enclosed Alphanumeric Supplement', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{2B00}-\u{2BFF}]/gu, name: 'Miscellaneous Symbols and Arrows', severity: RULE_SEVERITY_ERROR },
 
             // ═══════════════════════════════════════════════════════════════════
             // MATHEMATICAL & TECHNICAL SYMBOLS - จับสัญลักษณ์ทางคณิตศาสตร์
             // ═══════════════════════════════════════════════════════════════════
-            { regex: /[\u{2190}-\u{21FF}]/gu, name: 'Arrows (U+2190-U+21FF) - directional symbols', severity: 'ERROR' },
-            { regex: /[\u{2200}-\u{22FF}]/gu, name: 'Mathematical Operators (U+2200-U+22FF)', severity: 'ERROR' },
-            { regex: /[\u{2300}-\u{23FF}]/gu, name: 'Miscellaneous Technical (U+2300-U+23FF)', severity: 'ERROR' },
-            { regex: /[\u{2460}-\u{24FF}]/gu, name: 'Enclosed Alphanumerics (U+2460-U+24FF)', severity: 'ERROR' },
-            { regex: /[\u{25A0}-\u{25FF}]/gu, name: 'Geometric Shapes (U+25A0-U+25FF)', severity: 'ERROR' },
-            { regex: /[\u{2900}-\u{297F}]/gu, name: 'Supplemental Arrows-A', severity: 'ERROR' },
-            { regex: /[\u{2980}-\u{29FF}]/gu, name: 'Miscellaneous Mathematical Symbols-A', severity: 'ERROR' },
-            { regex: /[\u{2A00}-\u{2AFF}]/gu, name: 'Supplemental Mathematical Operators', severity: 'ERROR' },
+            { regex: /[\u{2190}-\u{21FF}]/gu, name: 'Arrows (U+2190-U+21FF) - directional symbols', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{2200}-\u{22FF}]/gu, name: 'Mathematical Operators (U+2200-U+22FF)', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{2300}-\u{23FF}]/gu, name: 'Miscellaneous Technical (U+2300-U+23FF)', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{2460}-\u{24FF}]/gu, name: 'Enclosed Alphanumerics (U+2460-U+24FF)', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{25A0}-\u{25FF}]/gu, name: 'Geometric Shapes (U+25A0-U+25FF)', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{2900}-\u{297F}]/gu, name: 'Supplemental Arrows-A', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{2980}-\u{29FF}]/gu, name: 'Miscellaneous Mathematical Symbols-A', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{2A00}-\u{2AFF}]/gu, name: 'Supplemental Mathematical Operators', severity: RULE_SEVERITY_ERROR },
 
             // ═══════════════════════════════════════════════════════════════════
             // ASIAN & SPECIAL SYMBOLS - จับสัญลักษณ์เอเชียและพิเศษ
             // ═══════════════════════════════════════════════════════════════════
-            { regex: /[\u{3030}]/gu, name: 'Wavy dash (U+3030) - Japanese symbol', severity: 'ERROR' },
-            { regex: /[\u{303D}]/gu, name: 'Part alternation mark (U+303D) - Japanese', severity: 'ERROR' },
-            { regex: /[\u{3297}]/gu, name: 'Japanese congratulations symbol (U+3297)', severity: 'ERROR' },
-            { regex: /[\u{3299}]/gu, name: 'Japanese secret symbol (U+3299)', severity: 'ERROR' },
-            { regex: /[\u{1F004}]/gu, name: 'Mahjong tile (U+1F004)', severity: 'ERROR' },
-            { regex: /[\u{1F0CF}]/gu, name: 'Playing card (U+1F0CF)', severity: 'ERROR' },
+            { regex: /[\u{3030}]/gu, name: 'Wavy dash (U+3030) - Japanese symbol', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{303D}]/gu, name: 'Part alternation mark (U+303D) - Japanese', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{3297}]/gu, name: 'Japanese congratulations symbol (U+3297)', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{3299}]/gu, name: 'Japanese secret symbol (U+3299)', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{1F004}]/gu, name: 'Mahjong tile (U+1F004)', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{1F0CF}]/gu, name: 'Playing card (U+1F0CF)', severity: RULE_SEVERITY_ERROR },
 
             // ═══════════════════════════════════════════════════════════════════
             // EMOJI MODIFIERS & COMPONENTS - จับส่วนประกอบอิโมจิ
             // ═══════════════════════════════════════════════════════════════════
-            { regex: /[\u{1F3FB}-\u{1F3FF}]/gu, name: 'Skin tone modifiers (U+1F3FB-U+1F3FF) - light to dark', severity: 'ERROR' },
-            { regex: /[\u{FE00}-\u{FE0F}]/gu, name: 'Variation Selectors (U+FE00-U+FE0F) - emoji vs text', severity: 'ERROR' },
-            { regex: /[\u{200D}]/gu, name: 'Zero Width Joiner (U+200D ZWJ) - combines emoji', severity: 'ERROR' },
-            { regex: /[\u{20E3}]/gu, name: 'Combining Enclosing Keycap (U+20E3)', severity: 'ERROR' },
-            { regex: /[\u{E0020}-\u{E007F}]/gu, name: 'Tag characters (U+E0020-U+E007F) - for flag emoji', severity: 'ERROR' },
+            { regex: /[\u{1F3FB}-\u{1F3FF}]/gu, name: 'Skin tone modifiers (U+1F3FB-U+1F3FF) - light to dark', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{FE00}-\u{FE0F}]/gu, name: 'Variation Selectors (U+FE00-U+FE0F) - emoji vs text', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{200D}]/gu, name: 'Zero Width Joiner (U+200D ZWJ) - combines emoji', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{20E3}]/gu, name: 'Combining Enclosing Keycap (U+20E3)', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{E0020}-\u{E007F}]/gu, name: 'Tag characters (U+E0020-U+E007F) - for flag emoji', severity: RULE_SEVERITY_ERROR },
 
             // ═══════════════════════════════════════════════════════════════════
             // COMPLEX ZWJ SEQUENCES - จับอิโมจิซับซ้อนที่รวมกัน
             // ═══════════════════════════════════════════════════════════════════
-            { regex: /\u{1F468}\u{200D}\u{1F4BB}/gu, name: 'Man technologist ZWJ sequence', severity: 'ERROR' },
-            { regex: /\u{1F469}\u{200D}\u{1F4BC}/gu, name: 'Woman office worker ZWJ sequence', severity: 'ERROR' },
-            { regex: /\u{1F468}\u{200D}\u{1F680}/gu, name: 'Man astronaut ZWJ sequence', severity: 'ERROR' },
-            { regex: /\u{1F469}\u{200D}\u{1F680}/gu, name: 'Woman astronaut ZWJ sequence', severity: 'ERROR' },
-            { regex: /\u{1F468}\u{200D}\u{1F692}/gu, name: 'Man firefighter ZWJ sequence', severity: 'ERROR' },
-            { regex: /\u{1F469}\u{200D}\u{1F692}/gu, name: 'Woman firefighter ZWJ sequence', severity: 'ERROR' },
-            { regex: /\u{1F3F3}\u{FE0F}\u{200D}\u{1F308}/gu, name: 'Rainbow flag ZWJ sequence', severity: 'ERROR' },
-            { regex: /\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}\u{200D}\u{1F466}/gu, name: 'Family ZWJ sequence', severity: 'ERROR' },
+            { regex: /\u{1F468}\u{200D}\u{1F4BB}/gu, name: 'Man technologist ZWJ sequence', severity: RULE_SEVERITY_ERROR },
+            { regex: /\u{1F469}\u{200D}\u{1F4BC}/gu, name: 'Woman office worker ZWJ sequence', severity: RULE_SEVERITY_ERROR },
+            { regex: /\u{1F468}\u{200D}\u{1F680}/gu, name: 'Man astronaut ZWJ sequence', severity: RULE_SEVERITY_ERROR },
+            { regex: /\u{1F469}\u{200D}\u{1F680}/gu, name: 'Woman astronaut ZWJ sequence', severity: RULE_SEVERITY_ERROR },
+            { regex: /\u{1F468}\u{200D}\u{1F692}/gu, name: 'Man firefighter ZWJ sequence', severity: RULE_SEVERITY_ERROR },
+            { regex: /\u{1F469}\u{200D}\u{1F692}/gu, name: 'Woman firefighter ZWJ sequence', severity: RULE_SEVERITY_ERROR },
+            { regex: /\u{1F3F3}\u{FE0F}\u{200D}\u{1F308}/gu, name: 'Rainbow flag ZWJ sequence', severity: RULE_SEVERITY_ERROR },
+            { regex: /\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}\u{200D}\u{1F466}/gu, name: 'Family ZWJ sequence', severity: RULE_SEVERITY_ERROR },
 
             // ═══════════════════════════════════════════════════════════════════
             // HEART VARIATIONS - จับหัวใจทุกสี (มักใช้ใน comment)
             // ═══════════════════════════════════════════════════════════════════
-            { regex: /\u{2764}\u{FE0F}/gu, name: 'Red heart with variation (U+2764 U+FE0F)', severity: 'ERROR' },
-            { regex: /\u{2764}/gu, name: 'Red heart (U+2764)', severity: 'ERROR' },
-            { regex: /\u{1F49A}/gu, name: 'Green heart (U+1F49A)', severity: 'ERROR' },
-            { regex: /\u{1F499}/gu, name: 'Blue heart (U+1F499)', severity: 'ERROR' },
-            { regex: /\u{1F49B}/gu, name: 'Yellow heart (U+1F49B)', severity: 'ERROR' },
-            { regex: /\u{1F9E1}/gu, name: 'Orange heart (U+1F9E1)', severity: 'ERROR' },
-            { regex: /\u{1F49C}/gu, name: 'Purple heart (U+1F49C)', severity: 'ERROR' },
-            { regex: /\u{1F5A4}/gu, name: 'Black heart (U+1F5A4)', severity: 'ERROR' },
-            { regex: /\u{1F90D}/gu, name: 'White heart (U+1F90D)', severity: 'ERROR' },
-            { regex: /\u{1F90E}/gu, name: 'Brown heart (U+1F90E)', severity: 'ERROR' },
+            { regex: /\u{2764}\u{FE0F}/gu, name: 'Red heart with variation (U+2764 U+FE0F)', severity: RULE_SEVERITY_ERROR },
+            { regex: /\u{2764}/gu, name: 'Red heart (U+2764)', severity: RULE_SEVERITY_ERROR },
+            { regex: /\u{1F49A}/gu, name: 'Green heart (U+1F49A)', severity: RULE_SEVERITY_ERROR },
+            { regex: /\u{1F499}/gu, name: 'Blue heart (U+1F499)', severity: RULE_SEVERITY_ERROR },
+            { regex: /\u{1F49B}/gu, name: 'Yellow heart (U+1F49B)', severity: RULE_SEVERITY_ERROR },
+            { regex: /\u{1F9E1}/gu, name: 'Orange heart (U+1F9E1)', severity: RULE_SEVERITY_ERROR },
+            { regex: /\u{1F49C}/gu, name: 'Purple heart (U+1F49C)', severity: RULE_SEVERITY_ERROR },
+            { regex: /\u{1F5A4}/gu, name: 'Black heart (U+1F5A4)', severity: RULE_SEVERITY_ERROR },
+            { regex: /\u{1F90D}/gu, name: 'White heart (U+1F90D)', severity: RULE_SEVERITY_ERROR },
+            { regex: /\u{1F90E}/gu, name: 'Brown heart (U+1F90E)', severity: RULE_SEVERITY_ERROR },
 
             // ═══════════════════════════════════════════════════════════════════
             // HTML ENTITIES - จับอิโมจิในรูปแบบ HTML
             // ═══════════════════════════════════════════════════════════════════
-            { regex: /&#x1F[0-9A-Fa-f]{3,4};/g, name: 'Hex HTML emoji entity ()', severity: 'ERROR' },
-            { regex: /&#1[0-9]{4,6};/g, name: 'Decimal HTML emoji entity ()', severity: 'ERROR' },
-            { regex: /&(?:hearts?|spades?|clubs?|diams?|star|check|cross|times);/gi, name: 'Named HTML symbol entities', severity: 'ERROR' },
+            { regex: /&#x1F[0-9A-Fa-f]{3,4};/g, name: 'Hex HTML emoji entity ()', severity: RULE_SEVERITY_ERROR },
+            { regex: /&#1[0-9]{4,6};/g, name: 'Decimal HTML emoji entity ()', severity: RULE_SEVERITY_ERROR },
+            { regex: /&(?:hearts?|spades?|clubs?|diams?|star|check|cross|times);/gi, name: 'Named HTML symbol entities', severity: RULE_SEVERITY_ERROR },
 
             // ═══════════════════════════════════════════════════════════════════
             // CATCH-ALL COMPREHENSIVE PATTERNS - จับทุกอย่างที่เหลือ
             // ═══════════════════════════════════════════════════════════════════
-            { regex: /[\u{1F000}-\u{1FFFF}]/gu, name: 'Complete emoji plane (U+1F000-U+1FFFF)', severity: 'ERROR' },
-            { regex: /[\u{2600}-\u{27FF}]/gu, name: 'Extended symbol coverage (U+2600-U+27FF)', severity: 'ERROR' },
+            { regex: /[\u{1F000}-\u{1FFFF}]/gu, name: 'Complete emoji plane (U+1F000-U+1FFFF)', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{2600}-\u{27FF}]/gu, name: 'Extended symbol coverage (U+2600-U+27FF)', severity: RULE_SEVERITY_ERROR },
 
             // ═══════════════════════════════════════════════════════════════════
             // SPECIFIC COMMON EMOJI - จับอิโมจิที่ใช้บ่อยโดยเฉพาะ
             // ═══════════════════════════════════════════════════════════════════
-            { regex: /[\u2705]/gu, name: 'Check mark button (U+2705) - commonly misused', severity: 'ERROR' },
-            { regex: /[\u274C]/gu, name: 'Cross mark (U+274C) - commonly misused', severity: 'ERROR' },
-            { regex: /[\u26A0][\uFE0F]?/gu, name: 'Warning sign (U+26A0) - use "WARNING"', severity: 'ERROR' },
-            { regex: /[\u{1F680}]/gu, name: 'Rocket (U+1F680) - unprofessional', severity: 'ERROR' },
-            { regex: /[\u{1F44D}\u{1F44E}]/gu, name: 'Thumbs up/down (U+1F44D/U+1F44E)', severity: 'ERROR' },
-            { regex: /[\u{1F525}]/gu, name: 'Fire (U+1F525) - unprofessional slang', severity: 'ERROR' },
-            { regex: /[\u{1F4AF}]/gu, name: '100 points (U+1F4AF) - unprofessional', severity: 'ERROR' },
-            { regex: /[\u{1F389}]/gu, name: 'Party popper (U+1F389) - unprofessional', severity: 'ERROR' },
-            { regex: /[\u2B50\u{1F31F}]/gu, name: 'Star (U+2B50/U+1F31F)', severity: 'ERROR' },
-            { regex: /[\u{1F4DD}]/gu, name: 'Memo (U+1F4DD) - use "NOTE" or "TODO"', severity: 'ERROR' },
-            { regex: /[\u{1F41B}]/gu, name: 'Bug (U+1F41B) - use "BUG" or "FIXME"', severity: 'ERROR' },
-            { regex: /[\u26A1]/gu, name: 'Lightning (U+26A1) - use "FAST" or "PERF"', severity: 'ERROR' },
-            { regex: /[\u{1F527}]/gu, name: 'Wrench (U+1F527) - use "FIX" or "TOOL"', severity: 'ERROR' },
-            { regex: '[\\u{1F4E6}]', flags: 'gu', name: 'Package (U+1F4E6) - use "PACKAGE"', severity: 'ERROR' },
-            { regex: '[\\u{1F3AF}]', flags: 'gu', name: 'Direct hit (U+1F3AF) - use "TARGET"', severity: 'ERROR' },
+            { regex: /[\u2705]/gu, name: 'Check mark button (U+2705) - commonly misused', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u274C]/gu, name: 'Cross mark (U+274C) - commonly misused', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u26A0][\uFE0F]?/gu, name: 'Warning sign (U+26A0) - use "WARNING"', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{1F680}]/gu, name: 'Rocket (U+1F680) - unprofessional', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{1F44D}\u{1F44E}]/gu, name: 'Thumbs up/down (U+1F44D/U+1F44E)', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{1F525}]/gu, name: 'Fire (U+1F525) - unprofessional slang', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{1F4AF}]/gu, name: '100 points (U+1F4AF) - unprofessional', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{1F389}]/gu, name: 'Party popper (U+1F389) - unprofessional', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u2B50\u{1F31F}]/gu, name: 'Star (U+2B50/U+1F31F)', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{1F4DD}]/gu, name: 'Memo (U+1F4DD) - use "NOTE" or "TODO"', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{1F41B}]/gu, name: 'Bug (U+1F41B) - use "BUG" or "FIXME"', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u26A1]/gu, name: 'Lightning (U+26A1) - use "FAST" or "PERF"', severity: RULE_SEVERITY_ERROR },
+            { regex: /[\u{1F527}]/gu, name: 'Wrench (U+1F527) - use "FIX" or "TOOL"', severity: RULE_SEVERITY_ERROR },
+            { regex: '[\\u{1F4E6}]', flags: 'gu', name: 'Package (U+1F4E6) - use "PACKAGE"', severity: RULE_SEVERITY_ERROR },
+            { regex: '[\\u{1F3AF}]', flags: 'gu', name: 'Direct hit (U+1F3AF) - use "TARGET"', severity: RULE_SEVERITY_ERROR },
         ],
-        severity: 'ERROR',
+        severity: RULE_SEVERITY_ERROR,
 // ! ======================================================================
 // ! violationExamples - ตัวอย่างการละเมิดกฎ NO_EMOJI
 // ! ======================================================================

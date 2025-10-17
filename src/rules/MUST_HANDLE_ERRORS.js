@@ -10,6 +10,12 @@
 // ! ======================================================================
 
 import errorHandler from '../error-handler/ErrorHandler.js';
+import { RULE_IDS, resolveRuleSlug } from '../constants/rule-constants.js';
+import { RULE_SEVERITY_FLAGS } from '../constants/severity-constants.js';
+
+const RULE_ID = RULE_IDS.MUST_HANDLE_ERRORS;
+const RULE_SLUG = resolveRuleSlug(RULE_ID);
+const RULE_SEVERITY = RULE_SEVERITY_FLAGS.ERROR;
 
 function hasTryStatement(block) {
     if (!block || block.type !== 'BlockStatement' || !Array.isArray(block.body)) {
@@ -98,9 +104,9 @@ function collectAsyncFunctionViolations(ast, code, filePath) {
                 const functionName = getFunctionName(node);
 
                 violations.push({
-                    ruleId: 'MUST_HANDLE_ERRORS',
+                    ruleId: RULE_ID,
                     message: `ฟังก์ชัน async "${functionName}" ต้องมี try...catch ครอบแกนหลักของการทำงาน`,
-                    severity: 'ERROR',
+                    severity: RULE_SEVERITY,
                     line: location.line,
                     column: location.column,
                     context: {
@@ -130,8 +136,9 @@ function collectAsyncFunctionViolations(ast, code, filePath) {
 }
 
 const ABSOLUTE_RULES = {
-    MUST_HANDLE_ERRORS: {
-        id: 'MUST_HANDLE_ERRORS',
+    [RULE_ID]: {
+        id: RULE_ID,
+        slug: RULE_SLUG,
         name: {
             th: 'ฟังก์ชัน/เมธอดต้องมีการจัดการ Error'
         },
@@ -141,7 +148,7 @@ const ABSOLUTE_RULES = {
         explanation: {
             th: 'ปรัชญา: "ฟังก์ชันที่ไม่มีการดักจับ Error คือระเบิดเวลา" กฎนี้บังคับให้ทุกฟังก์ชันหรือเมธอดที่มีโอกาสเกิดข้อผิดพลาด (โดยเฉพาะ async) ต้องมีการจัดการ Error อย่างชัดเจน การปล่อยให้ Error หลุดไปจะทำให้แอปพลิเคชันพังและดีบักได้ยากมาก'
         },
-        severity: 'ERROR',
+        severity: RULE_SEVERITY,
         fix: {
             th: 'ครอบโค้ดภายในฟังก์ชัน/เมธอดด้วยบล็อก try...catch และเรียก errorHandler.handleError ภายใน catch เพื่อบันทึกเหตุการณ์'
         },

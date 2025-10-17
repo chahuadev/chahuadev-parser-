@@ -20,36 +20,6 @@
     "vscode": "^1.74.0",
     "node": ">=22.0.0"
   },
-  "jest": {
-    "testEnvironment": "node",
-    "transform": {},
-    "moduleNameMapper": {
-      "^(\\.{1,2}/.*)\\.js$": "$1"
-    },
-    "testMatch": [
-      "**/__tests__/**/*.test.js"
-    ],
-    "collectCoverageFrom": [
-      "src/**/*.js",
-      "!src/**/*.d.ts",
-      "!src/**/index.js"
-    ],
-    "coverageThreshold": {
-      "global": {
-        "branches": 80,
-        "functions": 80,
-        "lines": 80,
-        "statements": 80
-      }
-    },
-    "globalSetup": "./__tests__/setup/global-setup.js",
-    "globalTeardown": "./__tests__/setup/global-teardown.js",
-    "reporters": [
-      "./__tests__/utils/custom-jest-reporter.js"
-    ],
-    "verbose": false,
-    "silent": true
-  },
   "categories": [
     "Linters"
   ],
@@ -194,8 +164,7 @@
   ],
   "scripts": {
     "test": "node cli.js",
-    "lint": "node cli.js .",
-    "clean-emoji": "node emoji-cleaner.js ."
+    "lint": "node cli.js ."
   },
   "repository": {
     "type": "git",

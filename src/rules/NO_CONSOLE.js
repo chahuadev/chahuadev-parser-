@@ -14,13 +14,20 @@
 // ! ABSOLUTE RULES DEFINITION - 7 กฎเหล็กของ Chahuadev
 // ! ======================================================================
 import errorHandler from '../error-handler/ErrorHandler.js';
+import { RULE_IDS, resolveRuleSlug } from '../constants/rule-constants.js';
+import { RULE_SEVERITY_FLAGS } from '../constants/severity-constants.js';
+
+const RULE_ID = RULE_IDS.NO_CONSOLE;
+const RULE_SLUG = resolveRuleSlug(RULE_ID);
+const RULE_SEVERITY = RULE_SEVERITY_FLAGS.ERROR;
 
 const ABSOLUTE_RULES = {
 // ! ======================================================================
 // ! NO_CONSOLE - ห้ามใช้ console.* ในระบบหลัก (กฎเหล็กข้อที่ 7)
 // ! ======================================================================
-    NO_CONSOLE: {
-        id: 'NO_CONSOLE',
+    [RULE_ID]: {
+        id: RULE_ID,
+        slug: RULE_SLUG,
         name: {
             en: 'No Direct console Usage Anywhere in Production Logic',
             th: 'ห้ามใช้ console โดยตรงในตรรกะสำหรับใช้งานจริง'
@@ -34,11 +41,11 @@ const ABSOLUTE_RULES = {
             th: 'ปรัชญาหลัก: "ศูนย์รวมการสังเกตการณ์ ถ้าไม่ผ่าน errorHandler ถือว่าไม่เกิด"\nคำถาม 01: ทำไม console.* ถึงถูกแบนใน Sentinel runtime?\nคำตอบ: console ส่งข้อมูลออกนอกนโยบายปกปิด ไม่คุมระดับความรุนแรง และไหลตรง stdout/stderr ทำให้ขัดมาตรฐาน SOC2/ISO.\nคำถาม 02: ใช้ console.log ในสคริปต์พัฒนาได้ไหม?\nคำตอบ: ใช้ได้เฉพาะสคริปต์ dev ที่อยู่นอกขอบเขต production bundling ส่วนที่อยู่ใน src/ และรันโดย CLI, ส่วนขยาย VS Code หรือ daemon ถือเป็น production ต้องใช้ errorHandler.\nคำถาม 03: ห่อ console.log ด้วย helper เพียงพอหรือไม่?\nคำตอบ: ไม่พอ เพราะ reviewer ต้องเปิดดู helper ทุกตัว ในขณะที่ errorHandler รวมการปกปิดข้อมูล การ batch การ throttle และการส่งต่อ (ไฟล์, syslog, webhook) ไว้ที่เดียวกำหนดผ่าน config.\nคำถาม 04: ความเสียหายจริงคืออะไรถ้า console ยังอยู่?\nคำตอบ: ข้อมูลสำคัญ (API key, token) หลุดไป log, บริการหลายโปรเซสไม่มี correlation id, deployment บน cloud โดน throttle stdout ทำให้เกิด backpressure และระบบเทสอัตโนมัติควบคุม output ไม่ได้.\nคำถาม 05: errorHandler แก้ปัญหาเหล่านี้อย่างไร?\nคำตอบ: บังคับใช้ระดับความรุนแรงตาม constants.js, ซ่อนข้อมูลลับอัตโนมัติ, ผูก correlation id, รองรับช่องทาง asynchronous และแจ้งเตือนเหตุการณ์ CRITICAL ไป dashboard ได้.\nเช็คลิสต์ตรวจสอบ: (1) ไฟล์ไหน import errorHandler แต่ยังเรียก console ให้ลบทิ้ง (2) โค้ดรันใน tokenizer/parser/analyzer/validator/cli หรือไม่ ถ้าใช่ห้ามใช้ console (3) ข้อความมีข้อมูลปฏิบัติการหรือไม่ ให้ส่งผ่าน errorHandler พร้อม payload ที่มีโครงสร้าง (4) ดีบักในเครื่องหรือไม่ ให้ใช้ errorHandler.handleDebug หรือ logger เฉพาะ dev ที่ไม่ถูกรวมใน production.\nกรณีที่อนุญาต: ไฟล์ทดลองที่อยู่นอก src/, unit test ใน __tests__, และสคริปต์ MVP ชั่วคราวเท่านั้น ส่วนอื่นต้องใช้ errorHandler.\nแผนการแก้ไข: แทน console.* เป็น errorHandler.handleError หรือ handleDebug, เลือกระดับความรุนแรงจาก constants.js และเพิ่ม regression test เพื่อกันไม่ให้ console กลับมาอีก'
         },
         patterns: [
-            { regex: /console\.(log|warn|error|info|debug|trace)\s*\(/g, name: 'Direct console.* invocation', severity: 'ERROR' },
-            { regex: /\bconsole\s*\[/g, name: 'Dynamic console access via bracket notation', severity: 'ERROR' },
-            { regex: /globalThis\.console\./g, name: 'Global console usage through globalThis', severity: 'ERROR' }
+            { regex: /console\.(log|warn|error|info|debug|trace)\s*\(/g, name: 'Direct console.* invocation', severity: RULE_SEVERITY },
+            { regex: /\bconsole\s*\[/g, name: 'Dynamic console access via bracket notation', severity: RULE_SEVERITY },
+            { regex: /globalThis\.console\./g, name: 'Global console usage through globalThis', severity: RULE_SEVERITY }
         ],
-        severity: 'ERROR',
+        severity: RULE_SEVERITY,
         violationExamples: {
             en: [
                 '// @example NO_CONSOLE violation\nconsole.log("Parsing started", context);',
