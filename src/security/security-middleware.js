@@ -10,6 +10,8 @@
 
 // Note: vscode module handling for both extension and test environments
 import errorHandler from '../error-handler/ErrorHandler.js';
+import { emitSecurityNotice as emitSecurityPayload } from '../error-handler/error-emitter.js';
+import { SECURITY_ERROR_CODES } from '../error-handler/error-catalog.js';
 let vscode;
 
 // Initialize vscode module
@@ -28,12 +30,15 @@ async function initializeVSCode() {
             throw new Error('VS Code module loaded but is empty');
         }
     } catch (e) {
-        errorHandler.handleError(e, {
-            source: 'SecurityMiddleware',
-            method: 'initializeVSCode',
-            severity: 'HIGH',
-            context: 'Running outside VS Code environment - Using mock vscode objects for testing'
-        });
+        emitSecurityNotice(
+            e,
+            'initializeVSCode',
+            'HIGH',
+            {
+                detail: 'Running outside VS Code environment - Using mock vscode objects for testing'
+            },
+            SECURITY_ERROR_CODES.SECURITY_MODULE_FAILURE
+        );
         // Running outside VS Code environment (e.g., during testing)
         vscode = {
             // Mock vscode objects for testing
@@ -83,16 +88,34 @@ import {
  * Security Middleware Class
  * Provides security wrappers for VS Code extension operations
  */
-function emitSecurityNotice(message, method, severity, context) {
-    const notice = new Error(message);
-    notice.name = 'SecurityMiddlewareNotice';
-    notice.isOperational = true;
-    errorHandler.handleError(notice, {
-        source: 'SecurityMiddleware',
-        method,
-        severity,
-        context
-    });
+function emitSecurityNotice(messageOrError, method, severity, context, errorCode = SECURITY_ERROR_CODES.SECURITY_NOTICE) {
+    const baselineSeverity = severity || 'HIGH';
+    const originalError = messageOrError instanceof Error
+        ? messageOrError
+        : new Error(String(messageOrError));
+
+    if (!(messageOrError instanceof Error)) {
+        originalError.name = 'SecurityMiddlewareNotice';
+        originalError.isOperational = true;
+    }
+
+    const normalizedContext = (context && typeof context === 'object' && !Array.isArray(context))
+        ? { ...context }
+        : { detail: context };
+
+    emitSecurityPayload(
+        errorCode,
+        originalError,
+        {
+            source: 'SecurityMiddleware',
+            method,
+            severity: baselineSeverity,
+            ...normalizedContext
+        },
+        {
+            severityCode: baselineSeverity
+        }
+    );
 }
 
 class SecurityMiddleware {

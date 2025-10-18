@@ -164,7 +164,8 @@
   ],
   "scripts": {
     "test": "node cli.js",
-    "lint": "node cli.js ."
+    "lint": "node cli.js .",
+    "smoke": "node --test tests/cli-smoke.test.js"
   },
   "repository": {
     "type": "git",

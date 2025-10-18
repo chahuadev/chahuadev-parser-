@@ -13,7 +13,6 @@
 // ! ปรัชญา: "ถ้า AST ยังเป็น Object แสดงว่าระบบยังไม่ได้ Binary-First จริง"
 // ! ======================================================================
 
-import errorHandler from '../error-handler/ErrorHandler.js';
 import { RULE_IDS, resolveRuleSlug } from '../constants/rule-constants.js';
 import { RULE_SEVERITY_FLAGS } from '../constants/severity-constants.js';
 

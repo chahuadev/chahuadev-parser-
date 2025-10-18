@@ -30,6 +30,11 @@
 // ! ══════════════════════════════════════════════════════════════════════════════
 
 import errorHandler from '../error-handler/ErrorHandler.js';
+import { recordTelemetryNotice } from '../error-handler/telemetry-recorder.js';
+import {
+    ERROR_SOURCE_CODES,
+    RUNTIME_ERROR_CODES
+} from '../error-handler/error-catalog.js';
 import {
     RULE_SLUGS,
     RULE_SLUG_TO_ID,
@@ -207,26 +212,31 @@ export class ValidationEngine {
     async initializeParserStudy() {
         try {
             this.parser = await createParser(ABSOLUTE_RULES);
-            const initNotice = new Error('ValidationEngine initialized successfully');
-            initNotice.name = 'ValidationEngineStatus';
-            initNotice.isOperational = true;
-            const severity = ERROR_SEVERITY_FLAGS.LOW;
-            errorHandler.handleError(initNotice, {
+            recordTelemetryNotice({
+                message: 'ValidationEngine initialized successfully',
                 source: 'ValidationEngine',
                 method: 'initializeParserStudy',
-                severity,
-                severityLabel: resolveErrorSeveritySlug(severity),
-                context: 'Parser and rules loaded for validation'
+                severity: resolveErrorSeveritySlug(ERROR_SEVERITY_FLAGS.LOW),
+                context: {
+                    status: 'parser_ready',
+                    parser: this.parser?.constructor?.name || 'PureBinaryParser'
+                }
             });
             return true;
         } catch (error) {
             const severity = ERROR_SEVERITY_FLAGS.CRITICAL;
-            errorHandler.handleError(error, {
+            errorHandler.handleError({
+                error,
                 source: 'ValidationEngine',
                 method: 'initializeParserStudy',
-                severity,
-                severityLabel: resolveErrorSeveritySlug(severity),
-                context: 'ValidationEngine initialization failed - Parser engine creation error'
+                errorCode: RUNTIME_ERROR_CODES.PARSE_FAILURE,
+                severityCode: severity,
+                sourceCode: ERROR_SOURCE_CODES.VALIDATOR,
+                context: {
+                    status: 'parser_boot_failure',
+                    message: error?.message || 'ValidationEngine initialization failed',
+                    stack: error?.stack || null
+                }
             });
             throw new Error(`ValidationEngine initialization failed: ${error.message}`);
         }
@@ -253,12 +263,19 @@ export class ValidationEngine {
             };
         } catch (error) {
             const severity = ERROR_SEVERITY_FLAGS.HIGH;
-            errorHandler.handleError(error, {
+            errorHandler.handleError({
+                error,
                 source: 'ValidationEngine',
                 method: 'validateCode',
-                severity,
-                severityLabel: resolveErrorSeveritySlug(severity),
-                context: `Validation failed for ${fileName} - Code analysis error`
+                errorCode: RUNTIME_ERROR_CODES.PARSE_FAILURE,
+                severityCode: severity,
+                sourceCode: ERROR_SOURCE_CODES.VALIDATOR,
+                filePath: fileName,
+                context: {
+                    status: 'validation_failure',
+                    fileName,
+                    message: error?.message || 'Validation failure during code analysis'
+                }
             });
             throw new Error(`Validation failed for ${fileName}: ${error.message}`);
         }
@@ -289,12 +306,19 @@ export class ValidationEngine {
             } catch (ruleError) {
                 const severity = ERROR_SEVERITY_FLAGS.MEDIUM;
                 const ruleIdentifier = rule?.slug || rule?.id || '<unknown-rule>';
-                errorHandler.handleError(ruleError, {
+                errorHandler.handleError({
+                    error: ruleError,
                     source: 'ValidationEngine',
                     method: 'detectViolations',
-                    severity,
-                    severityLabel: resolveErrorSeveritySlug(severity),
-                    context: `Rule ${ruleIdentifier} check failed for ${fileName}`
+                    errorCode: RUNTIME_ERROR_CODES.PARSE_FAILURE,
+                    severityCode: severity,
+                    sourceCode: ERROR_SOURCE_CODES.VALIDATOR,
+                    filePath: fileName,
+                    context: {
+                        status: 'rule_evaluation_failure',
+                        rule: ruleIdentifier,
+                        message: ruleError?.message || 'Rule evaluation failed'
+                    }
                 });
             }
         }

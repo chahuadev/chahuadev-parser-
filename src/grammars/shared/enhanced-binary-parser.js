@@ -13,6 +13,7 @@
  */
 
 import errorHandler from '../../error-handler/ErrorHandler.js';
+import { recordTelemetryNotice } from '../../error-handler/telemetry-recorder.js';
 import { BinaryScout } from './binary-scout.js';
 import PureBinaryParser from './pure-binary-parser.js';
 import BinaryProphet from './binary-prophet.js';
@@ -81,7 +82,8 @@ class EnhancedBinaryParser extends PureBinaryParser {
                     this.stats.scoutTime = performance.now() - scoutStartTime;
 
                     // ! รายงานความสำเร็จผ่านศูนย์กลาง
-                    errorHandler.handleError(new Error('Scout reconnaissance completed'), {
+                    recordTelemetryNotice({
+                        message: 'Scout reconnaissance completed',
                         source: 'EnhancedBinaryParser',
                         method: 'parse',
                         severity: 'INFO',
@@ -116,7 +118,8 @@ class EnhancedBinaryParser extends PureBinaryParser {
             this.stats.totalTime = performance.now() - totalStartTime;
 
             // Send completion metrics to ErrorHandler (INFO)
-            errorHandler.handleError(new Error('Enhanced parse completed'), {
+            recordTelemetryNotice({
+                message: 'Enhanced parse completed',
                 source: 'EnhancedBinaryParser',
                 method: 'parse',
                 severity: 'INFO',
@@ -158,7 +161,8 @@ class EnhancedBinaryParser extends PureBinaryParser {
             
             if (structure && structure.type === 'function') {
                 // We know the endpoint! Send info to ErrorHandler
-                errorHandler.handleError(new Error('Function structure detected'), {
+                recordTelemetryNotice({
+                    message: 'Function structure detected',
                     source: 'EnhancedBinaryParser',
                     method: 'parseFunctionDeclaration',
                     severity: 'DEBUG',
@@ -215,7 +219,8 @@ class EnhancedBinaryParser extends PureBinaryParser {
         if (!this.options.quantumJumps) return;
 
         try {
-            errorHandler.handleError(new Error('Quantum jump executed'), {
+            recordTelemetryNotice({
+                message: 'Quantum jump executed',
                 source: 'EnhancedBinaryParser',
                 method: 'quantumJump',
                 severity: 'DEBUG',
@@ -275,7 +280,8 @@ class EnhancedBinaryParser extends PureBinaryParser {
         this.current += prophecy.endIndex;
 
         if (this.options?.monitoringConfig?.collectMetrics) {
-            errorHandler.handleError(new Error('Prophet resolved ambiguous object property'), {
+            recordTelemetryNotice({
+                message: 'Prophet resolved ambiguous object property',
                 source: 'EnhancedBinaryParser',
                 method: 'parseObjectPropertyValue',
                 severity: 'INFO',

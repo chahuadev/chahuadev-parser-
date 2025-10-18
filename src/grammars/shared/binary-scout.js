@@ -13,6 +13,7 @@
  */
 
 import errorHandler from '../../error-handler/ErrorHandler.js';
+import { recordTelemetryNotice } from '../../error-handler/telemetry-recorder.js';
 
 /**
  * Binary Scout - Quantum-inspired structure scanner
@@ -112,7 +113,8 @@ class BinaryScout {
             const elapsed = performance.now() - startTime;
             
             // Send metrics to ErrorHandler (INFO level - not an error)
-            errorHandler.handleError(new Error('Scout scan completed'), {
+            recordTelemetryNotice({
+                message: 'Scout scan completed',
                 source: 'BinaryScout',
                 method: 'scanStructure',
                 severity: 'INFO',

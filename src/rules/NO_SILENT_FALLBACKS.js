@@ -14,7 +14,6 @@
 // ! ======================================================================
 // ! ABSOLUTE RULES DEFINITION - 5 กฎเหล็กของ Chahuadev
 // ! ======================================================================
-import errorHandler from '../error-handler/ErrorHandler.js';
 import { RULE_IDS, resolveRuleSlug } from '../constants/rule-constants.js';
 import { RULE_SEVERITY_FLAGS } from '../constants/severity-constants.js';
 

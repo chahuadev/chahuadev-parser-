@@ -23,6 +23,7 @@
 // ! ══════════════════════════════════════════════════════════════════════════════
 
 import errorHandler from '../../error-handler/ErrorHandler.js';
+import { recordTelemetryNotice } from '../../error-handler/telemetry-recorder.js';
 
 // ! Binary constants from tokenizer-binary-config.json
 const BINARY = {
@@ -85,9 +86,8 @@ export class PureBinaryParser {
 
     parse() {
         // ! NO_CONSOLE: ส่ง parse start info ไปยัง ErrorHandler แทน console.log
-        const parseStart = new Error('Pure binary AST generation started');
-        parseStart.isOperational = true;
-        errorHandler.handleError(parseStart, {
+        recordTelemetryNotice({
+            message: 'Pure binary AST generation started',
             source: 'PureBinaryParser',
             method: 'parse',
             severity: 'DEBUG',
@@ -123,9 +123,8 @@ export class PureBinaryParser {
         }
 
         // ! NO_CONSOLE: ส่ง AST success info ไปยัง ErrorHandler แทน console.log
-        const parseSuccess = new Error('Pure binary AST generation completed');
-        parseSuccess.isOperational = true;
-        errorHandler.handleError(parseSuccess, {
+        recordTelemetryNotice({
+            message: 'Pure binary AST generation completed',
             source: 'PureBinaryParser',
             method: 'parse',
             severity: 'INFO',

@@ -119,6 +119,9 @@ import { fileURLToPath } from 'url';
 import { dirname, join, resolve } from 'path';
 import { GrammarIndex } from './grammar-index.js';
 import errorHandler from '../../error-handler/ErrorHandler.js';
+import { recordTelemetryNotice } from '../../error-handler/telemetry-recorder.js';
+import { SYNTAX_ERROR_CODES } from '../../error-handler/error-catalog.js';
+import { ERROR_SEVERITY_FLAGS } from '../../constants/severity-constants.js';
 
 // ! ══════════════════════════════════════════════════════════════════════════════
 // ! LOAD CONFIGURATION - NO_HARDCODE COMPLIANCE
@@ -652,22 +655,9 @@ class PureBinaryTokenizer {
             if (this.brain) {
                 // Use Brain's grammar data directly
                 this.grammarCache = this.brain.grammar || this.brain;
-                
-                // ! NO_CONSOLE: ส่ง DEBUG info ไปยัง ErrorHandler แทน console.log
-                const grammarInfo = new Error('Tokenizer initialized with Brain (GrammarIndex)');
-                grammarInfo.isOperational = true;
-                errorHandler.handleError(grammarInfo, {
-                    source: 'PureBinaryTokenizer',
-                    method: 'loadGrammarSections',
-                    severity: 'DEBUG',
-                    context: {
-                        grammarCacheType: typeof this.grammarCache,
-                        hasKeywords: !!this.grammarCache.keywords,
-                        hasOperators: !!this.grammarCache.operators,
-                        hasPunctuation: !!this.grammarCache.punctuation
-                    }
-                });
-                
+
+                this.assertGrammarBrainIntegrity(this.grammarCache);
+
                 // ! FLATTEN nested structure to hash sections
                 // ! Convert: { operators: { binaryOperators: { "+": {...} } } }
                 // ! To:      { operators: { "+": {...} } }
@@ -676,19 +666,8 @@ class PureBinaryTokenizer {
                 this.sectionCache.punctuation = this.flattenSection(this.grammarCache.punctuation || {});
                 this.sectionCache.literals = this.flattenSection(this.grammarCache.literals || {});
                 this.sectionCache.comments = this.grammarCache.comments || {};
-                
-                // ! NO_CONSOLE: ส่ง section stats ไปยัง ErrorHandler แทน console.log
-                const sectionStats = new Error('Grammar sections flattened successfully');
-                sectionStats.isOperational = true;
-                errorHandler.handleError(sectionStats, {
-                    source: 'PureBinaryTokenizer',
-                    method: 'loadGrammarSections',
-                    severity: 'DEBUG',
-                    context: {
-                        operatorsCount: Object.keys(this.sectionCache.operators).length,
-                        punctuationCount: Object.keys(this.sectionCache.punctuation).length
-                    }
-                });
+
+                this.assertFlattenedGrammarSections();
                 return;
             }
             
@@ -703,6 +682,9 @@ class PureBinaryTokenizer {
             this.sectionCache.punctuation = this.grammarCache.punctuation || {};
             this.sectionCache.literals = this.grammarCache.literals || {};
             this.sectionCache.comments = this.grammarCache.comments || {};
+
+            this.assertGrammarBrainIntegrity(this.grammarCache);
+            this.assertFlattenedGrammarSections();
         } catch (error) {
             error.isOperational = false; // Grammar loading error = Programming error
             errorHandler.handleError(error, {
@@ -713,6 +695,64 @@ class PureBinaryTokenizer {
             });
             throw error; // Re-throw after logging
         }
+    }
+
+    assertGrammarBrainIntegrity(grammarCache) {
+        const contextSnapshot = {
+            grammarCacheType: typeof grammarCache,
+            hasKeywords: this.hasEntries(grammarCache?.keywords),
+            hasOperators: this.hasEntries(grammarCache?.operators),
+            hasPunctuation: this.hasEntries(grammarCache?.punctuation)
+        };
+
+        if (!grammarCache || typeof grammarCache !== 'object') {
+            this.throwCriticalTokenizerFailure(
+                SYNTAX_ERROR_CODES.TOKENIZER_BRAIN_INITIALIZED,
+                'GrammarIndex payload is missing or invalid',
+                contextSnapshot
+            );
+        }
+
+        if (!contextSnapshot.hasKeywords || !contextSnapshot.hasOperators || !contextSnapshot.hasPunctuation) {
+            this.throwCriticalTokenizerFailure(
+                SYNTAX_ERROR_CODES.TOKENIZER_BRAIN_INITIALIZED,
+                'GrammarIndex is missing required sections',
+                contextSnapshot
+            );
+        }
+    }
+
+    assertFlattenedGrammarSections() {
+        const contextSnapshot = {
+            keywordsCount: Object.keys(this.sectionCache.keywords || {}).length,
+            operatorsCount: Object.keys(this.sectionCache.operators || {}).length,
+            punctuationCount: Object.keys(this.sectionCache.punctuation || {}).length
+        };
+
+        if (!contextSnapshot.operatorsCount || !contextSnapshot.punctuationCount) {
+            this.throwCriticalTokenizerFailure(
+                SYNTAX_ERROR_CODES.GRAMMAR_SECTIONS_FLATTENED,
+                'Flattened grammar sections are empty or incomplete',
+                contextSnapshot
+            );
+        }
+    }
+
+    hasEntries(section) {
+        return Boolean(section && typeof section === 'object' && Object.keys(section).length > 0);
+    }
+
+    throwCriticalTokenizerFailure(errorCode, message, context = {}) {
+        const failure = new Error(message);
+        failure.isOperational = false;
+        errorHandler.handleError(failure, {
+            source: 'PureBinaryTokenizer',
+            method: 'loadGrammarSections',
+            severityCode: ERROR_SEVERITY_FLAGS.CRITICAL,
+            errorCode,
+            context
+        });
+        throw failure;
     }
     
     /**
@@ -813,9 +853,8 @@ class PureBinaryTokenizer {
             if (input.charCodeAt(0) === 65279) {
                 input = input.slice(1);
                 // ! NO_CONSOLE: ส่ง BOM skip info ไปยัง ErrorHandler แทน console.log
-                const bomSkip = new Error('BOM (Byte Order Mark) detected and skipped');
-                bomSkip.isOperational = true;
-                errorHandler.handleError(bomSkip, {
+                recordTelemetryNotice({
+                    message: 'BOM (Byte Order Mark) detected and skipped',
                     source: 'PureBinaryTokenizer',
                     method: 'tokenize',
                     severity: 'INFO',
@@ -831,9 +870,8 @@ class PureBinaryTokenizer {
                 if (endOfLine !== -1) {
                     input = input.slice(endOfLine + 1);
                     // ! NO_CONSOLE: ส่ง Shebang skip info ไปยัง ErrorHandler แทน console.log
-                    const shebangSkip = new Error('Shebang line detected and skipped');
-                    shebangSkip.isOperational = true;
-                    errorHandler.handleError(shebangSkip, {
+                    recordTelemetryNotice({
+                        message: 'Shebang line detected and skipped',
                         source: 'PureBinaryTokenizer',
                         method: 'tokenize',
                         severity: 'INFO',

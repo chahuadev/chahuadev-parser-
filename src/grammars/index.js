@@ -16,6 +16,8 @@ import { PureBinaryParser } from './shared/pure-binary-parser.js';
 import EnhancedBinaryParser from './shared/enhanced-binary-parser.js';
 import { BinaryComputationTokenizer } from './shared/tokenizer-helper.js';
 import errorHandler from '../error-handler/ErrorHandler.js';
+import { FILE_SYSTEM_ERROR_CODES } from '../error-handler/error-catalog.js';
+import { ERROR_SEVERITY_FLAGS } from '../constants/severity-constants.js';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -96,7 +98,8 @@ export async function createParser(rules, options = {}) {
         errorHandler.handleError(configError, {
             source: 'GrammarIndex',
             method: 'createParser',
-            severity: 'WARNING',
+            severityCode: ERROR_SEVERITY_FLAGS.MEDIUM,
+            errorCode: FILE_SYSTEM_ERROR_CODES.FILE_NOT_FOUND,
             context: {
                 configFile: 'configs/quantum-architecture.json',
                 fallback: 'DEFAULT_QUANTUM_CONFIG'

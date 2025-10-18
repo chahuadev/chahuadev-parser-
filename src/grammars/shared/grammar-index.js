@@ -22,6 +22,7 @@ import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import errorHandler from '../../error-handler/ErrorHandler.js';
+import { recordTelemetryNotice } from '../../error-handler/telemetry-recorder.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -34,9 +35,20 @@ function emitGrammarIndexEvent(message, method, severity = 'INFO', context = {})
         ? message
         : 'GrammarIndex event emitted';
 
+    if (normalizedSeverity === 'INFO' || normalizedSeverity === 'DEBUG' || normalizedSeverity === 'TRACE') {
+        recordTelemetryNotice({
+            message: normalizedMessage,
+            source: 'GrammarIndex',
+            method,
+            severity: normalizedSeverity,
+            context
+        });
+        return;
+    }
+
     const notice = new Error(normalizedMessage);
     notice.name = 'GrammarIndexNotice';
-    notice.isOperational = true;
+    notice.isOperational = normalizedSeverity !== 'CRITICAL';
 
     errorHandler.handleError(notice, {
         source: 'GrammarIndex',
@@ -57,9 +69,8 @@ export class GrammarIndex {
             this.grammar = grammarData;
             
             // ! NO_CONSOLE: ส่ง grammar sections info ไปยัง ErrorHandler แทน console.log
-            const grammarInfo = new Error('GrammarIndex initialized with grammar data');
-            grammarInfo.isOperational = true;
-            errorHandler.handleError(grammarInfo, {
+            recordTelemetryNotice({
+                message: 'GrammarIndex initialized with grammar data',
                 source: 'GrammarIndex',
                 method: 'constructor',
                 severity: 'DEBUG',
@@ -95,9 +106,8 @@ export class GrammarIndex {
             this.punctuationBinaryMap = config.punctuationBinaryMap?.map || {};
             
             // ! NO_CONSOLE: ส่ง punctuation map info ไปยัง ErrorHandler แทน console.log
-            const mapInfo = new Error('Punctuation binary map loaded successfully');
-            mapInfo.isOperational = true;
-            errorHandler.handleError(mapInfo, {
+            recordTelemetryNotice({
+                message: 'Punctuation binary map loaded successfully',
                 source: 'GrammarIndex',
                 method: '_loadPunctuationBinaryMap',
                 severity: 'DEBUG',
@@ -235,9 +245,8 @@ export class GrammarIndex {
             // If needed, we can apply same flattening logic here
             
             // ! NO_CONSOLE: ส่ง grammar load info ไปยัง ErrorHandler แทน console.log
-            const loadInfo = new Error(`Grammar loaded successfully for ${language}`);
-            loadInfo.isOperational = true;
-            errorHandler.handleError(loadInfo, {
+            recordTelemetryNotice({
+                message: `Grammar loaded successfully for ${language}`,
                 source: 'GrammarIndex',
                 method: 'loadGrammar',
                 severity: 'DEBUG',

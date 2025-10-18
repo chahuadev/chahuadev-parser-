@@ -1,6 +1,6 @@
 # Chahuadev Sentinel — Binary Migration Status Report
 
-**Last Updated:** 17 October 2025  
+**Last Updated:** 18 October 2025  
 **Author:** GitHub Copilot (AI Programming Assistant)
 
 ---
@@ -36,7 +36,27 @@ Each phase below includes checkboxes to indicate status (`[x]` completed, `[ ]` 
 - [x] Revisit `src/rules/STRICT_COMMENT_STYLE.js` to guarantee all metadata relies on shared constants
 - [x] Confirm no rule still references literal IDs or severity strings
 
-### Phase 5: Rebuild ErrorHandler as the Translation Layer (Not Started)
+### Phase 5: Rebuild ErrorHandler as the Translation Layer (In Progress)
+
+> **Update 18 October 2025:**
+> - Finalised the hierarchical domain catalog in `src/error-handler/error-catalog.js`, allowing downstream callers to resolve domain codes, slugs, and descriptions directly from normalized payloads.
+> - Extended bilingual metadata (recommended actions, retry/fatal guidance) for Syntax and Type dictionaries in `src/error-handler/error-dictionary.js`; remaining categories stay on the roadmap.
+> - Upgraded `src/error-handler/error-normalizer.js` to surface domain descriptors, severity metadata, and recommended actions for every normalized error, including fallback flows.
+> - `src/rules/validator.js` now raises binary-only system payloads (with `sourceCode`, `severityCode`, `errorCode`) whenever parser bootstrapping or per-rule evaluation fails, backstopping Phase 5.3 intake requirements.
+> - Extracted the console rendering layer into `src/error-handler/error-renderer.js` so `ErrorHandler.js` now focuses on intake and transport orchestration.
+> - Next milestone: enforce the binary-only `handleError({ kind, code, severityCode, ... })` contract, migrate all callers, and finish metadata coverage for the remaining dictionary families before expanding regression tests.
+
+> **Update 18 October 2025 (Helper Rollout):**
+> - Added `src/error-handler/error-emitter.js` with `createSystemPayload` and `emitSecurityNotice` helpers so callers no longer craft raw payloads or string severities inline.
+> - Expanded `error-catalog.js` and `error-dictionary.js` with a dedicated Security category, new runtime codes (uncaught exception, unhandled rejection, process warnings, report failures), and bilingual metadata for each entry.
+> - Rewired `setupGlobalErrorHandlers` and the `SecurityMiddleware` bootstrap path to consume the new helpers, beginning the systematic migration away from the legacy two-argument `handleError` signature.
+> - Opened bilingual issue ledgers (`docs/en/BINARY_MIGRATION_ISSUES.md`, `docs/th/BINARY_MIGRATION_ISSUES.md`) to capture migration blockers and outstanding caller updates as they are discovered.
+
+> **Update 17 October 2025:**
+> - Removed direct `errorHandler` usage from all rule modules (`src/rules/*.js`) so the rule layer now emits binary metadata only, preparing the Binary Intake Layer.
+> - Introduced diagnostic error codes **1008 / 1009** for tokenizer instrumentation. These now escalate as CRITICAL incidents by design, forcing the pipeline to halt whenever binary grammar hydration fails; additional safeguards are required to keep operational visibility without blocking valid scans.
+> - Latest CLI run (`node cli src\`) now passes after adding integrity assertions to `PureBinaryTokenizer.loadGrammarSections`. Telemetry-only notices are routed through the new `telemetry-recorder` channel, keeping CRITICAL 1008/1009 guarded while removing the generic code `500` chatter from the CLI transcript.
+> - Next milestone: promote the Error Catalog into a hierarchical, metadata-aware classification system (domains ➝ categories ➝ individual codes) so downstream automation can infer retry/fatal policies without bespoke logic.
 
 #### 5.1 Design 4-Layer Architecture
 - [ ] Design new error notification architecture with 4 distinct layers:
@@ -46,12 +66,13 @@ Each phase below includes checkboxes to indicate status (`[x]` completed, `[ ]` 
   - **Layer 4: Transport** - Deliver to destinations (file, stream, console, external services)
 
 #### 5.2 Create Error Catalog and Normalization Helpers
-- [ ] Create `src/error-handler/error-catalog.js` to centralize:
+- [x] Create `src/error-handler/error-catalog.js` to centralize:
   - Error source types and binary codes (VALIDATOR, PARSER, CLI, SYSTEM)
   - Error category mappings (6 main categories):
-    1. **Syntax Errors (1001-1099)**: Grammar/syntax violations
-       - UNEXPECTED_TOKEN, MISSING_SEMICOLON, UNMATCHED_BRACKETS
-       - INVALID_ASSIGNMENT, DUPLICATE_PARAMETER, UNEXPECTED_END_OF_INPUT
+   1. **Syntax Errors (1001-1099)**: Grammar/syntax violations
+     - UNEXPECTED_TOKEN, MISSING_SEMICOLON, UNMATCHED_BRACKETS
+     - INVALID_ASSIGNMENT, DUPLICATE_PARAMETER, UNEXPECTED_END_OF_INPUT
+     - GRAMMAR_RULE_MISSING (grammar index lacks rule definition)
     2. **Type Errors (2001-2099)**: Data type mismatches
        - IS_NOT_A_FUNCTION, CANNOT_READ_PROPERTY_OF_NULL_OR_UNDEFINED
        - INVALID_TYPE_ARGUMENT, OPERATOR_CANNOT_BE_APPLIED
@@ -64,9 +85,11 @@ Each phase below includes checkboxes to indicate status (`[x]` completed, `[ ]` 
        - VARIABLE_SHADOWING, USE_BEFORE_DEFINE, MAGIC_NUMBER
     6. **File System Errors (6001-6099)**: File operation failures
        - FILE_NOT_FOUND, FILE_READ_ERROR, FILE_WRITE_ERROR, PERMISSION_DENIED
+   7. **Security Enforcement (7001-7099)**: Intrusion responses, rate limiting, and policy violations
+     - UNKNOWN_VIOLATION, SUSPICIOUS_PATTERN, RATE_LIMIT_TRIGGERED, PATH_TRAVERSAL_BLOCKED, SECURITY_MODULE_FAILURE
   - Default error messages and templates
   - Severity level descriptions
-- [ ] Create `src/error-handler/error-dictionary.js` as "Error Code Dictionary":
+- [x] Create `src/error-handler/error-dictionary.js` as "Error Code Dictionary":
   - Map error codes (binary)  human-readable messages
   - Store explanation (root cause description) for each error
   - Store fix suggestions (resolution steps) for each error
@@ -98,18 +121,21 @@ Each phase below includes checkboxes to indicate status (`[x]` completed, `[ ]` 
         category: "SYNTAX_ERROR",
         severity: ERROR_SEVERITY_FLAGS.HIGH
       }
-    }
-    ```
-- [ ] Create `src/error-handler/error-normalizer.js` with transformation functions:
+  }
+  ```
+- [x] Create `src/error-handler/error-normalizer.js` with transformation functions:
   - `normalizeRuleError(ruleId, severityCode, context)` - transform rule violations
   - `normalizeSystemError(errorCode, severityCode, context)` - transform system errors
   - `resolveErrorSource(sourceCode)` - convert source type binary  label
   - `resolveErrorMessage(errorCode, language)` - lookup message from error-dictionary
   - `enrichErrorContext(normalizedError)` - add complete context information
   - `createFallbackError(unknownError)` - create safe fallback for unknown errors
+  - Persist `filePath` and detailed location (line/column spans) for downstream renderers
 
-#### 5.3 Refactor ErrorHandler.js as Binary Intake Layer
-- [ ] Update `handleError(error, context)` to accept binary input:
+#### 5.3 Refactor ErrorHandler.js as Binary Intake Layer (In Progress)
+- [x] Route all `handleError` calls through `error-normalizer.js` so dictionary metadata resolves from binary IDs before logging/streaming
+- [x] Introduce centralized payload helpers (`createSystemPayload`, `emitSecurityNotice`) and adopt them for global Node process hooks plus the Security middleware bootstrap path
+- [ ] Update `handleError(error, context)` signature so external callers provide **only** binary identifiers and structured metadata (no string severities accepted)
   ```javascript
   handleError({
     ruleId: number,           // from RULE_IDS
@@ -121,9 +147,16 @@ Each phase below includes checkboxes to indicate status (`[x]` completed, `[ ]` 
     context: object
   })
   ```
-- [ ] Call normalizer to transform binary  metadata before processing
-- [ ] Remove all logic using string comparison or literal severity values
-- [ ] Add validation to verify binary codes are valid before processing
+- [ ] Harden validation so non-binary severity strings are rejected early and surfaced as configuration faults
+- [x] Move tokenizer/grammar success instrumentation off `handleError` (or assign dedicated non-error codes) so the CLI transcript stops showing "Unknown error code" entries
+- [x] Add smoke test that runs `node cli src\` and asserts no MID/LOW-severity instrumentation is routed through the aggressive handler
+- [x] Refactor `error-catalog.js` to introduce hierarchical domains and helper utilities for code composition (domain ➝ family ➝ code)
+- [ ] Extend `error-dictionary.js` entries with contextual metadata (fatality, retry guidance, recommended actions) and thread it through the normalizer *(Syntax + Type complete; other families pending)*
+- [ ] Update `error-normalizer.js` to capture external standards (HTTP codes, Node errno) and attach the new metadata/domain descriptors to normalized payloads *(Domain descriptors now emitted; external standards still pending)*
+- [ ] Refactor `ErrorHandler.js` signature to a binary-only intake contract and migrate every call site (validator, grammars, security, extension, etc.) to the new structured payload
+- [ ] Convert remaining security, extension, grammar, and CLI callers to the payload helpers and log blockers in the bilingual issue ledgers
+- [ ] Finish Renderer separation by moving remaining console helpers and ensuring transport functions only receive normalized errors
+- [x] Resolve 1008/1009 CRITICAL failures by repairing GrammarIndex hydration and section flattening before declaring the intake layer stable
 
 #### 5.4 Create Rendering Layer
 - [ ] Create `src/error-handler/error-renderer.js` with functions:
@@ -175,6 +208,7 @@ Each phase below includes checkboxes to indicate status (`[x]` completed, `[ ]` 
 
 ## 3. Repository-Wide File Register & Status
 The following checklist inventories every file in the repository, grouped by folder, to track Binary-First readiness.
+
 
 ### Root Level
 - [x] `.gitignore`
@@ -296,5 +330,121 @@ The following checklist inventories every file in the repository, grouped by fol
 - **Latest Status:** `src/error-handler/ErrorHandler.js` has been reverted to its pre-refactor version; the redesign must restart under Phase 5
 
 ---
-
+## Appendix A: Repository Tree & File Roles
+```
+Chahuadev-Sentinel/
+├─ .git/ — Git metadata (version history, refs, hooks)
+├─ .gitignore — Ignore rules for local Git operations
+├─ .vscode/
+│  └─ launch.json — VS Code launch configurations for debugging
+├─ .vscodeignore — Exclusion list when packaging the VS Code extension
+├─ cli-config.json — CLI feature flags and runtime configuration
+├─ cli.js — Entry point for the Sentinel CLI tool
+├─ docs/
+│  ├─ en/ — English documentation set
+│  │  ├─ ARCHITECTURE.md — High-level system architecture guide
+│  │  ├─ ARCHITECTURE_VISION.md — Long-term architectural vision statement
+│  │  ├─ BINARY_MIGRATION_ISSUES.md — English issue ledger for the binary migration
+│  │  ├─ BINARY_MIGRATION_STATUS.md — English migration status (this document)
+│  │  ├─ CODE_OF_CONDUCT.md — Contributor code of conduct
+│  │  ├─ COLLABORATION.md — Collaboration practices and communication norms
+│  │  ├─ COMMIT_GUIDELINES.md — Commit message and review policy
+│  │  ├─ CONTRIBUTING.md — Contribution workflow and onboarding steps
+│  │  ├─ GOVERNANCE.md — Project governance model and decision making
+│  │  ├─ MIGRATION_GUIDE.md — English migration checklist and guidance
+│  │  └─ RELEASE_PROCESS.md — Release preparation and deployment process
+│  └─ th/ — Thai documentation set
+│     ├─ ARCHITECTURE_VISION.md — วิสัยทัศน์สถาปัตยกรรม (Thai)
+│     ├─ BINARY_MIGRATION_ISSUES.md — สมุดบันทึกปัญหาสำหรับการย้ายเป็นไบนารี (Thai)
+│     ├─ BINARY_MIGRATION_STATUS.md — สถานะการย้ายเป็นไบนารี (Thai)
+│     ├─ BLANK_PAPER_ARCHITECTURE.md — ร่างสถาปัตยกรรมฉบับกระดาษเปล่า (Thai)
+│     ├─ MIGRATION_GUIDE.md — คู่มือการย้ายระบบ (Thai)
+│     ├─ QUANTUM_BINARY_ARCHITECTURE.md — เอกสารสถาปัตยกรรมควอนตัม (Thai)
+│     ├─ TOKENIZER_FLOW.md — ลำดับงานของตัวตัดคำ (Thai)
+│     ├─ ZONE_LINE_NUMBERS.md — อ้างอิงหมายเลขบรรทัดโซน (Thai)
+│     ├─ ระบบการไหล-Chahuadev-Sentinel.md — ผังการไหลของระบบ Sentinel
+│     └─ หน้าที่ไฟล์.md — สรุปหน้าที่ไฟล์ในภาษาไทย
+├─ extension-wrapper.js — Bridge helper for packaging the VS Code extension
+├─ LICENSE — MIT license text for the repository
+├─ logo.png — Project logo asset
+├─ logs/
+│  ├─ cli-run.txt — Transcript of the latest CLI execution
+│  ├─ errors/ — Centralised error logs and per-file reports
+│  │  ├─ centralized-errors.log — Aggregated error log stream
+│  │  ├─ critical-errors.log — Extract of critical severity incidents
+│  │  └─ file-reports/ — Markdown-style reports per source file
+│  │     ├─ binary-scout.js.log — Error report for binary-scout parser helper
+│  │     ├─ grammar-index.js.log — Error report for grammar index loader
+│  │     ├─ index.js.log — Error report for grammar entry point
+│  │     ├─ pure-binary-parser.js.log — Error report for pure binary parser
+│  │     ├─ tokenizer-helper.js.log — Error report for tokenizer helper
+│  │     └─ validator.js.log — Error report for validator engine
+│  ├─ security.log — Security middleware activity log
+│  └─ telemetry/
+│     └─ telemetry.log — Telemetry notice stream
+├─ package.json — Node package manifest and scripts
+├─ README.md — Project overview and primary documentation hub
+├─ src/ — Application and extension source code
+│  ├─ constants/
+│  │  ├─ rule-constants.js — Canonical rule IDs, slugs, and helpers
+│  │  └─ severity-constants.js — Binary severity flags and coercion utilities
+│  ├─ error-handler/
+│  │  ├─ error-catalog.js — Domain/category metadata and binary error codes
+│  │  ├─ error-dictionary.js — Bilingual dictionary entries for error codes
+│  │  ├─ error-emitter.js — Helper functions that create structured error payloads
+│  │  ├─ error-handler-config.js — Configuration constants for the handler
+│  │  ├─ error-log-stream.js — File streaming utilities for error reports
+│  │  ├─ error-normalizer.js — Binary-to-metadata transformation logic
+│  │  ├─ error-renderer.js — Console and report rendering helpers
+│  │  ├─ ErrorHandler.js — Centralised error intake class
+│  │  └─ telemetry-recorder.js — Helper for routing telemetry notices
+│  ├─ extension-config.json — VS Code extension configuration manifest
+│  ├─ extension.js — VS Code extension activation entry point
+│  ├─ grammars/
+│  │  ├─ docs/
+│  │  │  └─ CHANGELOG.md — Grammar package changelog
+│  │  ├─ index.d.ts — Type definitions for grammar exports
+│  │  ├─ index.js — Aggregated grammar utilities entry point
+│  │  └─ shared/
+│  │     ├─ binary-prophet.js — Heuristic predictor for grammar ambiguities
+│  │     ├─ binary-scout.js — Grammar reconnaissance helper
+│  │     ├─ configs/
+│  │     │  ├─ quantum-architecture.json — Quantum grammar architecture spec
+│  │     │  └─ unicode/
+│  │     │     └─ unicode-identifier-ranges.json — Unicode identifier ranges used by the tokenizer
+│  │     ├─ constants.js — Shared grammar constants and lookups
+│  │     ├─ enhanced-binary-parser.js — Enhanced parser implementation
+│  │     ├─ grammar-index.js — Registry and loader for grammars
+│  │     ├─ grammars/
+│  │     │  ├─ java.grammar.json — Java grammar definition
+│  │     │  ├─ javascript.grammar.json — JavaScript grammar definition
+│  │     │  ├─ jsx.grammar.json — JSX grammar definition
+│  │     │  └─ typescript.grammar.json — TypeScript grammar definition
+│  │     ├─ parser-config.json — Parser configuration metadata
+│  │     ├─ pure-binary-parser.js — Core binary parser implementation
+│  │     ├─ tokenizer-binary-config.json — Binary tokenizer configuration
+│  │     └─ tokenizer-helper.js — Tokenizer orchestration helpers
+│  ├─ rules/
+│  │  ├─ BINARY_AST_ONLY.js — Enforces binary AST-only parsing rule
+│  │  ├─ MUST_HANDLE_ERRORS.js — Rule requiring explicit error handling
+│  │  ├─ NO_CONSOLE.js — Rule forbidding console usage
+│  │  ├─ NO_EMOJI.js — Rule prohibiting emojis in code
+│  │  ├─ NO_HARDCODE.js — Rule preventing hardcoded values
+│  │  ├─ NO_INTERNAL_CACHING.js — Rule banning hidden internal caches
+│  │  ├─ NO_MOCKING.js — Rule disallowing mocking in production code paths
+│  │  ├─ NO_SILENT_FALLBACKS.js — Rule forbidding silent fallbacks
+│  │  ├─ NO_STRING.js — Rule enforcing binary identifiers over strings
+│  │  ├─ STRICT_COMMENT_STYLE.js — Rule ensuring comment style consistency
+│  │  └─ validator.js — Validation engine orchestrating all rules
+│  └─ security/
+│     ├─ error-handlers.json — Security error handler configuration mapping
+│     ├─ rate-limit-store-factory.js — Factory for rate limit storage backends
+│     ├─ security-config.js — High-level security middleware configuration
+│     ├─ security-defaults.json — Default security policy values
+│     ├─ security-manager.js — Core security orchestration logic
+│     ├─ security-middleware.js — VS Code security middleware entry point
+│     └─ suspicious-patterns.json — Pattern list for intrusion detection
+└─ tests/
+  └─ cli-smoke.test.js — Smoke test validating CLI execution path
+```
 > This document tracks the Binary-First migration program. Please update this file with the current date and author when further changes are made.

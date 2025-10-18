@@ -9,7 +9,6 @@
 // ! ปรัชญา: "ฟังก์ชัน async ที่ไร้ try/catch คือระเบิดเวลาที่รอวันปะทุ"
 // ! ======================================================================
 
-import errorHandler from '../error-handler/ErrorHandler.js';
 import { RULE_IDS, resolveRuleSlug } from '../constants/rule-constants.js';
 import { RULE_SEVERITY_FLAGS } from '../constants/severity-constants.js';
 
@@ -153,17 +152,7 @@ const ABSOLUTE_RULES = {
             th: 'ครอบโค้ดภายในฟังก์ชัน/เมธอดด้วยบล็อก try...catch และเรียก errorHandler.handleError ภายใน catch เพื่อบันทึกเหตุการณ์'
         },
         check(ast, code, filePath) {
-            try {
-                return collectAsyncFunctionViolations(ast, code, filePath);
-            } catch (ruleError) {
-                errorHandler.handleError(ruleError, {
-                    source: 'MUST_HANDLE_ERRORS_RULE',
-                    method: 'check',
-                    severity: 'MEDIUM',
-                    context: { filePath }
-                });
-                return [];
-            }
+            return collectAsyncFunctionViolations(ast, code, filePath);
         }
     }
 };
