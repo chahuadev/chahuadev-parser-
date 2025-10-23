@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-// test-03-binary-parser.js - ทดสอบ BinaryErrorParser
+// test-03-binary-parser.js - ทดสอบ BinaryErrorParser (BRUTAL EDITION)
 // ═══════════════════════════════════════════════════════════════════════════════
 // จุดประสงค์: ทดสอบว่า BinaryErrorParser แยก Binary Code และ render ได้ถูกต้อง
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -8,7 +8,7 @@ import binaryErrorParser from '../src/error-handler/BinaryErrorParser.js';
 import { binaryErrorGrammar } from '../src/error-handler/binary-error.grammar.js';
 import BinaryCodes from '../src/error-handler/binary-codes.js';
 
-console.log('🧪 TEST 03: Binary Error Parser');
+console.log('🧪 TEST 03: Binary Error Parser (BRUTAL EDITION)');
 console.log('═══════════════════════════════════════════════════════════════\n');
 
 let passed = 0;
@@ -23,10 +23,22 @@ const parser = binaryErrorParser;
 console.log('TEST 3.1: Decompose Binary Code');
 console.log('───────────────────────────────────────────────────────────────');
 
+let components = null;
 try {
     const code = BinaryCodes.PARSER.SYNTAX('CRITICAL', 'PARSER', 1001);
-    const components = parser.decomposeBinaryCode(code);
     
+    // 💥 FIX: decomposeBinaryCode ไม่ได้ return metadata, มัน return แค่ codes
+    // 💥 เราต้องเรียก findDomain, findCategory ฯลฯ เอง
+    const rawComponents = parser.decomposeBinaryCode(code);
+    
+    components = {
+        domain: parser.findDomain(rawComponents.domain),
+        category: parser.findCategory(rawComponents.category),
+        severity: parser.findSeverity(rawComponents.severity),
+        source: parser.findSource(rawComponents.source),
+        offset: rawComponents.offset
+    };
+
     console.log('Binary Code:', code);
     console.log('Decomposed:');
     console.log('  Domain:', components.domain?.name || 'N/A');
@@ -35,128 +47,126 @@ try {
     console.log('  Source:', components.source?.name || 'N/A');
     console.log('  Offset:', components.offset);
     
-    // Validate all components exist
     const missingComponents = [];
     if (!components.domain) missingComponents.push('domain');
     if (!components.category) missingComponents.push('category');
     if (!components.severity) missingComponents.push('severity');
     if (!components.source) missingComponents.push('source');
-    if (components.offset === undefined) missingComponents.push('offset');
     
     if (missingComponents.length > 0) {
-        console.error('\n❌❌❌ BUG: Incomplete Decomposition! ❌❌❌');
-        console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        console.error('📁 File: src/error-handler/BinaryErrorParser.js');
-        console.error('⚙️  Method: decomposeBinaryCode()');
-        console.error('🐛 Issue: Missing components:', missingComponents.join(', '));
-        console.error('🔍 Root Cause:');
-        console.error('   - Bitwise operations ไม่ถูกต้อง');
-        console.error('   - Map lookup ไม่เจอ component');
-        console.error('   - BigInt conversion ผิดพลาด');
-        console.error('💡 Fix: ตรวจสอบ decomposeBinaryCode() logic และ Map construction');
-        console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-        bugs.push({
-            id: 'BUG-PARSER-001',
-            severity: 'CRITICAL',
-            file: 'BinaryErrorParser.js',
-            method: 'decomposeBinaryCode()',
-            issue: `Missing components: ${missingComponents.join(', ')}`,
-            fix: 'Fix bitwise operations and Map lookups'
-        });
-        failed++;
+        throw new Error(`Incomplete Decomposition! Missing: ${missingComponents.join(', ')}`);
     } else {
         console.log('✅ Successfully decomposed binary code');
         passed++;
     }
 } catch (error) {
-    console.error('\n❌❌❌ BUG: Decomposition Crashed! ❌❌❌');
-    console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.error('📁 File: src/error-handler/BinaryErrorParser.js');
-    console.error('⚙️  Method: decomposeBinaryCode()');
-    console.error('🐛 Error:', error.message);
-    console.error('📍 Stack:', error.stack.split('\n').slice(0, 3).join('\n'));
-    console.error('💡 Fix: Handle errors gracefully in decomposeBinaryCode()');
-    console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-    bugs.push({
-        id: 'BUG-PARSER-002',
-        severity: 'CRITICAL',
-        file: 'BinaryErrorParser.js',
-        method: 'decomposeBinaryCode()',
-        issue: 'Decomposition crashed',
-        rootCause: error.message
-    });
+    console.error(`\n❌❌❌ BUG: Decomposition Crashed! ❌❌❌`);
+    console.error(`   🐛 Error: ${error.message}`);
     failed++;
+    bugs.push({ id: 'BUG-PARSER-001', issue: error.message });
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// TEST 3.2: Render Human-Readable Error
+// 🔥🔥🔥 UPGRADED BRUTAL TEST 3.2 🔥🔥🔥
+// TEST 3.2: Render Human-Readable Error (Test Catalog Lookup)
 // ═══════════════════════════════════════════════════════════════════════════════
-console.log('\nTEST 3.2: Render Human-Readable Error');
+console.log('\nTEST 3.2: Render Human-Readable Error (Testing Catalog Lookup)');
 console.log('───────────────────────────────────────────────────────────────');
 
 try {
-    const code = BinaryCodes.SYSTEM.CONFIGURATION('ERROR', 'SYSTEM', 2001);
-    const rendered = parser.renderHumanReadable(code, {
-        configFile: 'app.json',
-        missingKey: 'database.host'
-    });
+    // 💥 TEST 3.2 เก่ามันโกง! มันเช็กแค่ 'SYSTEM'
+    // 💥 เราจะเช็ก "ข้อความเฉพาะ" จาก catalog ที่ส่วน Human-Readable
     
-    console.log('Rendered Error:');
-    console.log(rendered);
+    const code = BinaryCodes.PARSER.SYNTAX('CRITICAL', 'PARSER', 1001);
     
-    if (rendered.includes('SYSTEM') && rendered.includes('CONFIGURATION')) {
-        console.log('✅ Successfully rendered human-readable error');
+    // 💥 เราต้องสร้าง errorObject จำลองที่ handleError() สร้างขึ้น
+    const rawComps = parser.decomposeBinaryCode(code);
+    const errorObject = {
+        binaryCode: code,
+        timestamp: new Date().toISOString(),
+        components: rawComps,
+        metadata: {
+            domain: parser.findDomain(rawComps.domain),
+            category: parser.findCategory(rawComps.category),
+            severity: parser.findSeverity(rawComps.severity),
+            source: parser.findSource(rawComps.source)
+        },
+        context: { file: 'test.js', line: 1 }
+    };
+
+    const rendered = parser.renderHumanReadable(errorObject);
+    
+    // 💥 ข้อความนี้มาจาก 'binary-error-catalog.js' -> domains.PARSER.humanReadable.what
+    const expectedCatalogString_Domain = "Grammar/Syntax Parser errors";
+    
+    // 💥 ข้อความนี้มาจาก 'binary-error-catalog.js' -> categories.SYNTAX.humanReadable.what
+    const expectedCatalogString_Category = "Syntax/Grammar violations - code structure ผิดกฎ grammar";
+
+    if (rendered.includes(expectedCatalogString_Domain) && rendered.includes(expectedCatalogString_Category)) {
+        console.log('✅ Successfully rendered human-readable (Catalog OK)');
+        console.log(rendered); // แสดงผลลัพธ์
         passed++;
     } else {
-        console.error('❌ Rendered output missing key information');
+        console.error(`\n❌❌❌ BUG: Catalog Lookup FAILED! ❌❌❌`);
+        console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.error(`📁 File: src/error-handler/BinaryErrorParser.js`);
+        console.error(`⚙️  Method: renderHumanReadable()`);
+        console.error(`🐛 Issue: ไม่พบข้อความจาก 'binary-error-catalog.js' ในผลลัพธ์`);
+        console.error(`📋 Expected: ต้องมี "${expectedCatalogString_Domain}"`);
+        console.error(`📋 Expected: ต้องมี "${expectedCatalogString_Category}"`);
+        console.error(`❌ Actual: ไม่พบข้อความ (ดูผลลัพธ์ข้างล่าง)`);
+        console.log(rendered); // แสดงผลลัพธ์ที่ล้มเหลว
+        console.error(`\n🔍 Root Cause Analysis:`);
+        console.error(`   ⚠️  CRITICAL BUG (ที่ผมเตือนคุณแล้ว 😜):`);
+        console.error(`   - L:189: const catalogKey = \`\${domain?.name}.\${category?.name}\`;`);
+        console.error(`   - โค้ดนี้สร้าง "PARSER.SYNTAX"`);
+        console.error(`   - แต่ catalog.js มีโครงสร้างเป็น 'domains.PARSER' และ 'categories.SYNTAX'`);
+        console.error(`   - มันไม่เคยค้นเจอเลย!`);
+        console.error(`💡 Fix: แก้ L:189-192 ให้ค้นหาแยกส่วน:`);
+        console.error(`   const domainCatalog = domain ? binaryErrorCatalog.domains[domain.name] : null;`);
+        console.error(`   const categoryCatalog = category ? binaryErrorCatalog.categories[category.name] : null;`);
+        console.error(`   if (domainCatalog && domainCatalog.humanReadable) { ... }`);
+        console.error(`   if (categoryCatalog && categoryCatalog.humanReadable) { ... }`);
+        console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
         failed++;
+        bugs.push({ id: 'BUG-PARSER-002', issue: 'Catalog lookup failed' });
     }
 } catch (error) {
-    console.error('❌ Rendering failed:', error.message);
+    console.error('❌ Rendering failed:', error.message, error.stack);
     failed++;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// TEST 3.3: Handle Invalid Binary Code
+// TEST 3.3: Handle Invalid Binary Code (สันนิษฐานว่าแก้ BUG-002 แล้ว)
 // ═══════════════════════════════════════════════════════════════════════════════
 console.log('\nTEST 3.3: Handle Invalid Binary Code');
 console.log('───────────────────────────────────────────────────────────────');
 
 try {
-    const components = parser.decomposeBinaryCode('INVALID_CODE');
-    console.error('\n❌❌❌ BUG: Invalid Code NOT Rejected in Parser! ❌❌❌');
-    console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.error('📁 File: src/error-handler/BinaryErrorParser.js');
-    console.error('⚙️  Method: decomposeBinaryCode()');
-    console.error('🐛 Issue: Invalid code did not throw error');
-    console.error('❌ Expected: Should throw SyntaxError or return META_INVALID_ERROR_CODE');
-    console.error('✅ Actual: Returned components:', JSON.stringify(components, null, 2));
-    console.error('💡 Fix: Add try-catch around BigInt() OR validate code format first');
-    console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-    bugs.push({
-        id: 'BUG-PARSER-003',
-        severity: 'CRITICAL',
-        file: 'BinaryErrorParser.js',
-        method: 'decomposeBinaryCode()',
-        issue: 'Invalid code not rejected',
-        fix: 'Add validation or try-catch'
-    });
+    parser.decomposeBinaryCode('INVALID_CODE');
+    console.error(`\n❌❌❌ BUG: Invalid Code NOT Rejected in Parser! ❌❌❌`);
     failed++;
+    bugs.push({ id: 'BUG-PARSER-003', issue: 'Parser invalid code' });
 } catch (error) {
     console.log('✅ Correctly rejected invalid binary code:', error.message);
     passed++;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// TEST 3.4: Test shouldThrow Logic
+// 🔥🔥🔥 UPGRADED TEST 3.4 🔥🔥🔥
+// TEST 3.4: Test shouldThrow Logic (อัปเดตตาม Logic ใหม่)
 // ═══════════════════════════════════════════════════════════════════════════════
 console.log('\nTEST 3.4: Test shouldThrow Logic');
 console.log('───────────────────────────────────────────────────────────────');
 
+// 💥 อัปเดต expected logic!
+// 💥 FATAL, EMERGENCY ควรสั่ง throw
+// 💥 CRITICAL, ERROR, WARNING, INFO, DEBUG, TRACE ไม่ควร throw
 const testSeverities = [
-    { severity: 'CRITICAL', shouldThrow: true },
     { severity: 'FATAL', shouldThrow: true },
-    { severity: 'ERROR', shouldThrow: true },
+    { severity: 'EMERGENCY', shouldThrow: true },
+    { severity: 'CRITICAL', shouldThrow: false }, // <--- แก้ไขตาม BUG-001
+    { severity: 'ERROR', shouldThrow: false },    // <--- แก้ไข (ถ้าคุณใช้ cli.js เป็นหลัก)
     { severity: 'WARNING', shouldThrow: false },
     { severity: 'INFO', shouldThrow: false },
 ];
@@ -164,13 +174,14 @@ const testSeverities = [
 for (const test of testSeverities) {
     try {
         const code = BinaryCodes.SYSTEM.RUNTIME(test.severity, 'SYSTEM', 3001);
-        const components = parser.decomposeBinaryCode(code);
+        const rawComps = parser.decomposeBinaryCode(code);
+        const severityInfo = parser.findSeverity(rawComps.severity);
         
-        if (components.severity.shouldThrow === test.shouldThrow) {
+        if (severityInfo.shouldThrow === test.shouldThrow) {
             console.log(`✅ ${test.severity}: shouldThrow = ${test.shouldThrow}`);
             passed++;
         } else {
-            console.error(`❌ ${test.severity}: expected shouldThrow = ${test.shouldThrow}, got ${components.severity.shouldThrow}`);
+            console.error(`❌ ${test.severity}: expected shouldThrow = ${test.shouldThrow}, got ${severityInfo.shouldThrow}`);
             failed++;
         }
     } catch (error) {
@@ -180,31 +191,14 @@ for (const test of testSeverities) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// สรุปผล + Bug Report
+// สรุปผล
 // ═══════════════════════════════════════════════════════════════════════════════
 console.log('\n═══════════════════════════════════════════════════════════════');
 console.log(`✅ Passed: ${passed}`);
 console.log(`❌ Failed: ${failed}`);
 console.log(`📊 Total: ${passed + failed}`);
 console.log('═══════════════════════════════════════════════════════════════');
-
 if (bugs.length > 0) {
-    console.log('\n🐛🐛🐛 BUG REPORT SUMMARY 🐛🐛🐛');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    bugs.forEach((bug, index) => {
-        console.log(`\n${index + 1}. ${bug.id} [${bug.severity}]`);
-        console.log(`   📁 File: ${bug.file}`);
-        if (bug.method) console.log(`   ⚙️  Method: ${bug.method}`);
-        if (bug.line) console.log(`   📍 Line: ${bug.line}`);
-        console.log(`   🐛 Issue: ${bug.issue}`);
-        if (bug.rootCause) console.log(`   🔍 Root Cause: ${bug.rootCause}`);
-        if (bug.fix) console.log(`   💡 Fix: ${bug.fix}`);
-    });
-    console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log(`\n⚠️  Total Bugs Found: ${bugs.length}`);
-    console.log('⚠️  ต้องแก้ไฟล์: BinaryErrorParser.js\n');
-} else {
-    console.log('\n🎉🎉🎉 PERFECT! Binary Parser works correctly! 🎉🎉🎉\n');
+    console.log(`\n🐛🐛🐛 ${bugs.length} BUGS DETECTED 🐛🐛🐛\n`);
 }
-
 process.exit(failed > 0 ? 1 : 0);

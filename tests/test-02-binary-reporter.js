@@ -15,24 +15,24 @@ let failed = 0;
 const bugs = [];
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// TEST 2.1: Report Valid Error Codes
+// TEST 2.1: Report Valid Error Codes (สันนิษฐานว่าแก้ BUG-001 แล้ว)
 // ═══════════════════════════════════════════════════════════════════════════════
 console.log('TEST 2.1: Report Valid Error Codes');
 console.log('───────────────────────────────────────────────────────────────');
 
 const testCases = [
     {
-        name: 'Parser Syntax Error',
+        name: 'Parser Syntax Error (CRITICAL)',
         code: () => BinaryCodes.PARSER.SYNTAX('CRITICAL', 'PARSER', 1001),
         context: { file: 'test.js', line: 42, token: '!' }
     },
     {
-        name: 'System Configuration Error',
+        name: 'System Configuration Error (ERROR)',
         code: () => BinaryCodes.SYSTEM.CONFIGURATION('ERROR', 'SYSTEM', 2001),
         context: { configFile: 'app.json', missingKey: 'database.host' }
     },
     {
-        name: 'Validator Warning',
+        name: 'Validator Warning (WARNING)',
         code: () => BinaryCodes.VALIDATOR.VALIDATION('WARNING', 'VALIDATOR', 3001),
         context: { rule: 'NO_CONSOLE', file: 'app.js', line: 100 }
     },
@@ -45,102 +45,31 @@ for (const test of testCases) {
         console.log(`✅ ${test.name} reported successfully`);
         passed++;
     } catch (error) {
+        // (Bug Report Logic... ถ้ายังแก้ไม่ผ่าน)
         console.error(`\n❌❌❌ BUG DETECTED: ${test.name} ❌❌❌`);
-        console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        console.error(`📁 File: src/error-handler/binary-reporter.js หรือ BinaryErrorParser.js`);
-        console.error(`🐛 Error Type: ${error.name}`);
-        console.error(`💬 Error Message: ${error.message}`);
-        console.error(`📍 Stack Trace:`);
-        
-        // Extract ไฟล์และบรรทัดจาก stack trace
-        const stackLines = error.stack.split('\n');
-        stackLines.slice(1, 6).forEach(line => {
-            const match = line.match(/at .+ \((.*):(\d+):(\d+)\)/);
-            if (match) {
-                const [, file, lineNum, col] = match;
-                const fileName = file.split('/').pop() || file.split('\\').pop();
-                console.error(`   📄 ${fileName}:${lineNum}:${col}`);
-            } else {
-                console.error(`   ${line.trim()}`);
-            }
-        });
-        
-        console.error(`\n🔍 Root Cause Analysis:`);
-        if (test.name.includes('Parser Syntax')) {
-            console.error(`   ⚠️  CRITICAL BUG #1: PARSER.SYNTAX กำลัง THROW ERROR!`);
-            console.error(`   📋 Expected: ควร LOG ไปที่ logs/errors/critical.log`);
-            console.error(`   ❌ Actual: THROW Error object แทน`);
-            console.error(`   📁 ต้องแก้ที่: BinaryErrorParser.js → handleError() method`);
-            console.error(`   🔧 สาเหตุ: severity.shouldThrow = true ทำให้ throw Error`);
-            console.error(`   💡 วิธีแก้: CRITICAL severity ไม่ควร throw ควรแค่ log`);
-            bugs.push({
-                id: 'BUG-001',
-                severity: 'CRITICAL',
-                file: 'BinaryErrorParser.js',
-                method: 'handleError()',
-                issue: 'PARSER.SYNTAX throws instead of logging',
-                rootCause: 'severity.shouldThrow = true for CRITICAL',
-                fix: 'Change CRITICAL severity to shouldThrow: false OR handle differently in handleError()'
-            });
-        }
-        console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+        console.error(`   🐛 Error: ${error.message}`);
+        console.error(`   💡 Fix: CRITICAL/ERROR/FATAL/EMERGENCY 'shouldThrow' = false?`);
         failed++;
+        bugs.push({ id: 'BUG-001', issue: `${test.name} still throwing` });
     }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// TEST 2.2: Report Invalid Error Code (Should trigger META_INVALID_ERROR_CODE)
+// TEST 2.2: Report Invalid Error Code (สันนิษฐานว่าแก้ BUG-002 แล้ว)
 // ═══════════════════════════════════════════════════════════════════════════════
 console.log('\nTEST 2.2: Report Invalid Error Code');
 console.log('───────────────────────────────────────────────────────────────');
 
 try {
     reportError('INVALID_CODE_12345', { reason: 'Testing invalid code handling' });
-    console.log('✅ Invalid code handled (should trigger META_INVALID_ERROR_CODE)');
+    console.log('✅ Invalid code handled (triggered META_INVALID_ERROR_CODE)');
     passed++;
 } catch (error) {
     console.error(`\n❌❌❌ BUG DETECTED: Invalid Code Handling ❌❌❌`);
-    console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.error(`📁 File: src/error-handler/BinaryErrorParser.js`);
-    console.error(`📍 Method: decomposeBinaryCode()`);
-    console.error(`🐛 Error Type: ${error.name}`);
-    console.error(`💬 Error Message: ${error.message}`);
-    
-    // Extract exact line
-    const stackLines = error.stack.split('\n');
-    stackLines.slice(1, 4).forEach(line => {
-        const match = line.match(/at .+ \((.*):(\d+):(\d+)\)/);
-        if (match) {
-            const [, file, lineNum, col] = match;
-            const fileName = file.split('/').pop() || file.split('\\').pop();
-            console.error(`   📄 ${fileName} → Line ${lineNum}, Column ${col}`);
-        }
-    });
-    
-    console.error(`\n🔍 Root Cause Analysis:`);
-    console.error(`   ⚠️  CRITICAL BUG #2: Invalid Code ไม่ trigger META_INVALID_ERROR_CODE!`);
-    console.error(`   📋 Expected: ตรวจสอบ binaryCode ก่อน BigInt(), ถ้าผิด → ใช้ META_INVALID_ERROR_CODE`);
-    console.error(`   ❌ Actual: BigInt('INVALID_CODE_12345') โยน SyntaxError ทันที`);
-    console.error(`   📁 ต้องแก้ที่: BinaryErrorParser.js → decomposeBinaryCode() Line ~51`);
-    console.error(`   🔧 สาเหตุ: ไม่มี try-catch รอบ BigInt() conversion`);
-    console.error(`   💡 วิธีแก้:`);
-    console.error(`      1. เพิ่ม try-catch ใน decomposeBinaryCode()`);
-    console.error(`      2. ถ้า BigInt() fail → return components with META_INVALID_ERROR_CODE`);
-    console.error(`      3. หรือ validate binaryCode format ก่อน BigInt()`);
-    
-    bugs.push({
-        id: 'BUG-002',
-        severity: 'CRITICAL',
-        file: 'BinaryErrorParser.js',
-        method: 'decomposeBinaryCode()',
-        line: '~51',
-        issue: 'BigInt conversion crashes on invalid code',
-        rootCause: 'No try-catch around BigInt(binaryCode)',
-        fix: 'Add try-catch, return META_INVALID_ERROR_CODE components on error'
-    });
-    
-    console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+    console.error(`   🐛 Error: ${error.message}`);
+    console.error(`   💡 Fix: เพิ่ม try-catch(BigInt(code)) ใน binary-reporter.js`);
     failed++;
+    bugs.push({ id: 'BUG-002', issue: 'Invalid string code crashed' });
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -160,7 +89,7 @@ try {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// TEST 2.4: Report with Null Context
+// TEST 2.4: Report with Null Context (สันนิษฐานว่าแก้ BUG-003 แล้ว)
 // ═══════════════════════════════════════════════════════════════════════════════
 console.log('\nTEST 2.4: Report with Null Context');
 console.log('───────────────────────────────────────────────────────────────');
@@ -172,39 +101,49 @@ try {
     passed++;
 } catch (error) {
     console.error(`\n❌❌❌ BUG DETECTED: Null Context Crash ❌❌❌`);
+    console.error(`   🐛 Error: ${error.message}`);
+    console.error(`   💡 Fix: ใช้ const context = payload.context || {} ใน BinaryErrorParser.js`);
+    failed++;
+    bugs.push({ id: 'BUG-003', issue: 'Null context crashed' });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 🔥🔥🔥 NEW BRUTAL TEST 2.5 🔥🔥🔥
+// TEST 2.5: Report with Circular Context
+// ═══════════════════════════════════════════════════════════════════════════════
+console.log('\nTEST 2.5: Report with Circular Context');
+console.log('───────────────────────────────────────────────────────────────');
+
+try {
+    const code = BinaryCodes.RUNTIME.LOGIC('WARNING', 'RUNTIME', 6001);
+    const circularContext = {};
+    circularContext.a = { b: circularContext }; // Circular reference
+    
+    reportError(code, circularContext);
+    
+    console.log('✅ Circular context handled (should log <unserializable>)');
+    passed++;
+} catch (error) {
+    console.error(`\n❌❌❌ BUG DETECTED: Circular Context Crash ❌❌❌`);
     console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.error(`📁 File: src/error-handler/binary-reporter.js หรือ BinaryErrorParser.js`);
+    console.error(`📁 File: src/error-handler/binary-log-stream.js`);
+    console.error(`⚙️  Method: writeToStream()`);
     console.error(`🐛 Error Type: ${error.name}`);
     console.error(`💬 Error Message: ${error.message}`);
-    
-    const stackLines = error.stack.split('\n');
-    stackLines.slice(1, 4).forEach(line => {
-        const match = line.match(/at .+ \((.*):(\d+):(\d+)\)/);
-        if (match) {
-            const [, file, lineNum, col] = match;
-            const fileName = file.split('/').pop() || file.split('\\').pop();
-            console.error(`   📄 ${fileName} → Line ${lineNum}, Column ${col}`);
-        }
-    });
-    
     console.error(`\n🔍 Root Cause Analysis:`);
-    console.error(`   ⚠️  CRITICAL BUG #3: Null Context ทำให้ Crash!`);
-    console.error(`   📋 Expected: ควร handle null/undefined context gracefully`);
-    console.error(`   ❌ Actual: "Cannot convert undefined or null to object"`);
-    console.error(`   📁 ต้องแก้ที่: binary-reporter.js หรือ BinaryErrorParser.js`);
-    console.error(`   🔧 สาเหตุ: พยายาม spread operator {...context} กับ null`);
-    console.error(`   💡 วิธีแก้:`);
-    console.error(`      1. ตรวจสอบ context ก่อนใช้: context = context || {}`);
-    console.error(`      2. หรือใช้ context = { ...(context || {}) }`);
-    console.error(`      3. Validate context parameter ตั้งแต่ reportError()`);
+    console.error(`   ⚠️  CRITICAL BUG #4: JSON.stringify(metadata) พังเพราะ Circular Reference!`);
+    console.error(`   📋 Expected: ควร Log META=<unserializable>`);
+    console.error(`   ❌ Actual: Crash`);
+    console.error(`   💡 Fix: ตรวจสอบ try-catch รอบ JSON.stringify ใน 'writeToStream'`);
     
     bugs.push({
-        id: 'BUG-003',
+        id: 'BUG-004',
         severity: 'HIGH',
-        file: 'binary-reporter.js OR BinaryErrorParser.js',
-        issue: 'Null context causes crash',
-        rootCause: 'No null check before spreading context object',
-        fix: 'Add context = context || {} OR {...(context || {})}'
+        file: 'binary-log-stream.js',
+        method: 'writeToStream()',
+        issue: 'JSON.stringify crashed on circular context',
+        rootCause: 'No try-catch or faulty try-catch for JSON.stringify(metadata)',
+        fix: 'Ensure JSON.stringify is wrapped in try-catch'
     });
     
     console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
@@ -212,7 +151,7 @@ try {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// สรุปผล + Bug Report
+// สรุปผล
 // ═══════════════════════════════════════════════════════════════════════════════
 console.log('\n═══════════════════════════════════════════════════════════════');
 console.log(`✅ Passed: ${passed}`);
@@ -221,21 +160,14 @@ console.log(`📊 Total: ${passed + failed}`);
 console.log('═══════════════════════════════════════════════════════════════');
 
 if (bugs.length > 0) {
-    console.log('\n🐛🐛🐛 BUG REPORT SUMMARY 🐛🐛🐛');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log(`\n🐛🐛🐛 ${bugs.length} BUGS DETECTED 🐛🐛🐛\n`);
     bugs.forEach((bug, index) => {
-        console.log(`\n${index + 1}. ${bug.id} [${bug.severity}]`);
-        console.log(`   📁 File: ${bug.file}`);
-        if (bug.method) console.log(`   ⚙️  Method: ${bug.method}`);
-        if (bug.line) console.log(`   📍 Line: ${bug.line}`);
-        console.log(`   🐛 Issue: ${bug.issue}`);
-        console.log(`   🔍 Root Cause: ${bug.rootCause}`);
-        console.log(`   💡 Fix: ${bug.fix}`);
+        console.log(`BUG #${index + 1}: ${bug.id}`);
+        console.log(`  Issue: ${bug.issue}`);
+        if (bug.rootCause) console.log(`  Root Cause: ${bug.rootCause}`);
+        if (bug.fix) console.log(`  Fix: ${bug.fix}`);
+        console.log('');
     });
-    console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log(`\n⚠️  Total Bugs Found: ${bugs.length}`);
-    console.log('⚠️  ต้องแก้ไฟล์: BinaryErrorParser.js, binary-reporter.js');
-    console.log('⚠️  Priority: CRITICAL - ระบบ Error Handling ยังไม่พร้อมใช้งาน!\n');
 }
 
 process.exit(failed > 0 ? 1 : 0);
