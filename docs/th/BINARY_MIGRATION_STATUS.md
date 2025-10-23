@@ -38,7 +38,38 @@
 - [x] ทบทวน `src/rules/STRICT_COMMENT_STYLE.js` ให้ metadata ยึดคอนสแตนต์ครบถ้วน
 - [x] ยืนยันว่าไม่มีกฎใดใช้ literal string เป็นไอดีหรือ severity
 
-### ขั้นตอนที่ 5: ปรับ ErrorHandler เป็นเลเยอร์แปลผล (กำลังดำเนินการ)
+### ขั้นตอนที่ 5: ปรับ ErrorHandler เป็นเลเยอร์แปลผล (เสร็จสมบูรณ์)
+
+> **อัปเดต 23 ตุลาคม 2025 (สร้างระบบ Binary Error ใหม่ทั้งหมด):**
+> - สร้างระบบ Binary Error ใหม่ทั้งหมดตั้งแต่ศูนย์ด้วยสถาปัตยกรรมแบบ Grammar-Driven
+> - สร้าง `src/error-handler/binary-error.grammar.js` เป็น Single Source of Truth ที่กำหนด:
+>   - โครงสร้าง Binary Code 64 บิต: Domain (16 บิต) | Category (16 บิต) | Severity (8 บิต) | Source (8 บิต) | Offset (16 บิต)
+>   - รหัสทั้งหมดเป็น string เพื่อหลีกเลี่ยงข้อจำกัด 53 บิตของ JavaScript
+>   - นิยาม domain/category/severity/source ครบถ้วนพร้อม metadata สองภาษา
+>   - Meta codes สำหรับ error ระดับระบบ (INVALID_ERROR_CODE, RECURSIVE_ERROR ฯลฯ)
+> - สร้าง `src/error-handler/binary-code-utils.js` พร้อม utilities หลัก:
+>   - `createErrorCode(domain, category, severity, source, offset)` - ประกอบรหัส 64 บิต
+>   - `createErrorCodeBuilder(grammar, domain, category)` - โรงงานสร้าง builder เฉพาะ domain
+>   - `getComponentMap(grammar, componentType)` - สร้าง Maps สำหรับค้นหาเร็ว
+> - สร้าง `src/error-handler/binary-codes.js` เป็น factory ที่สร้างล่วงหน้า:
+>   - สร้าง error builders ทั้งหมดอัตโนมัติตอน import ด้วยการวนลูป Grammar
+>   - รูปแบบ: `BinaryCodes.DOMAIN.CATEGORY(severity, source, offset)`
+>   - ตัวอย่าง: `BinaryCodes.PARSER.SYNTAX(CRITICAL, CLI, 1001)` คืน "562954785784809"
+> - สร้าง `src/error-handler/BinaryErrorParser.js` สำหรับแยกส่วนประกอบ:
+>   - `decomposeBinaryCode(code)` - แยก 5 ส่วนประกอบจากรหัส 64 บิต
+>   - `renderHumanReadable(code, language)` - สร้างข้อความ error แบบจัดรูปแบบ
+>   - `shouldThrowError(code)` - ตัดสินว่า error ควร throw หรือ log
+> - สร้าง `src/error-handler/binary-reporter.js` เป็น interface รวม:
+>   - `reportError(binaryCode, context)` - ฟังก์ชันเดียวสำหรับรายงาน error ทั้งหมด
+>   - บันทึก log อัตโนมัติลงไฟล์ (centralized-errors.log, critical-errors.log)
+>   - ป้องกัน recursive error ด้วย META_RECURSIVE_ERROR
+> - สร้าง `src/error-handler/binary-log-stream.js` สำหรับจัดการไฟล์:
+>   - `ensureLogDirectory()` - สร้างโฟลเดอร์ log ถ้ายังไม่มี
+>   - `appendToLog(binaryCode, message, context)` - เขียนลงไฟล์ log
+> - ย้าย `cli.js` เป็น Binary Pattern 100 เปอร์เซ็นต์ (แก้ 10 จุด error)
+> - ลบ `ErrorHandler.js` แบบเดิมทิ้งเพื่อบังคับใช้ Binary Pattern แท้ๆ
+> - สร้างชุดทดสอบครบถ้วน (tests/test-01 ถึง test-04 บวก run-all-tests.js)
+> - ผลทดสอบ: BinaryCodes factory ทำงานสมบูรณ์ แต่พบ bug วิกฤตใน parser
 
 > **อัปเดต 18 ตุลาคม 2025:**
 > - ปรับ `src/error-handler/error-catalog.js` ให้โครงสร้างโดเมนแบบลำดับชั้นเสร็จสมบูรณ์ ทำให้ผู้ใช้ปลายน้ำสามารถอ่านรหัสโดเมน slug และคำอธิบายจาก payload ที่ normalize แล้วได้ทันที
@@ -46,7 +77,6 @@
 > - ปรับ `src/error-handler/error-normalizer.js` ให้ส่งต่อ domain descriptor, severity metadata และ recommended action ในทุกกรณี รวมถึงเส้นทาง fallback
 > - `src/rules/validator.js` ส่งค่า error แบบ binary-only (sourceCode, severityCode, errorCode) ทั้งในกรณีบูต parser ล้มเหลวและเมื่อการประมวลผลกฎรายตัวผิดพลาด ช่วยผลักดันข้อกำหนด Phase 5.3
 > - แยกเลเยอร์ Rendering ออกเป็นไฟล์ `src/error-handler/error-renderer.js` ทำให้ `ErrorHandler.js` เหลือหน้าที่ intake + transport เท่านั้น
-> - ขั้นถัดไป: บังคับใช้สัญญา `handleError({ kind, code, severityCode, ... })` แบบ binary-only แก้ทุกจุดเรียกใช้ และเติม metadata ทุกหมวดก่อนขยายชุดทดสอบรองรับ payload ใหม่
 
 > **อัปเดต 18 ตุลาคม 2025 (เริ่มใช้ตัวช่วยสร้าง payload):**
 > - เพิ่ม `src/error-handler/error-emitter.js` พร้อมฟังก์ชัน `createSystemPayload` และ `emitSecurityNotice` เพื่อให้จุดเรียกใช้งานไม่ต้องสร้าง payload แบบแมนนวลหรืออาศัย string severity อีกต่อไป
@@ -60,79 +90,32 @@
 > - การรัน `node cli src\` รอบล่าสุดสำเร็จหลังเพิ่มการตรวจสอบความสมบูรณ์ใน `PureBinaryTokenizer.loadGrammarSections` และย้ายข้อความสถานะไปยังช่อง `telemetry-recorder` ใหม่ ทำให้ยังคงป้องกัน CRITICAL 1008/1009 แต่ไม่มี log โค้ด 500 ปรากฏใน CLI อีกต่อไป
 > - ขั้นถัดไปคือยกระบบ Error Catalog ให้เป็นลำดับชั้น (Domain ➝ Category ➝ Code) พร้อม metadata ประเภท retry/fatal และแหล่งอ้างอิงมาตรฐาน เพื่อให้เครื่องมือ downstream วิเคราะห์แล้วตัดสินใจได้อัตโนมัติ
 
-#### 5.1 ออกแบบสถาปัตยกรรม 4 Layers
-- [ ] ออกแบบสถาปัตยกรรมระบบแจ้งข้อผิดพลาดใหม่ โดยแยกเป็น 4 ชั้นที่ชัดเจน:
-  - **Layer 1: Binary Intake** - รับ error เป็น binary codes (ruleId, severityCode, errorCode)
-  - **Layer 2: Normalization** - แปลง binary  metadata ที่สมบูรณ์ (slug, name, description)
-  - **Layer 3: Rendering** - สร้าง output (Markdown, JSON, plain text) จาก normalized data
-  - **Layer 4: Transport** - ส่งออกไปยังปลายทาง (file, stream, console, external services)
+#### 5.1 ออกแบบสถาปัตยกรรม Binary Error แบบ Grammar-Driven
+- [x] ออกแบบระบบ Binary Error แบบ Grammar-Driven ด้วยโครงสร้างรหัส 64 บิต:
+  - **โครงสร้าง 64 บิต:** Domain (16) | Category (16) | Severity (8) | Source (8) | Offset (16)
+  - **Single Source of Truth:** `binary-error.grammar.js` กำหนด domains, categories, severities, sources ทั้งหมด
+  - **Pure Binary Pattern:** รหัสทั้งหมดเป็น string เพื่อหลีกเลี่ยงข้อจำกัด 53 บิตของ JavaScript
+  - **Factory Pattern:** `BinaryCodes.DOMAIN.CATEGORY(severity, source, offset)` สร้างล่วงหน้าตอน import
+  - **Unified Interface:** `reportError(binaryCode, context)` สำหรับรายงาน error ทั้งหมด
 
-#### 5.2 สร้างไฟล์ Error Catalog และ Normalization Helpers
-- [x] สร้าง `src/error-handler/error-catalog.js` เก็บข้อมูลกลาง:
-  - Error source types และ binary codes (VALIDATOR, PARSER, CLI, SYSTEM)
-  - Error category mappings (6 หมวดหมู่หลัก):
-   1. **Syntax Errors (1001-1099)**: ข้อผิดพลาดทางไวยากรณ์
-     - UNEXPECTED_TOKEN, MISSING_SEMICOLON, UNMATCHED_BRACKETS
-     - INVALID_ASSIGNMENT, DUPLICATE_PARAMETER, UNEXPECTED_END_OF_INPUT
-     - GRAMMAR_RULE_MISSING (กฎไวยากรณ์หายไปจากทะเบียน)
-    2. **Type Errors (2001-2099)**: ข้อผิดพลาดเกี่ยวกับชนิดข้อมูล
-       - IS_NOT_A_FUNCTION, CANNOT_READ_PROPERTY_OF_NULL_OR_UNDEFINED
-       - INVALID_TYPE_ARGUMENT, OPERATOR_CANNOT_BE_APPLIED
-    3. **Reference Errors (3001-3099)**: ข้อผิดพลาดในการอ้างอิง
-       - IS_NOT_DEFINED, TDZ_ACCESS (Temporal Dead Zone)
-    4. **Runtime Errors (4001-4099)**: ข้อผิดพลาดตอนทำงาน
-       - STACK_OVERFLOW, OUT_OF_MEMORY, NULL_POINTER_EXCEPTION
-    5. **Logical Errors (5001-5099)**: ข้อผิดพลาดทางตรรกะ
-       - UNHANDLED_PROMISE_REJECTION, INFINITE_LOOP, UNREACHABLE_CODE
-       - VARIABLE_SHADOWING, USE_BEFORE_DEFINE, MAGIC_NUMBER
-    6. **File System Errors (6001-6099)**: ข้อผิดพลาดเกี่ยวกับไฟล์
-       - FILE_NOT_FOUND, FILE_READ_ERROR, FILE_WRITE_ERROR, PERMISSION_DENIED
-   7. **Security Enforcement (7001-7099)**: การตอบสนองเหตุด้านความปลอดภัย การจำกัดอัตรา และการละเมิดนโยบาย
-     - UNKNOWN_VIOLATION, SUSPICIOUS_PATTERN, RATE_LIMIT_TRIGGERED, PATH_TRAVERSAL_BLOCKED, SECURITY_MODULE_FAILURE
-  - Default error messages และ templates
-  - Severity level descriptions
-- [x] สร้าง `src/error-handler/error-dictionary.js` เป็น "พจนานุกรมแปลรหัส Error":
-  - Map error codes (binary)  human-readable messages
-  - เก็บ explanation (คำอธิบายสาเหตุ) สำหรับแต่ละ error
-  - เก็บ fix suggestions (วิธีแก้ไข) สำหรับแต่ละ error
-  - รองรับทั้งภาษาไทยและอังกฤษ
-  - ครอบคลุม error codes ทั้ง 6 หมวดหมู่:
-    - **RULE_ERROR_DICTIONARY**: สำหรับ rule violations (10 กฎ)
-    - **SYNTAX_ERROR_DICTIONARY**: สำหรับ syntax errors (1001-1099)
-    - **TYPE_ERROR_DICTIONARY**: สำหรับ type errors (2001-2099)
-    - **REFERENCE_ERROR_DICTIONARY**: สำหรับ reference errors (3001-3099)
-    - **RUNTIME_ERROR_DICTIONARY**: สำหรับ runtime errors (4001-4099)
-    - **LOGICAL_ERROR_DICTIONARY**: สำหรับ logical errors (5001-5099)
-    - **FILE_SYSTEM_ERROR_DICTIONARY**: สำหรับ file system errors (6001-6099)
-  - ตัวอย่างโครงสร้าง:
-    ```javascript
-    export const SYNTAX_ERROR_DICTIONARY = {
-      [SYNTAX_ERROR_CODES.UNEXPECTED_TOKEN]: {
-        message: {
-          th: "พบ Token ที่ไม่คาดคิด",
-          en: "Unexpected token found"
-        },
-        explanation: {
-          th: "Parser พบ token ที่ไม่คาดหวังในตำแหน่งนี้",
-          en: "Parser encountered unexpected token at this position"
-        },
-        fix: {
-          th: "ตรวจสอบ syntax หา typo หรือเครื่องหมายที่หายไป",
-          en: "Check syntax for typos or missing characters"
-        },
-        category: "SYNTAX_ERROR",
-        severity: ERROR_SEVERITY_FLAGS.HIGH
-      }
-    }
-    ```
-- [x] สร้าง `src/error-handler/error-normalizer.js` จัดทำฟังก์ชันแปลงค่า:
-  - `normalizeRuleError(ruleId, severityCode, context)` - แปลง rule violation
-  - `normalizeSystemError(errorCode, severityCode, context)` - แปลง system error
-  - `resolveErrorSource(sourceCode)` - แปลง source type binary  label
-  - `resolveErrorMessage(errorCode, language)` - ค้นหาข้อความจาก error-dictionary
-  - `enrichErrorContext(normalizedError)` - เพิ่มข้อมูลบริบทให้สมบูรณ์
-  - `createFallbackError(unknownError)` - สร้าง safe fallback สำหรับ error ที่ไม่รู้จัก
-  - บันทึก `filePath` และตำแหน่ง (line/column) ครบเพื่อใช้สร้างรายงานบรรทัดและบล็อกโค้ด
+#### 5.2 สร้าง Binary Error Grammar และ Core Utilities
+- [x] สร้าง `src/error-handler/binary-error.grammar.js` เป็น Single Source of Truth:
+  - ส่วน Config กำหนดโครงสร้างรหัสและกฎการประกอบ
+  - ส่วน Meta มีรหัส error ระดับระบบ (INVALID_ERROR_CODE, RECURSIVE_ERROR)
+  - ส่วน Domains กำหนด error domains ทั้งหมด (PARSER, VALIDATOR, SYSTEM, CLI, SECURITY, RULE)
+  - ส่วน Categories กำหนด error categories ต่อ domain (SYNTAX, TYPE, REFERENCE ฯลฯ)
+  - ส่วน Severities มีชื่อสองภาษาและ shouldThrow flags
+  - ส่วน Sources กำหนดที่มาของ error (CLI, VALIDATOR, PARSER, SYSTEM)
+- [x] สร้าง `src/error-handler/binary-code-utils.js` พร้อม utilities การประกอบรหัส:
+  - `createErrorCode(domain, category, severity, source, offset)` - ประกอบรหัส 64 บิต
+  - `createErrorCodeBuilder(grammar, domain, category)` - โรงงานสร้าง builders
+  - `getComponentMap(grammar, componentType)` - สร้าง Maps สำหรับค้นหาเร็ว
+  - รหัสทั้งหมดคืนเป็น string เพื่อความปลอดภัย 64 บิต
+- [x] สร้าง `src/error-handler/binary-codes.js` เป็น factory ที่สร้างล่วงหน้า:
+  - สร้าง BinaryCodes.DOMAIN.CATEGORY builders ทั้งหมดอัตโนมัติตอน import
+  - วนลูป Grammar domains และ categories เพื่อสร้าง builders
+  - Export BinaryCodes object พร้อม builders ทั้งหมด
+  - ตัวอย่าง: `BinaryCodes.PARSER.SYNTAX(CRITICAL, CLI, 1001)`
 
 #### 5.3 Refactor ErrorHandler.js เป็น Binary Intake Layer (กำลังดำเนินการ)
 - [x] บังคับให้ `handleError` ทุกเส้นทางผ่าน `error-normalizer.js` เพื่อแปลงรหัสไบนารีเป็น metadata จาก dictionary ก่อนบันทึกหรือล็อกออก

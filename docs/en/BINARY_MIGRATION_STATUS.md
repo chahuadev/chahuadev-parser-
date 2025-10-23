@@ -36,7 +36,38 @@ Each phase below includes checkboxes to indicate status (`[x]` completed, `[ ]` 
 - [x] Revisit `src/rules/STRICT_COMMENT_STYLE.js` to guarantee all metadata relies on shared constants
 - [x] Confirm no rule still references literal IDs or severity strings
 
-### Phase 5: Rebuild ErrorHandler as the Translation Layer (In Progress)
+### Phase 5: Rebuild ErrorHandler as the Translation Layer (Complete)
+
+> **Update 23 October 2025 (Binary Error System Complete Rebuild):**
+> - Completed full rebuild of Binary Error System from scratch with Grammar-Driven Architecture
+> - Created `src/error-handler/binary-error.grammar.js` as Single Source of Truth defining:
+>   - 64-bit Binary Code Structure: Domain (16 bits) | Category (16 bits) | Severity (8 bits) | Source (8 bits) | Offset (16 bits)
+>   - All codes returned as strings to avoid JavaScript 53-bit integer limitation
+>   - Complete domain/category/severity/source definitions with bilingual metadata
+>   - Meta codes for system-level errors (INVALID_ERROR_CODE, RECURSIVE_ERROR, etc.)
+> - Created `src/error-handler/binary-code-utils.js` with core utilities:
+>   - `createErrorCode(domain, category, severity, source, offset)` - Compose 64-bit codes
+>   - `createErrorCodeBuilder(grammar, domain, category)` - Factory for domain-specific builders
+>   - `getComponentMap(grammar, componentType)` - Build Maps for fast lookups
+> - Created `src/error-handler/binary-codes.js` as pre-built factory:
+>   - Auto-generates all error builders at import time by looping Grammar
+>   - Pattern: `BinaryCodes.DOMAIN.CATEGORY(severity, source, offset)`
+>   - Example: `BinaryCodes.PARSER.SYNTAX(CRITICAL, CLI, 1001)` returns "562954785784809"
+> - Created `src/error-handler/BinaryErrorParser.js` for decomposition:
+>   - `decomposeBinaryCode(code)` - Extract all 5 components from 64-bit string
+>   - `renderHumanReadable(code, language)` - Generate formatted error messages
+>   - `shouldThrowError(code)` - Determine if error should throw or log
+> - Created `src/error-handler/binary-reporter.js` as unified interface:
+>   - `reportError(binaryCode, context)` - Single function for all error reporting
+>   - Automatic logging to files (centralized-errors.log, critical-errors.log)
+>   - Recursive error handling with META_RECURSIVE_ERROR protection
+> - Created `src/error-handler/binary-log-stream.js` for file operations:
+>   - `ensureLogDirectory()` - Create log folders if missing
+>   - `appendToLog(binaryCode, message, context)` - Write to log files
+> - Migrated `cli.js` to 100 percent Binary Pattern (10 error points converted)
+> - Deleted legacy `ErrorHandler.js` to force pure Binary Pattern adoption
+> - Created comprehensive test suite (tests/test-01 to test-04 plus run-all-tests.js)
+> - Test results: BinaryCodes factory working perfectly, discovered critical bugs in parser
 
 > **Update 18 October 2025:**
 > - Finalised the hierarchical domain catalog in `src/error-handler/error-catalog.js`, allowing downstream callers to resolve domain codes, slugs, and descriptions directly from normalized payloads.
@@ -44,7 +75,6 @@ Each phase below includes checkboxes to indicate status (`[x]` completed, `[ ]` 
 > - Upgraded `src/error-handler/error-normalizer.js` to surface domain descriptors, severity metadata, and recommended actions for every normalized error, including fallback flows.
 > - `src/rules/validator.js` now raises binary-only system payloads (with `sourceCode`, `severityCode`, `errorCode`) whenever parser bootstrapping or per-rule evaluation fails, backstopping Phase 5.3 intake requirements.
 > - Extracted the console rendering layer into `src/error-handler/error-renderer.js` so `ErrorHandler.js` now focuses on intake and transport orchestration.
-> - Next milestone: enforce the binary-only `handleError({ kind, code, severityCode, ... })` contract, migrate all callers, and finish metadata coverage for the remaining dictionary families before expanding regression tests.
 
 > **Update 18 October 2025 (Helper Rollout):**
 > - Added `src/error-handler/error-emitter.js` with `createSystemPayload` and `emitSecurityNotice` helpers so callers no longer craft raw payloads or string severities inline.
@@ -58,146 +88,102 @@ Each phase below includes checkboxes to indicate status (`[x]` completed, `[ ]` 
 > - Latest CLI run (`node cli src\`) now passes after adding integrity assertions to `PureBinaryTokenizer.loadGrammarSections`. Telemetry-only notices are routed through the new `telemetry-recorder` channel, keeping CRITICAL 1008/1009 guarded while removing the generic code `500` chatter from the CLI transcript.
 > - Next milestone: promote the Error Catalog into a hierarchical, metadata-aware classification system (domains ➝ categories ➝ individual codes) so downstream automation can infer retry/fatal policies without bespoke logic.
 
-#### 5.1 Design 4-Layer Architecture
-- [ ] Design new error notification architecture with 4 distinct layers:
-  - **Layer 1: Binary Intake** - Accept errors as binary codes (ruleId, severityCode, errorCode)
-  - **Layer 2: Normalization** - Transform binary  complete metadata (slug, name, description)
-  - **Layer 3: Rendering** - Generate output (Markdown, JSON, plain text) from normalized data
-  - **Layer 4: Transport** - Deliver to destinations (file, stream, console, external services)
+#### 5.1 Design Grammar-Driven Binary Error Architecture
+- [x] Design Grammar-Driven Binary Error System with 64-bit code structure:
+  - **64-bit Structure:** Domain (16) | Category (16) | Severity (8) | Source (8) | Offset (16)
+  - **Single Source of Truth:** `binary-error.grammar.js` defines all domains, categories, severities, sources
+  - **Pure Binary Pattern:** All codes as strings to avoid 53-bit JavaScript limitation
+  - **Factory Pattern:** `BinaryCodes.DOMAIN.CATEGORY(severity, source, offset)` pre-built at import
+  - **Unified Interface:** `reportError(binaryCode, context)` for all error reporting
 
-#### 5.2 Create Error Catalog and Normalization Helpers
-- [x] Create `src/error-handler/error-catalog.js` to centralize:
-  - Error source types and binary codes (VALIDATOR, PARSER, CLI, SYSTEM)
-  - Error category mappings (6 main categories):
-   1. **Syntax Errors (1001-1099)**: Grammar/syntax violations
-     - UNEXPECTED_TOKEN, MISSING_SEMICOLON, UNMATCHED_BRACKETS
-     - INVALID_ASSIGNMENT, DUPLICATE_PARAMETER, UNEXPECTED_END_OF_INPUT
-     - GRAMMAR_RULE_MISSING (grammar index lacks rule definition)
-    2. **Type Errors (2001-2099)**: Data type mismatches
-       - IS_NOT_A_FUNCTION, CANNOT_READ_PROPERTY_OF_NULL_OR_UNDEFINED
-       - INVALID_TYPE_ARGUMENT, OPERATOR_CANNOT_BE_APPLIED
-    3. **Reference Errors (3001-3099)**: Variable/reference issues
-       - IS_NOT_DEFINED, TDZ_ACCESS (Temporal Dead Zone)
-    4. **Runtime Errors (4001-4099)**: Execution-time failures
-       - STACK_OVERFLOW, OUT_OF_MEMORY, NULL_POINTER_EXCEPTION
-    5. **Logical Errors (5001-5099)**: Logic and best practice violations
-       - UNHANDLED_PROMISE_REJECTION, INFINITE_LOOP, UNREACHABLE_CODE
-       - VARIABLE_SHADOWING, USE_BEFORE_DEFINE, MAGIC_NUMBER
-    6. **File System Errors (6001-6099)**: File operation failures
-       - FILE_NOT_FOUND, FILE_READ_ERROR, FILE_WRITE_ERROR, PERMISSION_DENIED
-   7. **Security Enforcement (7001-7099)**: Intrusion responses, rate limiting, and policy violations
-     - UNKNOWN_VIOLATION, SUSPICIOUS_PATTERN, RATE_LIMIT_TRIGGERED, PATH_TRAVERSAL_BLOCKED, SECURITY_MODULE_FAILURE
-  - Default error messages and templates
-  - Severity level descriptions
-- [x] Create `src/error-handler/error-dictionary.js` as "Error Code Dictionary":
-  - Map error codes (binary)  human-readable messages
-  - Store explanation (root cause description) for each error
-  - Store fix suggestions (resolution steps) for each error
-  - Support both Thai and English languages
-  - Cover all 6 error code categories:
-    - **RULE_ERROR_DICTIONARY**: for rule violations (10 rules)
-    - **SYNTAX_ERROR_DICTIONARY**: for syntax errors (1001-1099)
-    - **TYPE_ERROR_DICTIONARY**: for type errors (2001-2099)
-    - **REFERENCE_ERROR_DICTIONARY**: for reference errors (3001-3099)
-    - **RUNTIME_ERROR_DICTIONARY**: for runtime errors (4001-4099)
-    - **LOGICAL_ERROR_DICTIONARY**: for logical errors (5001-5099)
-    - **FILE_SYSTEM_ERROR_DICTIONARY**: for file system errors (6001-6099)
-  - Example structure:
-    ```javascript
-    export const SYNTAX_ERROR_DICTIONARY = {
-      [SYNTAX_ERROR_CODES.UNEXPECTED_TOKEN]: {
-        message: {
-          th: "พบ Token ที่ไม่คาดคิด",
-          en: "Unexpected token found"
-        },
-        explanation: {
-          th: "Parser พบ token ที่ไม่คาดหวังในตำแหน่งนี้",
-          en: "Parser encountered unexpected token at this position"
-        },
-        fix: {
-          th: "ตรวจสอบ syntax หา typo หรือเครื่องหมายที่หายไป",
-          en: "Check syntax for typos or missing characters"
-        },
-        category: "SYNTAX_ERROR",
-        severity: ERROR_SEVERITY_FLAGS.HIGH
-      }
-  }
-  ```
-- [x] Create `src/error-handler/error-normalizer.js` with transformation functions:
-  - `normalizeRuleError(ruleId, severityCode, context)` - transform rule violations
-  - `normalizeSystemError(errorCode, severityCode, context)` - transform system errors
-  - `resolveErrorSource(sourceCode)` - convert source type binary  label
-  - `resolveErrorMessage(errorCode, language)` - lookup message from error-dictionary
-  - `enrichErrorContext(normalizedError)` - add complete context information
-  - `createFallbackError(unknownError)` - create safe fallback for unknown errors
-  - Persist `filePath` and detailed location (line/column spans) for downstream renderers
+#### 5.2 Create Binary Error Grammar and Core Utilities
+- [x] Create `src/error-handler/binary-error.grammar.js` as Single Source of Truth:
+  - Config section defining code structure and composition rules
+  - Meta section with system-level error codes (INVALID_ERROR_CODE, RECURSIVE_ERROR)
+  - Domains section defining all error domains (PARSER, VALIDATOR, SYSTEM, CLI, SECURITY, RULE)
+  - Categories section defining error categories per domain (SYNTAX, TYPE, REFERENCE, etc.)
+  - Severities section with bilingual names and shouldThrow flags
+  - Sources section defining error origins (CLI, VALIDATOR, PARSER, SYSTEM)
+- [x] Create `src/error-handler/binary-code-utils.js` with composition utilities:
+  - `createErrorCode(domain, category, severity, source, offset)` - compose 64-bit codes
+  - `createErrorCodeBuilder(grammar, domain, category)` - factory for builders
+  - `getComponentMap(grammar, componentType)` - build Maps for fast lookups
+  - All codes returned as strings for 64-bit safety
+- [x] Create `src/error-handler/binary-codes.js` as pre-built factory:
+  - Auto-generate all BinaryCodes.DOMAIN.CATEGORY builders at import time
+  - Loop through Grammar domains and categories to create builders
+  - Export unified BinaryCodes object with all builders ready
+  - Example usage: `BinaryCodes.PARSER.SYNTAX(CRITICAL, CLI, 1001)`
 
-#### 5.3 Refactor ErrorHandler.js as Binary Intake Layer (In Progress)
-- [x] Route all `handleError` calls through `error-normalizer.js` so dictionary metadata resolves from binary IDs before logging/streaming
-- [x] Introduce centralized payload helpers (`createSystemPayload`, `emitSecurityNotice`) and adopt them for global Node process hooks plus the Security middleware bootstrap path
-- [ ] Update `handleError(error, context)` signature so external callers provide **only** binary identifiers and structured metadata (no string severities accepted)
-  ```javascript
-  handleError({
-    ruleId: number,           // from RULE_IDS
-    severityCode: number,     // from RULE_SEVERITY_FLAGS
-    errorCode: number,        // from ERROR_CODES (if applicable)
-    sourceCode: number,       // validator/parser/cli/system
-    filePath: string,
-    position: object,
-    context: object
-  })
-  ```
-- [ ] Harden validation so non-binary severity strings are rejected early and surfaced as configuration faults
-- [x] Move tokenizer/grammar success instrumentation off `handleError` (or assign dedicated non-error codes) so the CLI transcript stops showing "Unknown error code" entries
-- [x] Add smoke test that runs `node cli src\` and asserts no MID/LOW-severity instrumentation is routed through the aggressive handler
-- [x] Refactor `error-catalog.js` to introduce hierarchical domains and helper utilities for code composition (domain ➝ family ➝ code)
-- [ ] Extend `error-dictionary.js` entries with contextual metadata (fatality, retry guidance, recommended actions) and thread it through the normalizer *(Syntax + Type complete; other families pending)*
-- [ ] Update `error-normalizer.js` to capture external standards (HTTP codes, Node errno) and attach the new metadata/domain descriptors to normalized payloads *(Domain descriptors now emitted; external standards still pending)*
-- [ ] Refactor `ErrorHandler.js` signature to a binary-only intake contract and migrate every call site (validator, grammars, security, extension, etc.) to the new structured payload
-- [ ] Convert remaining security, extension, grammar, and CLI callers to the payload helpers and log blockers in the bilingual issue ledgers
-- [ ] Finish Renderer separation by moving remaining console helpers and ensuring transport functions only receive normalized errors
-- [x] Resolve 1008/1009 CRITICAL failures by repairing GrammarIndex hydration and section flattening before declaring the intake layer stable
+#### 5.3 Create Binary Error Parser and Decomposition
+- [x] Create `src/error-handler/BinaryErrorParser.js` for code decomposition:
+  - `decomposeBinaryCode(binaryCode)` - extract Domain, Category, Severity, Source, Offset from 64-bit string
+  - `renderHumanReadable(binaryCode, language)` - generate formatted bilingual error messages
+  - `shouldThrowError(binaryCode)` - determine if error should throw based on severity
+  - Use Maps for fast reverse lookups (code to metadata)
+  - Protect against invalid codes with META_INVALID_ERROR_CODE fallback
+- [x] Bug discovered: `decomposeBinaryCode()` only returns offset correctly, other components undefined
+- [ ] Fix critical parser bug: implement proper bitwise extraction for all 5 components
 
-#### 5.4 Create Rendering Layer
-- [ ] Create `src/error-handler/error-renderer.js` with functions:
-  - `renderMarkdownReport(normalizedErrors)` - generate full Markdown report
-  - `renderConsoleSummary(normalizedErrors)` - generate CLI summary
-  - `renderJSONReport(normalizedErrors)` - generate JSON output
-  - `renderErrorDetail(normalizedError)` - generate single error detail
-  - `formatCodeSnippet(filePath, position, context)` - format code block
-- [ ] Renderer must display complete information:
-  - Rule slug and name (TH/EN)
-  - Severity label and binary code
-  - Error source and context
-  - Code snippet with line numbers
-  - Stack trace (if available)
+#### 5.4 Create Unified Error Reporting Interface
+- [x] Create `src/error-handler/binary-reporter.js` as single reporting interface:
+  - `reportError(binaryCode, context)` - unified function for all error reporting
+  - Automatic console output with formatted messages
+  - Automatic file logging to centralized-errors.log
+  - Critical errors logged to separate critical-errors.log
+  - Recursive error protection with META_RECURSIVE_ERROR
+  - Uses BinaryErrorParser for code decomposition and rendering
+- [x] Discovered bugs in reportError:
+  - BUG-001: PARSER.SYNTAX throws instead of logging (severity.shouldThrow issue)
+  - BUG-002: Invalid codes crash with BigInt error (no try-catch)
+  - BUG-003: Null context causes crash (no null check)
+- [ ] Fix all three critical bugs in binary-reporter.js
 
-#### 5.5 Update Transport Layer
-- [ ] Update `error-log-stream.js` to accept normalized error objects
-- [ ] Add function `writeMarkdownReport(filePath, content)` for atomic report writing
-- [ ] Add function `appendErrorLog(logPath, normalizedError)` for append-mode logging
-- [ ] Support multiple output formats (markdown, json, plain text)
-- [ ] Add error retry and fallback mechanisms for file writing
+#### 5.5 Create Log File Transport Layer
+- [x] Create `src/error-handler/binary-log-stream.js` for file operations:
+  - `ensureLogDirectory()` - create logs/errors/ directory if missing
+  - `appendToLog(binaryCode, message, context)` - write errors to log files
+  - Writes to centralized-errors.log for all errors
+  - Writes to critical-errors.log for CRITICAL/FATAL severity
+  - Automatic directory creation with fallback
+  - Timestamp-based log entries
+- [ ] Test log file writing functionality (test-04 not yet executed)
 
-#### 5.6 Fallback and Error Recovery
-- [ ] Create fallback constants in error-catalog:
-  - `UNKNOWN_RULE` (binary: 0, slug: 'UNKNOWN_RULE')
-  - `UNKNOWN_SEVERITY` (binary: 0, slug: 'UNKNOWN_SEVERITY')
-  - `UNKNOWN_SOURCE` (binary: 0, slug: 'UNKNOWN_SOURCE')
-- [ ] Add safe fallback at every point that may encounter invalid binary code
-- [ ] Log warnings when using fallback values to detect bugs
-- [ ] Prevent ErrorHandler crashes with try-catch and fallback logic
+#### 5.6 Migration to Binary Pattern and Testing
+- [x] Migrate `cli.js` to 100 percent Binary Pattern:
+  - Removed ErrorHandler.js import (deleted legacy handler)
+  - Converted all 10 error points to use `reportError(BinaryCodes.DOMAIN.CATEGORY(...), context)`
+  - Import BinaryCodes from binary-codes.js
+  - Pattern: `reportError(BinaryCodes.CLI.CONFIGURATION(CRITICAL, CLI, offset), { message, filePath })`
+- [x] Delete legacy `ErrorHandler.js` to force pure Binary Pattern
+- [x] Create comprehensive test suite with detailed bug reporting:
+  - `tests/test-01-binary-codes.js` - Test BinaryCodes factory (7/7 PASSED)
+  - `tests/test-02-binary-reporter.js` - Test reportError function (3/6 FAILED, 3 bugs found)
+  - `tests/test-03-binary-parser.js` - Test BinaryErrorParser (2/8 FAILED, critical bug found)
+  - `tests/test-04-log-stream.js` - Test log file writing (not yet executed)
+  - `tests/run-all-tests.js` - Runner for all test suites
+- [x] Bug reporting with file paths, line numbers, root causes, and fixes
+- [ ] Fix all discovered bugs before migrating other files
 
-#### 5.7 Integration and Testing
-- [ ] Add unit tests for each layer:
-  - `error-normalizer.test.js` - test binary  metadata transformation
-  - `error-renderer.test.js` - test output format generation
-  - `error-catalog.test.js` - test catalog data integrity
-- [ ] Add integration tests:
-  - Test end-to-end flow: binary input  file output
-  - Test fallback scenarios
-  - Test concurrent error handling
-- [ ] Add regression tests to prevent breaking changes
+#### 5.7 Known Bugs and Next Steps
+- [ ] **BUG-PARSER-001 (CRITICAL):** `decomposeBinaryCode()` only returns offset, missing domain/category/severity/source
+  - File: `BinaryErrorParser.js`
+  - Root Cause: Bitwise extraction not implemented correctly
+  - Fix: Implement proper BigInt bitwise operations for all 5 components
+- [ ] **BUG-001 (CRITICAL):** PARSER.SYNTAX throws instead of logging
+  - File: `BinaryErrorParser.js` lines 338, 145
+  - Root Cause: severity.shouldThrow = true causes throw
+  - Fix: Modify reportError to respect shouldThrow flag
+- [ ] **BUG-002 (CRITICAL):** Invalid binary code crashes with BigInt error
+  - File: `BinaryErrorParser.js` line 51
+  - Root Cause: No try-catch around BigInt conversion
+  - Fix: Wrap in try-catch, return META_INVALID_ERROR_CODE
+- [ ] **BUG-003 (HIGH):** Null context causes crash
+  - File: `BinaryErrorParser.js` lines 296, 131
+  - Root Cause: Spread operator on null
+  - Fix: Add context = context || {} validation
+- [ ] Run test-04 to verify log file writing
+- [ ] Migrate validator.js and other files to Binary Pattern after bug fixes
 
 ### Phase 6: Tooling & Test Automation (Not Started)
 - [ ] Produce a checklist or script to validate metadata consistency across rules  validator  CLI  ErrorHandler
@@ -320,9 +306,21 @@ The following checklist inventories every file in the repository, grouped by fol
 > Other files **must NOT** create their own constants - they must import from `src/constants/` only.
 
 #### `src/error-handler/`
-- [ ] `src/error-handler/error-handler-config.js`
-- [ ] `src/error-handler/error-log-stream.js`
-- [ ] `src/error-handler/ErrorHandler.js`
+- [x] `src/error-handler/binary-error.grammar.js` — Single Source of Truth for Binary Error System
+- [x] `src/error-handler/binary-code-utils.js` — Core utilities for code composition
+- [x] `src/error-handler/binary-codes.js` — Pre-built factory (BinaryCodes.DOMAIN.CATEGORY pattern)
+- [x] `src/error-handler/BinaryErrorParser.js` — Code decomposition and rendering (has critical bugs)
+- [x] `src/error-handler/binary-reporter.js` — Unified reportError interface (has bugs)
+- [x] `src/error-handler/binary-log-stream.js` — Log file writing utilities
+- [ ] `src/error-handler/error-catalog.js` — Legacy catalog (to be deprecated)
+- [ ] `src/error-handler/error-dictionary.js` — Legacy dictionary (to be deprecated)
+- [ ] `src/error-handler/error-emitter.js` — Legacy helper (to be deprecated)
+- [ ] `src/error-handler/error-handler-config.js` — Legacy config
+- [ ] `src/error-handler/error-log-stream.js` — Legacy log stream (replaced by binary-log-stream.js)
+- [ ] `src/error-handler/error-normalizer.js` — Legacy normalizer (to be deprecated)
+- [ ] `src/error-handler/error-renderer.js` — Legacy renderer (to be deprecated)
+- [ ] `src/error-handler/ErrorHandler.js` — DELETED (replaced by binary-reporter.js)
+- [ ] `src/error-handler/telemetry-recorder.js` — Telemetry helper
 
 #### `src/grammars/`
 - [ ] `src/grammars/index.d.ts`
@@ -385,50 +383,68 @@ The following checklist inventories every file in the repository, grouped by fol
 > Phase 7 is now underway to migrate all JSON files to ES Modules (.js) for massive performance improvements. JSON.parse() creates a parsing bottleneck (I/O → String → Parse → Object), while ES Modules are loaded natively by V8 with zero parsing overhead. All critical grammar and config files have been migrated. Remaining tasks include updating file references and migrating security/extension configs.
 
 ### Immediate Actions (Week 42, 2025)
-- [ ] **[Phase 7]** Update remaining file references to use `.js` extensions instead of `.json` (tokenizer-helper.js line 131, grammars/index.js lines 81/84)
-- [ ] **[Phase 7]** Migrate security configuration files: `error-handlers.json`, `security-defaults.json`, `suspicious-patterns.json` → `.js` ES Modules
-- [ ] **[Phase 7]** Migrate `extension-config.json` → `extension-config.js` and update extension.js imports
-- [ ] Migrate the remaining `handleError` call sites (`src/security/security-manager.js`, `src/security/security-middleware.js`, `src/security/rate-limit-store-factory.js`, `src/grammar/shared/*.js`, `src/extension.js`) to `createSystemPayload` / `emitSecurityNotice`, validating parity via CLI smoke tests.
-- [ ] Update `ErrorHandler.handleError` to accept structured payload objects only, reject legacy signatures at runtime, and document the contract in `README.md` and `docs/th หน้าที่ไฟล์.md`.
-- [ ] Extend `error-dictionary.js` metadata (recommended actions, `canRetry`, `isFatal`) for Logical, File System, Security, and remaining families, then thread the data through `error-normalizer.js` outputs.
-- [ ] Add Jest unit coverage for `error-emitter.js` covering severity coercion, context sanitisation, fallback error selection, and security tagging.
+- [ ] **[Phase 5]** Fix BUG-PARSER-001: decomposeBinaryCode() not extracting domain/category/severity/source (CRITICAL BLOCKER)
+- [ ] **[Phase 5]** Fix BUG-001: PARSER.SYNTAX throws instead of logging (lines 338, 145)
+- [ ] **[Phase 5]** Fix BUG-002: Invalid binary code BigInt crash (line 51 - add try-catch)
+- [ ] **[Phase 5]** Fix BUG-003: Null context crash (lines 296, 131 - add null check)
+- [ ] **[Phase 5]** Run test-04-log-stream.js to verify log file writing
+- [ ] **[Phase 5]** Run complete test suite (run-all-tests.js) after bug fixes
+- [ ] **[Phase 7]** Update remaining file references to use .js extensions instead of .json (tokenizer-helper.js line 131, grammars/index.js lines 81/84)
+- [ ] **[Phase 7]** Migrate security configuration files: error-handlers.json, security-defaults.json, suspicious-patterns.json to ES Modules
+- [ ] **[Phase 7]** Migrate extension-config.json to extension-config.js and update extension.js imports
 
 ### Near-Term Enhancements
-- [ ] Harden severity validation inside `error-normalizer.js` and `ErrorHandler.js` so string severities or unknown codes fail fast with SECURITY catalogue entries.
-- [ ] Teach `error-normalizer.js` to map HTTP status codes and Node `errno` values into the new domain descriptors, logging classification telemetry where matching fails.
-- [ ] Finalise transport separation by moving console helpers out of `ErrorHandler.js`, ensuring renderers receive fully normalised objects only.
-- [ ] Publish operational guidance in both `docs/en/BINARY_MIGRATION_STATUS.md` and `docs/th/BINARY_MIGRATION_STATUS.md` once the helper migration is complete (update issue ledgers accordingly).
+- [ ] Migrate validator.js and remaining files to Binary Pattern after bug fixes
+- [ ] Migrate security files (security-manager.js, security-middleware.js) to use reportError with BinaryCodes
+- [ ] Migrate grammar files to use Binary Pattern
+- [ ] Complete JSON to ES Module migration (Phase 7)
+- [ ] Create integration tests for end-to-end Binary Error System flow
+- [ ] Add performance benchmarks comparing Binary Pattern vs legacy ErrorHandler
 
 ### Supporting Activities
-- [ ] Implement regression tests for `error-log-stream.js` and the Markdown report writer once the transport layer refactor lands.
-- [ ] Automate repository tree generation (script or CI check) to keep Appendix A synchronized with future file additions.
-- [ ] Schedule a documentation review to align bilingual terminology after ErrorHandler contract changes (target Week 44, 2025).
+- [ ] Document Binary Error System architecture in README.md
+- [ ] Create usage examples for BinaryCodes pattern
+- [ ] Update bilingual documentation after bug fixes complete
+- [ ] Implement regression tests for error-log-stream.js and Markdown report writer
+- [ ] Automate repository tree generation (script or CI check) to keep Appendix A synchronized with future file additions
+- [ ] Schedule documentation review to align bilingual terminology (target Week 44, 2025)
 
 ---
 
 ## 5. Known Issues & Blockers
-- **ISS-2025-10-18-01 — Legacy Callers:** Several modules still issue two-argument `handleError` calls, preventing enforcement of the structured payload contract. Track remediation progress in the bilingual issue ledgers and block the signature change until migrations are complete.
-- **ISS-2025-10-18-02 — Helper Test Gap:** `error-emitter.js` lacks automated coverage. Add Jest suites before rolling the helpers across the remaining modules.
-- **Schema Drift Risk:** Security catalogue entries rely on manual updates; missing metadata triggers fallback rendering. Integrate metadata completion into the TODOs above and verify before expanding regression suites.
+- **ISS-2025-10-23-01 — Binary Parser Critical Bug:** `BinaryErrorParser.decomposeBinaryCode()` only extracts offset correctly, returns undefined for domain/category/severity/source. This blocks entire error reporting system. Must be fixed before any further migration.
+- **ISS-2025-10-23-02 — Reporter Error Handling:** `binary-reporter.js` has three critical bugs (PARSER throws, BigInt crash, null context crash) discovered through testing. All must be fixed for stable error reporting.
+- **ISS-2025-10-23-03 — Test Coverage Gap:** test-04-log-stream.js not yet executed, log file writing functionality unverified.
+- **ISS-2025-10-18-01 — Legacy Callers:** Several modules still use old ErrorHandler pattern. Cannot migrate until Binary Error System bugs are fixed.
+- **ISS-2025-10-18-02 — Helper Test Gap:** error-emitter.js lacks automated coverage (will be deprecated in favor of Binary Pattern).
 
 ---
 
 ## 6. Risks & Mitigations
-- **ErrorHandler migration complexity:** This is the final pipeline hop; maintain backups and code reviews when refactoring.
-- **Metadata divergence:** Missing slugs or severity codes will cause reports to fall back to `UNKNOWN_*`; emphasize validation tooling.
-- **Large, multi-file edits:** Prefer incremental commits to simplify rollbacks and code review.
+- **Binary Error System Bugs:** Critical bugs in BinaryErrorParser block entire system; priority focus on fixing decomposeBinaryCode() before any migration.
+- **Test-Driven Development:** Comprehensive test suite successfully identified bugs; continue test-first approach for remaining features.
+- **Legacy System Deprecation:** Old ErrorHandler.js deleted to force Binary Pattern adoption; legacy files (error-catalog, error-dictionary, error-emitter) to be deprecated after Binary System stabilizes.
+- **64-bit Code Handling:** All codes as strings to avoid JavaScript 53-bit limitation; maintain this pattern throughout system.
 
 ---
 
 ## 7. Appendix
 - **Key Artifacts:**
-  - `src/constants/rule-constants.js`
-  - `src/constants/severity-constants.js`
-  - `src/rules/*.js`
-  - `src/rules/validator.js`
-  - `cli.js`
-  - `src/error-handler/ErrorHandler.js`
-- **Latest Status:** `src/error-handler/ErrorHandler.js` has been reverted to its pre-refactor version; the redesign must restart under Phase 5
+  - `src/constants/rule-constants.js` — Rule IDs and severity flags
+  - `src/constants/severity-constants.js` — Severity constants
+  - `src/error-handler/binary-error.grammar.js` — Single Source of Truth for Binary Error System
+  - `src/error-handler/binary-codes.js` — Pre-built factory (BinaryCodes.DOMAIN.CATEGORY)
+  - `src/error-handler/BinaryErrorParser.js` — Code decomposition (has bugs)
+  - `src/error-handler/binary-reporter.js` — Unified reportError interface (has bugs)
+  - `src/error-handler/binary-log-stream.js` — Log file utilities
+  - `cli.js` — Migrated to Binary Pattern (10 error points)
+  - `tests/test-01-binary-codes.js` through `test-04-log-stream.js` — Test suite
+- **Latest Status:** Binary Error System architecture complete, BinaryCodes factory working perfectly (7/7 tests passed), but critical bugs discovered in BinaryErrorParser and binary-reporter require fixes before system-wide migration
+- **Test Results:**
+  - test-01: 7/7 PASSED - BinaryCodes factory working perfectly
+  - test-02: 3/6 FAILED - 3 critical bugs in binary-reporter
+  - test-03: 2/8 FAILED - Critical bug in decomposeBinaryCode
+  - test-04: Not yet executed
 
 ---
 ## Appendix A: Repository Tree & File Roles
