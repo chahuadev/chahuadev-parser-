@@ -18,11 +18,16 @@
 // ! ระบบนี้ถูกออกแบบและนำไปปฏิบัติ (implement) ตามหลักการนี้อย่างเคร่งครัด
 // ! ══════════════════════════════════════════════════════════════════════════════
 
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
+// ! ══════════════════════════════════════════════════════════════════════════════
+// ! PERFORMANCE BOOST: Migrate from JSON.parse() to ES Modules
+// ! Why: JSON.parse() is slow (String → Object conversion)
+// ! Solution: Use import() for .js modules (V8 native, no parsing needed)
+// ! ══════════════════════════════════════════════════════════════════════════════
+import { fileURLToPath, pathToFileURL } from 'url';
 import { dirname, join } from 'path';
 import errorHandler from '../../error-handler/ErrorHandler.js';
-import { recordTelemetryNotice } from '../../error-handler/telemetry-recorder.js';
+import { recordTelemetryNotice } from '../../error-handler/error-emitter.js';
+import { tokenizerBinaryConfig } from './tokenizer-binary-config.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -87,48 +92,60 @@ export class GrammarIndex {
             });
         }
         
-        // ! โหลด Punctuation Binary Map จาก tokenizer-binary-config.json
-        // ! Brain ต้องรู้ Binary ของ Punctuation ทั้งหมดเพื่อให้บริการ Parser
-        this._loadPunctuationBinaryMap();
+        // ! โหลด Punctuation Binary Map จาก top-level import (SYNCHRONOUS)
+        // ! NO ASYNC NEEDED - config ถูก import มาตั้งแต่ module load
+        this._loadPunctuationBinaryMapSync();
     }
     
     /**
-     * โหลด Punctuation Binary Map จาก tokenizer-binary-config.json
+     * โหลด Punctuation Binary Map จาก tokenizer-binary-config.js (Synchronous via top-level import)
      * Brain ต้องมีความรู้เรื่อง Binary ของ Punctuation เพื่อให้บริการ Worker
      * @private
      */
-    _loadPunctuationBinaryMap() {
+    _loadPunctuationBinaryMapSync() {
         try {
-            const configPath = join(__dirname, 'tokenizer-binary-config.json');
-            const config = JSON.parse(readFileSync(configPath, 'utf8'));
+            // ! MIGRATION: Top-level import (already loaded when module loads)
+            // ! WHY: PureBinaryParser needs punctuation binary in constructor (synchronous)
+            // ! SOLUTION: import at top of file, use here synchronously
             
-            // โหลด punctuationBinaryMap จาก config
-            this.punctuationBinaryMap = config.punctuationBinaryMap?.map || {};
+            // โหลด punctuationBinaryMap จาก imported config
+            this.punctuationBinaryMap = tokenizerBinaryConfig.punctuationBinaryMap?.map || {};
+            
+            // ! VALIDATION: ห้าม empty map - ถ้าไม่มี binary map = CRITICAL ERROR
+            if (Object.keys(this.punctuationBinaryMap).length === 0) {
+                const validationError = new Error('Punctuation binary map is empty - CRITICAL CONFIG ERROR');
+                validationError.isOperational = false;
+                throw validationError;
+            }
             
             // ! NO_CONSOLE: ส่ง punctuation map info ไปยัง ErrorHandler แทน console.log
             recordTelemetryNotice({
-                message: 'Punctuation binary map loaded successfully',
+                message: 'Punctuation binary map loaded successfully (Top-level ES Module Import)',
                 source: 'GrammarIndex',
-                method: '_loadPunctuationBinaryMap',
+                method: '_loadPunctuationBinaryMapSync',
                 severity: 'DEBUG',
                 context: {
                     itemsCount: Object.keys(this.punctuationBinaryMap).length,
-                    configPath: configPath
+                    loadMethod: 'TOP_LEVEL_IMPORT',
+                    source: 'tokenizer-binary-config.js',
+                    timing: 'SYNCHRONOUS'
                 }
             });
         } catch (error) {
-            // ! NO_CONSOLE: ส่ง load failure ไปยัง ErrorHandler แทน console.error
-            error.isOperational = true;
+            // ! NO_SILENT_FALLBACKS: ห้ามใช้ empty map - ต้อง FAIL
+            error.isOperational = false;
             errorHandler.handleError(error, {
                 source: 'GrammarIndex',
-                method: '_loadPunctuationBinaryMap',
-                severity: 'WARNING',
+                method: '_loadPunctuationBinaryMapSync',
+                severity: 'CRITICAL',
                 context: {
-                    configPath: configPath,
-                    fallback: 'empty_map'
+                    reason: 'Failed to load punctuation binary map from imported config',
+                    expectedFile: 'tokenizer-binary-config.js',
+                    impact: 'Parser cannot perform binary punctuation comparison',
+                    solution: 'Check that tokenizer-binary-config.js exports tokenizerBinaryConfig.punctuationBinaryMap.map'
                 }
             });
-            this.punctuationBinaryMap = {};
+            throw error;
         }
     }
     
@@ -225,8 +242,22 @@ export class GrammarIndex {
 
     static async loadGrammar(language) {
         try {
-            const grammarPath = join(__dirname, 'grammars', `${language}.grammar.json`);
-            const grammarData = JSON.parse(readFileSync(grammarPath, 'utf8'));
+            // ! PERFORMANCE BOOST: Use dynamic import() instead of JSON.parse(readFileSync())
+            // ! Benefits: V8 Engine loads .js as native code (no parsing overhead)
+            // ! Module System: "Magic Wand" - imports only what's needed
+            const grammarPath = join(__dirname, 'grammars', `${language}.grammar.js`);
+            
+            // ! CRITICAL FIX: Windows requires file:// URL for dynamic import()
+            const grammarURL = pathToFileURL(grammarPath).href;
+            const module = await import(grammarURL);
+            
+            // Extract grammar object from module (javascriptGrammar, javaGrammar, typescriptGrammar)
+            const grammarExportName = `${language}Grammar`;
+            const grammarData = module[grammarExportName];
+            
+            if (!grammarData) {
+                throw new Error(`Grammar export '${grammarExportName}' not found in ${grammarPath}`);
+            }
             
             // ! CRITICAL FIX: Flatten nested operators and punctuation structures
             // ! WHY: javascript.grammar.json has nested structure (binaryOperators, unaryOperators, etc.)
@@ -246,13 +277,14 @@ export class GrammarIndex {
             
             // ! NO_CONSOLE: ส่ง grammar load info ไปยัง ErrorHandler แทน console.log
             recordTelemetryNotice({
-                message: `Grammar loaded successfully for ${language}`,
+                message: `Grammar loaded successfully for ${language} (ES Module)`,
                 source: 'GrammarIndex',
                 method: 'loadGrammar',
                 severity: 'DEBUG',
                 context: {
                     language: language,
                     grammarPath: grammarPath,
+                    loadMethod: 'ES_MODULE_IMPORT',
                     keywordsCount: Object.keys(grammarData.keywords || {}).length,
                     operatorsCount: Object.keys(grammarData.operators || {}).length,
                     punctuationCount: Object.keys(grammarData.punctuation || {}).length,
@@ -262,8 +294,6 @@ export class GrammarIndex {
             });
             
             return grammarData;
-            
-            return new GrammarIndex(grammarData);
         } catch (error) {
             // ! NO_SILENT_FALLBACKS: ใช้ ErrorHandler กลาง - ห้าม throw new Error โดยตรง
             error.isOperational = false; // Grammar file not found = Programming error
@@ -271,7 +301,7 @@ export class GrammarIndex {
                 source: 'GrammarIndex',
                 method: 'loadGrammar',
                 severity: 'CRITICAL',
-                context: `Failed to load grammar for ${language} - Grammar file not found or invalid JSON format`
+                context: `Failed to load grammar for ${language} - Grammar module not found or invalid export`
             });
             // ErrorHandler จะจัดการ process.exit() เองถ้าเป็น critical error
             throw error; // Re-throw after logging
@@ -656,35 +686,32 @@ export class GrammarIndex {
     }
 
     /**
-     * ดึงค่า binary ของ punctuation จาก binary map
+     * ดึงค่า binary ของ punctuation จาก binary map (100% Binary - NO FALLBACK)
      * @param {string} punctuation - ตัว punctuation (เช่น '(', ')', '{', '}')
-     * @returns {number|undefined} - binary constant หรือ undefined ถ้าไม่พบ
+     * @returns {number} - binary constant (MUST exist in map, or THROWS error)
      */
     getPunctuationBinary(punctuation) {
-        // ! โหลดจาก punctuationBinaryMap ที่ Brain มีอยู่แล้ว
-        // ! Brain รู้ Binary ของ Punctuation ทั้งหมดจาก tokenizer-binary-config.json
+        // ! STRICT MODE: ห้าม fallback - ต้องมีใน binary map เท่านั้น
         if (this.punctuationBinaryMap && this.punctuationBinaryMap[punctuation]) {
             return this.punctuationBinaryMap[punctuation];
         }
         
-        // Fallback: ถ้ามีใน grammar.punctuation (แต่ส่วนใหญ่จะไม่มี)
-        if (this.grammar && this.grammar.punctuation) {
-            const punctData = this.grammar.punctuation[punctuation];
-            if (punctData && punctData.binary) {
-                emitGrammarIndexEvent('Punctuation binary resolved via grammar fallback', 'getPunctuationBinary', 'INFO', {
-                    punctuation,
-                    resolution: 'grammarFallback'
-                });
-                return punctData.binary;
+        // ! NO_SILENT_FALLBACKS: ถ้าไม่มีใน binary map = CRITICAL ERROR
+        // ! OLD CODE (REMOVED): return punctuation.charCodeAt(0); // Silent fallback ❌
+        const error = new Error(`Punctuation '${punctuation}' not found in binary map`);
+        error.isOperational = false; // Missing binary = Programming error
+        errorHandler.handleError(error, {
+            source: 'GrammarIndex',
+            method: 'getPunctuationBinary',
+            severity: 'CRITICAL',
+            context: {
+                punctuation,
+                reason: 'Punctuation must be registered in tokenizer-binary-config.js',
+                availablePunctuations: Object.keys(this.punctuationBinaryMap || {}),
+                fix: 'Add this punctuation to punctuationBinaryMap in tokenizer-binary-config.js'
             }
-        }
-        
-        // Fallback สุดท้าย: ใช้ charCode
-        emitGrammarIndexEvent('Punctuation binary fallback to charCode', 'getPunctuationBinary', 'WARNING', {
-            punctuation,
-            reason: 'missingInMaps'
         });
-        return punctuation.charCodeAt(0);
+        throw error; // FAIL fast - force developer to add binary mapping
     }
 
     /**
@@ -702,18 +729,15 @@ export class GrammarIndex {
             }
         }
         
-        // Fallback: ค้นหาจาก grammar.punctuation (ถ้ามี)
-        if (this.grammar && this.grammar.punctuation) {
-            for (const [punct, data] of Object.entries(this.grammar.punctuation)) {
-                const punctBinary = data.binary || punct.charCodeAt(0);
-                if (punctBinary === binary) {
-                    return punct;
-                }
-            }
-        }
+        // ! NO_HARDCODE: ลบ fallback ที่ใช้ punct.charCodeAt(0) ออก
+        // ! REMOVED HARDCODE: const punctBinary = data.binary || punct.charCodeAt(0); ❌
+        // ! Grammar data ต้องมี binary value อย่างชัดเจน ไม่ fallback charCodeAt
         
+        // ! NO_SILENT_FALLBACKS: แจ้งเตือนเมื่อไม่พบ แต่ไม่ throw (เพราะอาจเป็น token type อื่น)
         emitGrammarIndexEvent('Unable to resolve punctuation from binary', 'getPunctuationFromBinary', 'WARNING', {
-            binary
+            binary,
+            reason: 'Binary value not found in punctuationBinaryMap',
+            fix: 'Verify binary value is registered in tokenizer-binary-config.js'
         });
         return null;
     }

@@ -1,6 +1,6 @@
 # Chahuadev Sentinel — Binary Migration Status Report
 
-**วันที่อัปเดต:** 18 ตุลาคม 2025  
+**วันที่อัปเดต:** 23 ตุลาคม 2025  
 **ผู้เขียน:** GitHub Copilot (AI Programming Assistant)
 
 ---
@@ -206,6 +206,72 @@
 - [ ] เพิ่ม test plan หรือ test cases ที่ยืนยัน binary-first pipeline แบบ end-to-end
 - [ ] จัดตั้ง regression suite สำหรับเอกสาร/รายงาน Markdown และ CLI output
 
+### ขั้นตอนที่ 7: การย้ายจาก JSON ไปเป็น ES Module (กำลังดำเนินการ)
+
+> **เหตุผล:**  
+> ไฟล์ JSON ต้องใช้การประมวลผล 3 ขั้นตอนที่มีต้นทุนสูง: **I/O → String → JSON.parse() → Object** การ parse ดังกล่าวสร้างปัญหาคอขวดด้านประสิทธิภาพ โดยเฉพาะไฟล์ grammar ที่ถูกโหลดบ่อยครั้งระหว่าง tokenization การย้ายจาก `.json` ไปเป็น `.js` ES Modules ช่วยให้เราใช้ประโยชน์จากระบบโหลดโมดูลแบบ native ของ V8 — JavaScript Engine เข้าใจไฟล์ `.js` โดยกำเนิด โดยไม่ต้องผ่านขั้นตอน string-to-object parsing เลย
+
+> **อัปเดต 23 ตุลาคม 2025:**
+> - ย้ายไฟล์ grammar สำคัญทั้งหมดจาก JSON ไปเป็น ES Modules:
+>   - `java.grammar.json` → `java.grammar.js` (export เป็น `javaGrammar`)
+>   - `javascript.grammar.json` → `javascript.grammar.js` (export เป็น `javascriptGrammar`)
+>   - `typescript.grammar.json` → `typescript.grammar.js` (export เป็น `typescriptGrammar`)
+>   - `jsx.grammar.json` → `jsx.grammar.js` (export เป็น `jsxGrammar`)
+> - ย้ายไฟล์ configuration หลัก:
+>   - `tokenizer-binary-config.json` → `tokenizer-binary-config.js` (export เป็น `tokenizerBinaryConfig`)
+>   - `parser-config.json` → `parser-config.js` (export เป็น `parserConfig`)
+>   - `quantum-architecture.json` → `quantum-architecture.js` (export เป็น `quantumArchitectureConfig`)
+>   - `unicode-identifier-ranges.json` → `unicode-identifier-ranges.js` (export เป็น `unicodeIdentifierRanges`)
+> - อัปเดต `grammar-index.js` ให้ใช้ `import()` แบบ dynamic แทนที่ `JSON.parse(readFileSync())`
+> - ใช้รูปแบบ async initialization พร้อม method `ready()` เพื่อรองรับ constructor
+> - แก้ไขปัญหา Windows ด้วย `pathToFileURL()` สำหรับ file:// URL scheme
+> - **การทดสอบ:** ยืนยันว่าการโหลด grammar ทำงานถูกต้อง (โหลด 75 keywords และ 48 operators สำเร็จ)
+> - **ผลประโยชน์ด้านประสิทธิภาพ:** กำจัดขั้นตอน JSON parsing แบบ 3 ขั้นตอนออกไปโดยสิ้นเชิง
+
+#### 7.1 การย้ายไฟล์ Grammar
+- [x] แปลง `java.grammar.json` → `java.grammar.js`
+- [x] แปลง `javascript.grammar.json` → `javascript.grammar.js`
+- [x] แปลง `typescript.grammar.json` → `typescript.grammar.js`
+- [x] แปลง `jsx.grammar.json` → `jsx.grammar.js`
+- [x] อัปเดต `grammar-index.js` ให้ใช้ `import(pathToFileURL(path).href)` แทน `JSON.parse(readFileSync())`
+- [x] ใช้รูปแบบ async initialization สำหรับ constructor ของ GrammarIndex
+- [x] ทดสอบการโหลด grammar กับทุกภาษา
+
+#### 7.2 การย้ายไฟล์ Configuration
+- [x] แปลง `tokenizer-binary-config.json` → `tokenizer-binary-config.js`
+- [x] แปลง `parser-config.json` → `parser-config.js`
+- [x] แปลง `quantum-architecture.json` → `quantum-architecture.js`
+- [x] แปลง `unicode-identifier-ranges.json` → `unicode-identifier-ranges.js`
+- [ ] อัปเดตไฟล์ทั้งหมดที่อ้างอิงถึง config เหล่านี้ให้ import จาก `.js` แทน `.json`
+  - [ ] `tokenizer-helper.js` (บรรทัด 131)
+  - [ ] `grammars/index.js` (บรรทัด 81, 84)
+  - [ ] ไฟล์ grammar helper อื่น ๆ
+
+#### 7.3 การย้ายไฟล์ Security & Extension
+- [ ] แปลง `error-handlers.json` → `error-handlers.js`
+- [ ] แปลง `security-defaults.json` → `security-defaults.js`
+- [ ] แปลง `suspicious-patterns.json` → `suspicious-patterns.js`
+- [ ] แปลง `extension-config.json` → `extension-config.js`
+- [ ] อัปเดตไฟล์ security และ extension ทั้งหมดให้ import จาก `.js` modules
+
+#### 7.4 การย้ายไฟล์ Configuration ระดับราก
+- [ ] แปลง `cli-config.json` → `cli-config.js`
+- [ ] อัปเดต `cli.js` ให้ import จาก `cli-config.js`
+- [ ] ประเมินการย้าย `package.json` (เลือกได้ - npm ต้องการ JSON format)
+
+#### 7.5 อัปเดตเอกสาร
+- [ ] อัปเดต `README.md` ให้สะท้อนสถาปัตยกรรม ES Module
+- [ ] อัปเดต `docs/th/หน้าที่ไฟล์.md` ให้แสดง extension `.js`
+- [ ] อัปเดตเอกสารสถาปัตยกรรมทั้งหมดที่กล่าวถึงไฟล์ JSON config
+
+#### 7.6 ประโยชน์และการตรวจสอบ
+- [x] **ประสิทธิภาพ:** V8 โหลดแบบ native (ไม่มี parsing overhead)
+- [x] **Tree-shaking:** ES Modules รองรับการ import เฉพาะส่วนที่ต้องการ
+- [x] **Type Safety:** IDE autocomplete และ static analysis ดีขึ้น
+- [x] **การดูแลรักษา:** JavaScript syntax highlighting และ validation
+- [ ] **การทดสอบ:** เพิ่ม benchmark เปรียบเทียบเวลาโหลด JSON vs ES Module
+- [ ] **Regression:** ตรวจสอบให้แน่ใจว่าฟังก์ชันทุกอย่างยังทำงานหลังการย้าย
+
 ---
 
 ## 3. ทะเบียนไฟล์ทั้งระบบและสถานะ
@@ -269,20 +335,21 @@
 - [ ] `src/grammars/shared/binary-scout.js`
 - [ ] `src/grammars/shared/constants.js`
 - [ ] `src/grammars/shared/enhanced-binary-parser.js`
-- [ ] `src/grammars/shared/grammar-index.js`
-- [ ] `src/grammars/shared/parser-config.json`
+- [x] `src/grammars/shared/grammar-index.js` *(อัปเดตให้ใช้ ES Module imports แล้ว)*
+- [x] `src/grammars/shared/parser-config.js` *(ย้ายจาก JSON แล้ว)*
 - [ ] `src/grammars/shared/pure-binary-parser.js`
 - [ ] `src/grammars/shared/tokenizer-helper.js`
+- [x] `src/grammars/shared/tokenizer-binary-config.js` *(ย้ายจาก JSON แล้ว)*
 
 ###### `src/grammars/shared/configs/`
-- [ ] `src/grammars/shared/configs/quantum-architecture.json`
-- [ ] `src/grammars/shared/configs/unicode/unicode-identifier-ranges.json`
+- [x] `src/grammars/shared/configs/quantum-architecture.js` *(ย้ายจาก JSON แล้ว)*
+- [x] `src/grammars/shared/configs/unicode/unicode-identifier-ranges.js` *(ย้ายจาก JSON แล้ว)*
 
 ###### `src/grammars/shared/grammars/`
-- [ ] `src/grammars/shared/grammars/java.grammar.json`
-- [ ] `src/grammars/shared/grammars/javascript.grammar.json`
-- [ ] `src/grammars/shared/grammars/jsx.grammar.json`
-- [ ] `src/grammars/shared/grammars/typescript.grammar.json`
+- [x] `src/grammars/shared/grammars/java.grammar.js` *(ย้ายจาก JSON แล้ว)*
+- [x] `src/grammars/shared/grammars/javascript.grammar.js` *(ย้ายจาก JSON แล้ว)*
+- [x] `src/grammars/shared/grammars/jsx.grammar.js` *(ย้ายจาก JSON แล้ว)*
+- [x] `src/grammars/shared/grammars/typescript.grammar.js` *(ย้ายจาก JSON แล้ว)*
 
 #### `src/rules/`
 - [x] `src/rules/BINARY_AST_ONLY.js`
@@ -313,14 +380,48 @@
 
 ---
 
-## 4. ความเสี่ยงและข้อควรระวัง
+## 4. แผนงาน TODO อย่างเป็นทางการ
+
+> **⚠️ สำคัญ - การย้ายจาก JSON ไปเป็น ES Module:**  
+> ขั้นตอนที่ 7 กำลังดำเนินการเพื่อย้ายไฟล์ JSON ทั้งหมดไปเป็น ES Modules (.js) เพื่อปรับปรุงประสิทธิภาพอย่างมหาศาล JSON.parse() สร้างคอขวดการ parse (I/O → String → Parse → Object) ในขณะที่ ES Modules ถูกโหลดโดย V8 แบบ native โดยไม่มี parsing overhead เลย ไฟล์ grammar และ config สำคัญทั้งหมดถูกย้ายเรียบร้อยแล้ว งานที่เหลือคืออัปเดตการอ้างอิงไฟล์และย้าย config ของ security/extension
+
+### งานเร่งด่วน (สัปดาห์ที่ 42, พ.ศ. 2568)
+- [ ] **[ขั้นตอนที่ 7]** อัปเดตการอ้างอิงไฟล์ที่เหลือให้ใช้ extension `.js` แทน `.json` (tokenizer-helper.js บรรทัด 131, grammars/index.js บรรทัด 81/84)
+- [ ] **[ขั้นตอนที่ 7]** ย้ายไฟล์ configuration ด้านความปลอดภัย: `error-handlers.json`, `security-defaults.json`, `suspicious-patterns.json` → ES Modules `.js`
+- [ ] **[ขั้นตอนที่ 7]** ย้าย `extension-config.json` → `extension-config.js` และอัปเดต imports ใน extension.js
+- [ ] ย้ายจุดเรียก `handleError` ที่เหลือ (`src/security/security-manager.js`, `src/security/security-middleware.js`, `src/security/rate-limit-store-factory.js`, ไฟล์ `src/grammars/shared/*.js`, และ `src/extension.js`) ไปใช้ `createSystemPayload` / `emitSecurityNotice` พร้อมทดสอบด้วย CLI smoke test เพื่อยืนยันความถูกต้อง
+- [ ] อัปเดต `ErrorHandler.handleError` ให้รับเฉพาะ payload ที่มีโครงสร้าง (object) ปฏิเสธ signature แบบเดิม และบันทึกสัญญาใหม่ใน `README.md` รวมถึง `docs/th/หน้าที่ไฟล์.md`
+- [ ] เติม metadata (`recommendedAction`, `canRetry`, `isFatal`) ให้หมวด Logical, File System, Security และหมวดที่เหลือใน `error-dictionary.js` จากนั้นเชื่อมต่อข้อมูลผ่าน `error-normalizer.js`
+- [ ] เพิ่มชุดทดสอบ (Jest) สำหรับ `error-emitter.js` ครอบคลุมการ coercion ของ severity การ sanitise context การเลือก fallback error และการตีตราเหตุการณ์ security
+
+### งานต่อเนื่องระยะใกล้
+- [ ] เพิ่ม validation ค่า severity ภายใน `error-normalizer.js` และ `ErrorHandler.js` เพื่อให้ค่าประเภทสตริงหรือรหัสไม่รู้จักถูกปฏิเสธทันที พร้อมรายงานผ่าน Security catalogue
+- [ ] สอน `error-normalizer.js` ให้แม็พ HTTP status codes และรหัส `errno` ของ Node ไปยัง domain descriptor ใหม่ พร้อมบันทึก telemetry เมื่อการแม็พล้มเหลว
+- [ ] ทำให้ transport แยกจาก `ErrorHandler.js` โดยย้าย helper ฝั่ง console/log ไปยัง renderer และส่งต่อเฉพาะ normalized error objects
+- [ ] อัปเดตรายงานสถานะ EN/TH พร้อมเชื่อมโยงสมุดบันทึกปัญหาเมื่อการย้ายตัวช่วย (helper migration) สำเร็จ พร้อมสรุปผลกระทบด้านการดำเนินงาน
+
+### กิจกรรมสนับสนุน
+- [ ] เพิ่ม regression test สำหรับ `error-log-stream.js` และตัวเขียนรายงาน Markdown หลัง refactor transport layer เสร็จสมบูรณ์
+- [ ] จัดทำสคริปต์หรือ CI ตรวจสอบให้ Appendix A สอดคล้องกับโครงสร้าง repository ล่าสุดทุกครั้งที่มีไฟล์เพิ่ม/ลบ
+- [ ] นัดรีวิวคำศัพท์และคำอธิบายสองภาษา หลังเปลี่ยนสัญญา ErrorHandler (เป้าหมายสัปดาห์ที่ 44, พ.ศ. 2568)
+
+---
+
+## 5. ปัญหาและอุปสรรครอแก้ไข
+- **ISS-2025-10-18-01 — Legacy Callers:** ยังมีจุดเรียก `handleError` แบบสองพารามิเตอร์หลงเหลือ ทำให้ไม่สามารถบังคับใช้ payload แบบโครงสร้างได้เต็มที่ ติดตามการแก้ไขในสมุดปัญหาทั้งสองภาษา และยังไม่ควรเปลี่ยน signature จนกว่าจะเคลียร์ครบ
+- **ISS-2025-10-18-02 — Helper Test Gap:** `error-emitter.js` ยังไม่มี automated test จำเป็นต้องเพิ่มก่อนนำ helper ไปใช้กับโมดูลอื่นเพื่อลดความเสี่ยง regression
+- **Schema Drift Risk:** รายการ metadata ใน Security catalogue ยังอาศัยการอัปเดตด้วยมือ หากขาดข้อมูลระบบจะ fallback ทันที ต้องผูกงานนี้เข้ากับ TODO ข้างต้นและตรวจสอบก่อนขยายชุดทดสอบ
+
+---
+
+## 6. ความเสี่ยงและข้อควรระวัง
 - **การแปลง ErrorHandler:** ความซับซ้อนสูงและเป็นจุดสุดท้ายของ pipeline; ต้องจัดทำ backup และรีวิวโค้ดอย่างเคร่งครัด
 - **ความไม่สอดคล้องของ metadata:** หากกฎใดลืม slug หรือ severity ที่ตรงกับคอนสแตนต์จะทำให้รายงาน ErrorHandler ผิดพลาดหรือแสดง UNKNOWN
 - **การเปลี่ยนแปลงพร้อมกันหลายไฟล์:** ควรใช้การ commit ย่อยเพื่อช่วยในการยกเลิก/แก้ไขได้ง่ายขึ้น
 
 ---
 
-## 5. ภาคผนวก
+## 7. ภาคผนวก
 - **ไฟล์ที่เกี่ยวข้องหลัก:**
   - `src/constants/rule-constants.js`
   - `src/constants/severity-constants.js`
@@ -330,7 +431,7 @@
   - `src/error-handler/ErrorHandler.js`
 - **สถานะล่าสุด:** `src/error-handler/ErrorHandler.js` ถูก revert กลับเวอร์ชันเดิมหลังการ refactor ครั้งก่อนล้มเหลว ต้องเริ่มวางแผนใหม่ภายใต้ขั้นตอนที่ 5
 
-## 6. ผังต้นไม้ของโปรเจ็กต์และหน้าที่ไฟล์
+## 8. ผังต้นไม้ของโปรเจ็กต์และหน้าที่ไฟล์
 ```
 Chahuadev-Sentinel/
 ├─ .git/ — ข้อมูลภายในของ Git (history, refs, hooks)
@@ -409,20 +510,28 @@ Chahuadev-Sentinel/
 │  │     ├─ binary-prophet.js — ตัวช่วยคาดการณ์และแก้ปัญหาความกำกวม
 │  │     ├─ binary-scout.js — โมดูลสอดส่อง grammar
 │  │     ├─ configs/
-│  │     │  ├─ quantum-architecture.json — สเปกสถาปัตยกรรม grammar
+│  │     │  ├─ quantum-architecture.json — สเปกสถาปัตยกรรม grammar (⚠️ เลิกใช้แล้ว - ใช้ .js แทน)
+│  │     │  ├─ quantum-architecture.js — สเปกสถาปัตยกรรม grammar (ES Module)
 │  │     │  └─ unicode/
-│  │     │     └─ unicode-identifier-ranges.json — ขอบเขตตัวอักษร Unicode สำหรับ tokenizer
+│  │     │     ├─ unicode-identifier-ranges.json — ขอบเขตตัวอักษร Unicode (⚠️ เลิกใช้แล้ว - ใช้ .js แทน)
+│  │     │     └─ unicode-identifier-ranges.js — ขอบเขตตัวอักษร Unicode (ES Module)
 │  │     ├─ constants.js — ค่าคงที่และ mapping ต่าง ๆ
 │  │     ├─ enhanced-binary-parser.js — Parser เวอร์ชันขยาย
 │  │     ├─ grammar-index.js — รีจิสทรีและตัวโหลด grammar
 │  │     ├─ grammars/
-│  │     │  ├─ java.grammar.json — คำนิยาม grammar ของ Java
-│  │     │  ├─ javascript.grammar.json — คำนิยาม grammar ของ JavaScript
-│  │     │  ├─ jsx.grammar.json — คำนิยาม grammar ของ JSX
-│  │     │  └─ typescript.grammar.json — คำนิยาม grammar ของ TypeScript
-│  │     ├─ parser-config.json — การตั้งค่าของ parser
+│  │     │  ├─ java.grammar.json — คำนิยาม grammar ของ Java (⚠️ เลิกใช้แล้ว - ใช้ .js แทน)
+│  │     │  ├─ java.grammar.js — คำนิยาม grammar ของ Java (ES Module, export เป็น javaGrammar)
+│  │     │  ├─ javascript.grammar.json — คำนิยาม grammar ของ JavaScript (⚠️ เลิกใช้แล้ว - ใช้ .js แทน)
+│  │     │  ├─ javascript.grammar.js — คำนิยาม grammar ของ JavaScript (ES Module, export เป็น javascriptGrammar)
+│  │     │  ├─ jsx.grammar.json — คำนิยาม grammar ของ JSX (⚠️ เลิกใช้แล้ว - ใช้ .js แทน)
+│  │     │  ├─ jsx.grammar.js — คำนิยาม grammar ของ JSX (ES Module, export เป็น jsxGrammar)
+│  │     │  ├─ typescript.grammar.json — คำนิยาม grammar ของ TypeScript (⚠️ เลิกใช้แล้ว - ใช้ .js แทน)
+│  │     │  └─ typescript.grammar.js — คำนิยาม grammar ของ TypeScript (ES Module, export เป็น typescriptGrammar)
+│  │     ├─ parser-config.json — การตั้งค่าของ parser (⚠️ เลิกใช้แล้ว - ใช้ .js แทน)
+│  │     ├─ parser-config.js — การตั้งค่าของ parser (ES Module, export เป็น parserConfig)
 │  │     ├─ pure-binary-parser.js — Parser หลักแบบไบนารี
-│  │     ├─ tokenizer-binary-config.json — การตั้งค่า tokenizer แบบไบนารี
+│  │     ├─ tokenizer-binary-config.json — การตั้งค่า tokenizer แบบไบนารี (⚠️ เลิกใช้แล้ว - ใช้ .js แทน)
+│  │     ├─ tokenizer-binary-config.js — การตั้งค่า tokenizer แบบไบนารี (ES Module, export เป็น tokenizerBinaryConfig)
 │  │     └─ tokenizer-helper.js — ตัวช่วย orchestrate tokenizer
 │  ├─ rules/
 │  │  ├─ BINARY_AST_ONLY.js — กฎบังคับใช้ AST แบบไบนารีเท่านั้น

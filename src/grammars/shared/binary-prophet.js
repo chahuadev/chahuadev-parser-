@@ -12,7 +12,7 @@
 // ! ══════════════════════════════════════════════════════════════════════════════
 import { performance } from 'node:perf_hooks';
 import errorHandler from '../../error-handler/ErrorHandler.js';
-import { recordTelemetryNotice } from '../../error-handler/telemetry-recorder.js';
+import { recordTelemetryNotice } from '../../error-handler/error-emitter.js';
 import PureBinaryParser from './pure-binary-parser.js';
 
 // ! Sandbox parser: isolated copy of Architect logic for quantum experimentation only

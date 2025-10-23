@@ -18,9 +18,10 @@ import { BinaryComputationTokenizer } from './shared/tokenizer-helper.js';
 import errorHandler from '../error-handler/ErrorHandler.js';
 import { FILE_SYSTEM_ERROR_CODES } from '../error-handler/error-catalog.js';
 import { ERROR_SEVERITY_FLAGS } from '../constants/severity-constants.js';
-import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { dirname } from 'path';
+import { quantumArchitectureConfig } from './shared/configs/quantum-architecture.js';
+import { parserConfig } from './shared/parser-config.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -77,19 +78,21 @@ export async function createParser(rules, options = {}) {
         ? grammarCandidate
         : new GrammarIndex(grammarCandidate);
     
-    // Load parser config
-    const configPath = join(__dirname, 'shared', 'parser-config.json');
-    const parserConfig = JSON.parse(readFileSync(configPath, 'utf8'));
+    // ! MIGRATION: JSON → ES Module for Parser Config
+    // ! OLD: readFileSync('parser-config.json') + JSON.parse()
+    // ! NEW: import parserConfig from ES module (top-level import)
 
-    const quantumConfigPath = join(__dirname, '..', '..', 'configs', 'quantum-architecture.json');
+    // ! MIGRATION: JSON → ES Module for Quantum Architecture Config
+    // ! OLD: readFileSync('quantum-architecture.json') + JSON.parse()
+    // ! NEW: import quantumArchitectureConfig from ES module (top-level import)
     let fileQuantumConfig = DEFAULT_QUANTUM_CONFIG;
 
     try {
-        const quantumRaw = JSON.parse(readFileSync(quantumConfigPath, 'utf8'));
-        if (quantumRaw && typeof quantumRaw === 'object' && quantumRaw.quantum) {
+        // ใช้ config ที่ import มาจาก quantum-architecture.js (ES Module)
+        if (quantumArchitectureConfig && typeof quantumArchitectureConfig === 'object' && quantumArchitectureConfig.quantum) {
             fileQuantumConfig = {
                 ...DEFAULT_QUANTUM_CONFIG,
-                ...quantumRaw.quantum,
+                ...quantumArchitectureConfig.quantum,
                 enabled: true
             };
         }
@@ -101,7 +104,7 @@ export async function createParser(rules, options = {}) {
             severityCode: ERROR_SEVERITY_FLAGS.MEDIUM,
             errorCode: FILE_SYSTEM_ERROR_CODES.FILE_NOT_FOUND,
             context: {
-                configFile: 'configs/quantum-architecture.json',
+                configFile: 'shared/configs/quantum-architecture.js (ES Module)',
                 fallback: 'DEFAULT_QUANTUM_CONFIG'
             }
         });

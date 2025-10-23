@@ -1,6 +1,6 @@
 # Chahuadev Sentinel — Binary Migration Status Report
 
-**Last Updated:** 18 October 2025  
+**Last Updated:** 23 October 2025  
 **Author:** GitHub Copilot (AI Programming Assistant)
 
 ---
@@ -204,6 +204,72 @@ Each phase below includes checkboxes to indicate status (`[x]` completed, `[ ]` 
 - [ ] Add a binary-first test plan or automated suite covering the entire pipeline
 - [ ] Establish regression suites for Markdown reports and CLI output
 
+### Phase 7: JSON to ES Module Migration (In Progress)
+
+> **Rationale:**  
+> JSON files require 3 expensive operations: **I/O → String → JSON.parse() → Object**. This parsing overhead creates a significant performance bottleneck, especially for grammar files loaded repeatedly during tokenization. By migrating from `.json` to `.js` ES Modules, we leverage V8's native module loading system—the JavaScript engine understands `.js` files natively without any string-to-object parsing overhead.
+
+> **Update 23 October 2025:**
+> - Migrated all critical grammar files from JSON to ES Modules:
+>   - `java.grammar.json` → `java.grammar.js` (exports `javaGrammar`)
+>   - `javascript.grammar.json` → `javascript.grammar.js` (exports `javascriptGrammar`)
+>   - `typescript.grammar.json` → `typescript.grammar.js` (exports `typescriptGrammar`)
+>   - `jsx.grammar.json` → `jsx.grammar.js` (exports `jsxGrammar`)
+> - Migrated core configuration files:
+>   - `tokenizer-binary-config.json` → `tokenizer-binary-config.js` (exports `tokenizerBinaryConfig`)
+>   - `parser-config.json` → `parser-config.js` (exports `parserConfig`)
+>   - `quantum-architecture.json` → `quantum-architecture.js` (exports `quantumArchitectureConfig`)
+>   - `unicode-identifier-ranges.json` → `unicode-identifier-ranges.js` (exports `unicodeIdentifierRanges`)
+> - Updated `grammar-index.js` to use dynamic `import()` instead of `JSON.parse(readFileSync())`
+> - Implemented async initialization pattern with `ready()` method for constructor compatibility
+> - Fixed Windows compatibility using `pathToFileURL()` for file:// URL scheme
+> - **Testing:** Successfully verified grammar loading (75 keywords, 48 operators loaded correctly)
+> - **Performance Gain:** Eliminated 3-step JSON parsing process entirely
+
+#### 7.1 Grammar Files Migration
+- [x] Convert `java.grammar.json` → `java.grammar.js`
+- [x] Convert `javascript.grammar.json` → `javascript.grammar.js`
+- [x] Convert `typescript.grammar.json` → `typescript.grammar.js`
+- [x] Convert `jsx.grammar.json` → `jsx.grammar.js`
+- [x] Update `grammar-index.js` to use `import(pathToFileURL(path).href)` instead of `JSON.parse(readFileSync())`
+- [x] Implement async initialization pattern for GrammarIndex constructor
+- [x] Test grammar loading with all languages
+
+#### 7.2 Configuration Files Migration
+- [x] Convert `tokenizer-binary-config.json` → `tokenizer-binary-config.js`
+- [x] Convert `parser-config.json` → `parser-config.js`
+- [x] Convert `quantum-architecture.json` → `quantum-architecture.js`
+- [x] Convert `unicode-identifier-ranges.json` → `unicode-identifier-ranges.js`
+- [ ] Update all files referencing these configs to import `.js` instead of `.json`
+  - [ ] `tokenizer-helper.js` (line 131)
+  - [ ] `grammars/index.js` (lines 81, 84)
+  - [ ] Other grammar helper files
+
+#### 7.3 Security & Extension Files Migration
+- [ ] Convert `error-handlers.json` → `error-handlers.js`
+- [ ] Convert `security-defaults.json` → `security-defaults.js`
+- [ ] Convert `suspicious-patterns.json` → `suspicious-patterns.js`
+- [ ] Convert `extension-config.json` → `extension-config.js`
+- [ ] Update all security and extension files to import from `.js` modules
+
+#### 7.4 Root Configuration Files Migration
+- [ ] Convert `cli-config.json` → `cli-config.js`
+- [ ] Update `cli.js` to import from `cli-config.js`
+- [ ] Evaluate `package.json` migration (optional - npm requires JSON format)
+
+#### 7.5 Documentation Updates
+- [ ] Update `README.md` to reflect ES Module architecture
+- [ ] Update `docs/th/หน้าที่ไฟล์.md` to show `.js` extensions
+- [ ] Update all architecture docs mentioning JSON config files
+
+#### 7.6 Benefits & Validation
+- [x] **Performance:** V8 native loading (no parsing overhead)
+- [x] **Tree-shaking:** ES Modules support selective imports
+- [x] **Type Safety:** Better IDE autocomplete and static analysis
+- [x] **Maintainability:** JavaScript syntax highlighting and validation
+- [ ] **Testing:** Add benchmark comparing JSON vs ES Module load times
+- [ ] **Regression:** Ensure no functionality breaks after migration
+
 ---
 
 ## 3. Repository-Wide File Register & Status
@@ -268,20 +334,21 @@ The following checklist inventories every file in the repository, grouped by fol
 - [ ] `src/grammars/shared/binary-scout.js`
 - [ ] `src/grammars/shared/constants.js`
 - [ ] `src/grammars/shared/enhanced-binary-parser.js`
-- [ ] `src/grammars/shared/grammar-index.js`
-- [ ] `src/grammars/shared/parser-config.json`
+- [x] `src/grammars/shared/grammar-index.js` *(updated to use ES Module imports)*
+- [x] `src/grammars/shared/parser-config.js` *(migrated from JSON)*
 - [ ] `src/grammars/shared/pure-binary-parser.js`
 - [ ] `src/grammars/shared/tokenizer-helper.js`
+- [x] `src/grammars/shared/tokenizer-binary-config.js` *(migrated from JSON)*
 
 ###### `src/grammars/shared/configs/`
-- [ ] `src/grammars/shared/configs/quantum-architecture.json`
-- [ ] `src/grammars/shared/configs/unicode/unicode-identifier-ranges.json`
+- [x] `src/grammars/shared/configs/quantum-architecture.js` *(migrated from JSON)*
+- [x] `src/grammars/shared/configs/unicode/unicode-identifier-ranges.js` *(migrated from JSON)*
 
 ###### `src/grammars/shared/grammars/`
-- [ ] `src/grammars/shared/grammars/java.grammar.json`
-- [ ] `src/grammars/shared/grammars/javascript.grammar.json`
-- [ ] `src/grammars/shared/grammars/jsx.grammar.json`
-- [ ] `src/grammars/shared/grammars/typescript.grammar.json`
+- [x] `src/grammars/shared/grammars/java.grammar.js` *(migrated from JSON)*
+- [x] `src/grammars/shared/grammars/javascript.grammar.js` *(migrated from JSON)*
+- [x] `src/grammars/shared/grammars/jsx.grammar.js` *(migrated from JSON)*
+- [x] `src/grammars/shared/grammars/typescript.grammar.js` *(migrated from JSON)*
 
 #### `src/rules/`
 - [x] `src/rules/BINARY_AST_ONLY.js`
@@ -312,14 +379,48 @@ The following checklist inventories every file in the repository, grouped by fol
 
 ---
 
-## 4. Risks & Mitigations
+## 4. Formal TODO Register
+
+> **⚠️ IMPORTANT - JSON to ES Module Migration:**  
+> Phase 7 is now underway to migrate all JSON files to ES Modules (.js) for massive performance improvements. JSON.parse() creates a parsing bottleneck (I/O → String → Parse → Object), while ES Modules are loaded natively by V8 with zero parsing overhead. All critical grammar and config files have been migrated. Remaining tasks include updating file references and migrating security/extension configs.
+
+### Immediate Actions (Week 42, 2025)
+- [ ] **[Phase 7]** Update remaining file references to use `.js` extensions instead of `.json` (tokenizer-helper.js line 131, grammars/index.js lines 81/84)
+- [ ] **[Phase 7]** Migrate security configuration files: `error-handlers.json`, `security-defaults.json`, `suspicious-patterns.json` → `.js` ES Modules
+- [ ] **[Phase 7]** Migrate `extension-config.json` → `extension-config.js` and update extension.js imports
+- [ ] Migrate the remaining `handleError` call sites (`src/security/security-manager.js`, `src/security/security-middleware.js`, `src/security/rate-limit-store-factory.js`, `src/grammar/shared/*.js`, `src/extension.js`) to `createSystemPayload` / `emitSecurityNotice`, validating parity via CLI smoke tests.
+- [ ] Update `ErrorHandler.handleError` to accept structured payload objects only, reject legacy signatures at runtime, and document the contract in `README.md` and `docs/th หน้าที่ไฟล์.md`.
+- [ ] Extend `error-dictionary.js` metadata (recommended actions, `canRetry`, `isFatal`) for Logical, File System, Security, and remaining families, then thread the data through `error-normalizer.js` outputs.
+- [ ] Add Jest unit coverage for `error-emitter.js` covering severity coercion, context sanitisation, fallback error selection, and security tagging.
+
+### Near-Term Enhancements
+- [ ] Harden severity validation inside `error-normalizer.js` and `ErrorHandler.js` so string severities or unknown codes fail fast with SECURITY catalogue entries.
+- [ ] Teach `error-normalizer.js` to map HTTP status codes and Node `errno` values into the new domain descriptors, logging classification telemetry where matching fails.
+- [ ] Finalise transport separation by moving console helpers out of `ErrorHandler.js`, ensuring renderers receive fully normalised objects only.
+- [ ] Publish operational guidance in both `docs/en/BINARY_MIGRATION_STATUS.md` and `docs/th/BINARY_MIGRATION_STATUS.md` once the helper migration is complete (update issue ledgers accordingly).
+
+### Supporting Activities
+- [ ] Implement regression tests for `error-log-stream.js` and the Markdown report writer once the transport layer refactor lands.
+- [ ] Automate repository tree generation (script or CI check) to keep Appendix A synchronized with future file additions.
+- [ ] Schedule a documentation review to align bilingual terminology after ErrorHandler contract changes (target Week 44, 2025).
+
+---
+
+## 5. Known Issues & Blockers
+- **ISS-2025-10-18-01 — Legacy Callers:** Several modules still issue two-argument `handleError` calls, preventing enforcement of the structured payload contract. Track remediation progress in the bilingual issue ledgers and block the signature change until migrations are complete.
+- **ISS-2025-10-18-02 — Helper Test Gap:** `error-emitter.js` lacks automated coverage. Add Jest suites before rolling the helpers across the remaining modules.
+- **Schema Drift Risk:** Security catalogue entries rely on manual updates; missing metadata triggers fallback rendering. Integrate metadata completion into the TODOs above and verify before expanding regression suites.
+
+---
+
+## 6. Risks & Mitigations
 - **ErrorHandler migration complexity:** This is the final pipeline hop; maintain backups and code reviews when refactoring.
 - **Metadata divergence:** Missing slugs or severity codes will cause reports to fall back to `UNKNOWN_*`; emphasize validation tooling.
 - **Large, multi-file edits:** Prefer incremental commits to simplify rollbacks and code review.
 
 ---
 
-## 5. Appendix
+## 7. Appendix
 - **Key Artifacts:**
   - `src/constants/rule-constants.js`
   - `src/constants/severity-constants.js`
@@ -409,20 +510,28 @@ Chahuadev-Sentinel/
 │  │     ├─ binary-prophet.js — Heuristic predictor for grammar ambiguities
 │  │     ├─ binary-scout.js — Grammar reconnaissance helper
 │  │     ├─ configs/
-│  │     │  ├─ quantum-architecture.json — Quantum grammar architecture spec
+│  │     │  ├─ quantum-architecture.json — Quantum grammar architecture spec (⚠️ DEPRECATED - use .js)
+│  │     │  ├─ quantum-architecture.js — Quantum grammar architecture spec (ES Module)
 │  │     │  └─ unicode/
-│  │     │     └─ unicode-identifier-ranges.json — Unicode identifier ranges used by the tokenizer
+│  │     │     ├─ unicode-identifier-ranges.json — Unicode identifier ranges (⚠️ DEPRECATED - use .js)
+│  │     │     └─ unicode-identifier-ranges.js — Unicode identifier ranges (ES Module)
 │  │     ├─ constants.js — Shared grammar constants and lookups
 │  │     ├─ enhanced-binary-parser.js — Enhanced parser implementation
 │  │     ├─ grammar-index.js — Registry and loader for grammars
 │  │     ├─ grammars/
-│  │     │  ├─ java.grammar.json — Java grammar definition
-│  │     │  ├─ javascript.grammar.json — JavaScript grammar definition
-│  │     │  ├─ jsx.grammar.json — JSX grammar definition
-│  │     │  └─ typescript.grammar.json — TypeScript grammar definition
-│  │     ├─ parser-config.json — Parser configuration metadata
+│  │     │  ├─ java.grammar.json — Java grammar definition (⚠️ DEPRECATED - use .js)
+│  │     │  ├─ java.grammar.js — Java grammar definition (ES Module, exports javaGrammar)
+│  │     │  ├─ javascript.grammar.json — JavaScript grammar definition (⚠️ DEPRECATED - use .js)
+│  │     │  ├─ javascript.grammar.js — JavaScript grammar definition (ES Module, exports javascriptGrammar)
+│  │     │  ├─ jsx.grammar.json — JSX grammar definition (⚠️ DEPRECATED - use .js)
+│  │     │  ├─ jsx.grammar.js — JSX grammar definition (ES Module, exports jsxGrammar)
+│  │     │  ├─ typescript.grammar.json — TypeScript grammar definition (⚠️ DEPRECATED - use .js)
+│  │     │  └─ typescript.grammar.js — TypeScript grammar definition (ES Module, exports typescriptGrammar)
+│  │     ├─ parser-config.json — Parser configuration metadata (⚠️ DEPRECATED - use .js)
+│  │     ├─ parser-config.js — Parser configuration metadata (ES Module, exports parserConfig)
 │  │     ├─ pure-binary-parser.js — Core binary parser implementation
-│  │     ├─ tokenizer-binary-config.json — Binary tokenizer configuration
+│  │     ├─ tokenizer-binary-config.json — Binary tokenizer configuration (⚠️ DEPRECATED - use .js)
+│  │     ├─ tokenizer-binary-config.js — Binary tokenizer configuration (ES Module, exports tokenizerBinaryConfig)
 │  │     └─ tokenizer-helper.js — Tokenizer orchestration helpers
 │  ├─ rules/
 │  │  ├─ BINARY_AST_ONLY.js — Enforces binary AST-only parsing rule

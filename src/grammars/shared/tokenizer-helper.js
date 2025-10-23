@@ -114,42 +114,41 @@
 // !    Binary Token Stream  Machine Code (COMPILER'S DOMAIN)
 // ! ══════════════════════════════════════════════════════════════════════════════
 
-import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
-import { dirname, join, resolve } from 'path';
+import { dirname, resolve } from 'path';
 import { GrammarIndex } from './grammar-index.js';
 import errorHandler from '../../error-handler/ErrorHandler.js';
-import { recordTelemetryNotice } from '../../error-handler/telemetry-recorder.js';
+import { recordTelemetryNotice } from '../../error-handler/error-emitter.js';
 import { SYNTAX_ERROR_CODES } from '../../error-handler/error-catalog.js';
 import { ERROR_SEVERITY_FLAGS } from '../../constants/severity-constants.js';
+import { tokenizerBinaryConfig } from './tokenizer-binary-config.js';
+import { emitError, emitCritical } from '../../error-handler/emit-error.js';
 
 // ! ══════════════════════════════════════════════════════════════════════════════
-// ! LOAD CONFIGURATION - NO_HARDCODE COMPLIANCE
+// ! ES MODULE DIRECTORY RESOLUTION
 // ! ══════════════════════════════════════════════════════════════════════════════
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const configPath = join(__dirname, 'tokenizer-binary-config.json');
 
-let CONFIG;
-try {
-    CONFIG = JSON.parse(readFileSync(configPath, 'utf-8'));
-} catch (error) {
-    // ! NO_SILENT_FALLBACKS: ใช้ ErrorHandler กลาง
-    error.isOperational = false; // Config file missing = Programming error
-    errorHandler.handleError(error, {
-        source: 'BinaryComputationTokenizer',
-        method: 'initialization',
-        severity: 'CRITICAL',
-        context: `Failed to load tokenizer configuration from ${configPath} - Configuration file is required for tokenization`
-    });
-    // ErrorHandler จะจัดการ process.exit() เอง
-    throw error; // Re-throw after logging
-}
+// ! ══════════════════════════════════════════════════════════════════════════════
+// ! LOAD CONFIGURATION - ES MODULE IMPORT (NO_HARDCODE COMPLIANCE)
+// ! ══════════════════════════════════════════════════════════════════════════════
+
+const CONFIG = tokenizerBinaryConfig;
+
+// ! ══════════════════════════════════════════════════════════════════════════════
+// ! STRICT MODE - Fail Fast When Grammar/Binary Data Missing
+// ! ══════════════════════════════════════════════════════════════════════════════
+// ! เปิดใช้เพื่อบังคับให้ระบบ throw error ทันทีเมื่อข้อมูล grammar/binary ไม่ครบ
+// ! ป้องกัน silent fallback ที่ทำให้ระบบทำงานแบบไม่สมบูรณ์
+// ! ══════════════════════════════════════════════════════════════════════════════
+const STRICT_MODE = true; // Set false เพื่อใช้ fallback (ไม่แนะนำ)
 
 // Extract constants from configuration - ZERO HARDCODE
 const UNICODE = CONFIG.unicodeRanges.ranges;
 const CHAR_FLAGS = CONFIG.characterFlags.flags;
 const TOKEN_TYPES = CONFIG.tokenBinaryTypes.types;
+const GRAMMAR_METADATA_FIELDS = CONFIG.grammarMetadata?.fields || [];
 const TOKEN_TYPE_STRINGS = CONFIG.tokenTypeStrings.types;
 const ERROR_MESSAGES = CONFIG.errorMessages.templates;
 const PARSING_RULES = CONFIG.parsingRules.rules;
@@ -162,10 +161,6 @@ const isFiniteNumber = (value) => typeof value === 'number' && Number.isFinite(v
 const ASCII_BOUNDARY_CODE = isFiniteNumber(UNICODE.ASCII_BOUNDARY?.code)
     ? UNICODE.ASCII_BOUNDARY.code
     : 128;
-
-// ! NO_HARDCODE: Grammar structure metadata fields - โหลดจาก config
-// ! These field names indicate a final grammar item (keyword/operator) vs nested category
-const GRAMMAR_METADATA_FIELDS = CONFIG.grammarStructure?.metadataFields?.fields || [];
 
 // ! NO_HARDCODE: Punctuation binary map - โหลดจาก config
 // ! For 100% binary parsing without string comparison
@@ -658,14 +653,39 @@ class PureBinaryTokenizer {
 
                 this.assertGrammarBrainIntegrity(this.grammarCache);
 
-                // ! FLATTEN nested structure to hash sections
-                // ! Convert: { operators: { binaryOperators: { "+": {...} } } }
-                // ! To:      { operators: { "+": {...} } }
-                this.sectionCache.keywords = this.flattenSection(this.grammarCache.keywords || {});
-                this.sectionCache.operators = this.flattenSection(this.grammarCache.operators || {});
-                this.sectionCache.punctuation = this.flattenSection(this.grammarCache.punctuation || {});
-                this.sectionCache.literals = this.flattenSection(this.grammarCache.literals || {});
-                this.sectionCache.comments = this.grammarCache.comments || {};
+                // ! STRICT_MODE: บังคับให้ grammar sections ต้องมีครบ
+                // ! ลบ fallback `|| {}` ออก เพื่อให้เห็นว่า section ไหนขาด
+                if (STRICT_MODE) {
+                    // ! FAIL FAST: ถ้า section ไหนไม่มี ให้ throw error ทันที
+                    const requiredSections = ['keywords', 'operators', 'punctuation', 'literals', 'comments'];
+                    for (const section of requiredSections) {
+                        if (!this.grammarCache[section] || typeof this.grammarCache[section] !== 'object') {
+                            // ! ═══════════════════════════════════════════════════════════════
+                            // ! BINARY ERROR EMISSION - แค่ส่งเลข!
+                            // ! ═══════════════════════════════════════════════════════════════
+                            emitCritical(SYNTAX_ERROR_CODES.GRAMMAR_SECTION_MISSING, {
+                                language: this.language,
+                                missingSection: section,
+                                availableSections: Object.keys(this.grammarCache)
+                            });
+                            // ! emitCritical() throws - code ไม่ถึงจุดนี้
+                        }
+                    }
+                    
+                    // ! FLATTEN nested structure to hash sections
+                    this.sectionCache.keywords = this.flattenSection(this.grammarCache.keywords);
+                    this.sectionCache.operators = this.flattenSection(this.grammarCache.operators);
+                    this.sectionCache.punctuation = this.flattenSection(this.grammarCache.punctuation);
+                    this.sectionCache.literals = this.flattenSection(this.grammarCache.literals);
+                    this.sectionCache.comments = this.grammarCache.comments;
+                } else {
+                    // ! LEGACY MODE: ใช้ fallback (ไม่แนะนำ)
+                    this.sectionCache.keywords = this.flattenSection(this.grammarCache.keywords || {});
+                    this.sectionCache.operators = this.flattenSection(this.grammarCache.operators || {});
+                    this.sectionCache.punctuation = this.flattenSection(this.grammarCache.punctuation || {});
+                    this.sectionCache.literals = this.flattenSection(this.grammarCache.literals || {});
+                    this.sectionCache.comments = this.grammarCache.comments || {};
+                }
 
                 this.assertFlattenedGrammarSections();
                 return;
@@ -676,12 +696,28 @@ class PureBinaryTokenizer {
             const grammarPath = join(__dirname, 'grammars', `${this.language}.grammar.json`);
             this.grammarCache = JSON.parse(readFileSync(grammarPath, 'utf8'));
 
-            // Cache sections ที่ใช้บ่อย (Stream ทั้ง section)
-            this.sectionCache.keywords = this.grammarCache.keywords || {};
-            this.sectionCache.operators = this.grammarCache.operators || {};
-            this.sectionCache.punctuation = this.grammarCache.punctuation || {};
-            this.sectionCache.literals = this.grammarCache.literals || {};
-            this.sectionCache.comments = this.grammarCache.comments || {};
+            // ! STRICT_MODE: ไม่ใช้ fallback
+            if (STRICT_MODE) {
+                const requiredSections = ['keywords', 'operators', 'punctuation', 'literals', 'comments'];
+                for (const section of requiredSections) {
+                    if (!this.grammarCache[section]) {
+                        throw new Error(`Grammar file missing required section: ${section}`);
+                    }
+                }
+                
+                this.sectionCache.keywords = this.grammarCache.keywords;
+                this.sectionCache.operators = this.grammarCache.operators;
+                this.sectionCache.punctuation = this.grammarCache.punctuation;
+                this.sectionCache.literals = this.grammarCache.literals;
+                this.sectionCache.comments = this.grammarCache.comments;
+            } else {
+                // Cache sections ที่ใช้บ่อย (Stream ทั้ง section)
+                this.sectionCache.keywords = this.grammarCache.keywords || {};
+                this.sectionCache.operators = this.grammarCache.operators || {};
+                this.sectionCache.punctuation = this.grammarCache.punctuation || {};
+                this.sectionCache.literals = this.grammarCache.literals || {};
+                this.sectionCache.comments = this.grammarCache.comments || {};
+            }
 
             this.assertGrammarBrainIntegrity(this.grammarCache);
             this.assertFlattenedGrammarSections();
@@ -762,8 +798,28 @@ class PureBinaryTokenizer {
      * ! This is the "hash section" format - no value conversion, just structure flattening
      */
     flattenSection(section) {
-        if (!section || typeof section !== 'object') {
-            return {};
+        // ! STRICT_MODE: ไม่ใช้ fallback เมื่อ section ไม่ถูกต้อง
+        if (STRICT_MODE) {
+            if (!section || typeof section !== 'object') {
+                const error = new Error('Grammar section is null, undefined, or not an object');
+                error.isOperational = false;
+                errorHandler.handleError(error, {
+                    source: 'BinaryComputationTokenizer',
+                    method: 'flattenSection',
+                    severity: 'CRITICAL',
+                    context: {
+                        sectionType: typeof section,
+                        sectionValue: section,
+                        fix: 'Ensure grammar object has all required sections (keywords, operators, punctuation, literals, comments)'
+                    }
+                });
+                throw error;
+            }
+        } else {
+            // Legacy fallback
+            if (!section || typeof section !== 'object') {
+                return {};
+            }
         }
         
         const flat = {};
@@ -847,10 +903,11 @@ class PureBinaryTokenizer {
             // ! PREPROCESSING: จัดการกับ Special Characters ที่ต้องข้าม
             // ! ========================================================================
             
-            // 1. ตรวจจับและข้าม BOM (Byte Order Mark - charCode 65279)
+            // 1. ตรวจจับและข้าม BOM (Byte Order Mark - U+FEFF)
             // ! WHY: Text editors บน Windows มักใส่ BOM ไว้หน้าไฟล์ UTF-8
             // ! SOLUTION: ข้ามตัวอักษรนี้ไปเพื่อไม่ให้เกิด "Unknown character" error
-            if (input.charCodeAt(0) === 65279) {
+            // ! NO_HARDCODE: ใช้ค่าจาก UNICODE.BYTE_ORDER_MARK แทนการ hardcode 65279
+            if (input.charCodeAt(0) === UNICODE.BYTE_ORDER_MARK.code) {
                 input = input.slice(1);
                 // ! NO_CONSOLE: ส่ง BOM skip info ไปยัง ErrorHandler แทน console.log
                 recordTelemetryNotice({
@@ -858,7 +915,11 @@ class PureBinaryTokenizer {
                     source: 'PureBinaryTokenizer',
                     method: 'tokenize',
                     severity: 'INFO',
-                    context: { charCode: 65279, action: 'skipped_bom' }
+                    context: { 
+                        charCode: UNICODE.BYTE_ORDER_MARK.code,
+                        description: UNICODE.BYTE_ORDER_MARK.description,
+                        action: 'skipped_bom' 
+                    }
                 });
             }
             
@@ -1340,27 +1401,57 @@ class PureBinaryTokenizer {
                 type: TOKEN_TYPE_STRINGS.PUNCTUATION,
                 binary: (1 << TOKEN_TYPES.PUNCTUATION.bit),
                 value: punctMatch.value,
-                punctuationBinary: PUNCTUATION_BINARY_MAP[punctMatch.value] || 0,
+                // ! STRICT_MODE: ห้าม fallback ถ้า binary ไม่มี
+                punctuationBinary: STRICT_MODE 
+                    ? (() => {
+                        const binaryValue = PUNCTUATION_BINARY_MAP[punctMatch.value];
+                        if (binaryValue === undefined || binaryValue === null) {
+                            // ! ═══════════════════════════════════════════════════════════
+                            // ! BINARY ERROR EMISSION - แค่ส่งเลข!
+                            // ! ═══════════════════════════════════════════════════════════
+                            emitCritical(SYNTAX_ERROR_CODES.PUNCTUATION_BINARY_UNDEFINED, {
+                                punctuation: punctMatch.value,
+                                availableMappings: Object.keys(PUNCTUATION_BINARY_MAP).slice(0, 10) // First 10
+                            });
+                            // ! emitCritical() throws - never reach here
+                        }
+                        return binaryValue;
+                    })()
+                    : (PUNCTUATION_BINARY_MAP[punctMatch.value] || 0),
                 length: punctMatch.length,
                 start: start,
                 end: this.position
             };
         }
         
-        // Error: โหลด error message template จาก config
-        const errorMsg = ERROR_MESSAGES.UNKNOWN_OPERATOR
-            .replace('{position}', start)
-            .replace('{char}', this.input[start]);
-        const error = new Error(errorMsg);
-        error.name = 'TokenizerError';
-        error.isOperational = false; // Unknown operator = Programming bug (missing grammar definition)
-        errorHandler.handleError(error, {
-            source: 'PureBinaryTokenizer',
-            method: 'computeOperatorOrPunctuation',
-            severity: 'ERROR',
-            context: `Unknown operator at position ${start}: ${this.input[start]}`
+        // ! CRITICAL ERROR: Unknown operator/punctuation = Grammar Incomplete
+        // ! STRICT_MODE: ต้อง throw เพื่อบังคับให้แก้ grammar
+        const char = this.input[start];
+        
+        // ! ตรวจสอบว่า character นี้น่าจะเป็น operator หรือ punctuation
+        const isProbablyPunctuation = /^[\(\)\{\}\[\];,\.]$/.test(char);
+        const binaryErrorCode = isProbablyPunctuation 
+            ? SYNTAX_ERROR_CODES.GRAMMAR_PUNCTUATION_UNDEFINED 
+            : SYNTAX_ERROR_CODES.GRAMMAR_OPERATOR_UNDEFINED;
+        
+        // ! ═══════════════════════════════════════════════════════════════════════
+        // ! BINARY ERROR EMISSION - โง่ที่สุด แค่ส่งเลข!
+        // ! ═══════════════════════════════════════════════════════════════════════
+        // ! ErrorHandler จะไปหา message, explanation, fix จาก Dictionary เอง
+        // ! เราแค่ส่ง: Binary Code + Context ขั้นต่ำ
+        // ! ═══════════════════════════════════════════════════════════════════════
+        emitCritical(binaryErrorCode, {
+            position: start,
+            character: char,
+            charCode: char.charCodeAt(0),
+            characterType: isProbablyPunctuation ? 'punctuation' : 'operator',
+            grammar_operators_count: Object.keys(this.sectionCache.operators || {}).length,
+            grammar_punctuation_count: Object.keys(this.sectionCache.punctuation || {}).length
+        }, {
+            severityOverride: STRICT_MODE ? ERROR_SEVERITY_FLAGS.CRITICAL : ERROR_SEVERITY_FLAGS.HIGH
         });
-        throw error;
+        
+        // ! emitCritical() จะ throw error เองแล้ว - code ไม่มีทางถึงจุดนี้
     }
 
     /**

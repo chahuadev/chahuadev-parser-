@@ -13,7 +13,7 @@
  */
 
 import errorHandler from '../../error-handler/ErrorHandler.js';
-import { recordTelemetryNotice } from '../../error-handler/telemetry-recorder.js';
+import { recordTelemetryNotice } from '../../error-handler/error-emitter.js';
 
 /**
  * Binary Scout - Quantum-inspired structure scanner
