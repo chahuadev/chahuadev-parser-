@@ -25,8 +25,8 @@
 // ! ══════════════════════════════════════════════════════════════════════════════
 import { fileURLToPath, pathToFileURL } from 'url';
 import { dirname, join } from 'path';
-import errorHandler from '../../error-handler/ErrorHandler.js';
-import { recordTelemetryNotice } from '../../error-handler/error-emitter.js';
+import { reportError } from '../../error-handler/binary-reporter.js';
+import BinaryCodes from '../../error-handler/binary-codes.js';
 import { tokenizerBinaryConfig } from './tokenizer-binary-config.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -40,27 +40,20 @@ function emitGrammarIndexEvent(message, method, severity = 'INFO', context = {})
         ? message
         : 'GrammarIndex event emitted';
 
+    // FIX: Telemetry removed - Binary Error System handles all logging
     if (normalizedSeverity === 'INFO' || normalizedSeverity === 'DEBUG' || normalizedSeverity === 'TRACE') {
-        recordTelemetryNotice({
-            message: normalizedMessage,
-            source: 'GrammarIndex',
-            method,
-            severity: normalizedSeverity,
-            context
-        });
-        return;
+        return; // Skip low severity messages
     }
 
-    const notice = new Error(normalizedMessage);
-    notice.name = 'GrammarIndexNotice';
-    notice.isOperational = normalizedSeverity !== 'CRITICAL';
-
-    errorHandler.handleError(notice, {
-        source: 'GrammarIndex',
-        method,
-        severity: normalizedSeverity,
-        context
-    });
+    // FIX: Binary Error Pattern
+    reportError(
+        BinaryCodes.PARSER.SYNTAX(10002),
+        { 
+            method,
+            message: normalizedMessage,
+            ...context
+        }
+    );
 }
 
 export class GrammarIndex {
@@ -74,22 +67,7 @@ export class GrammarIndex {
             this.grammar = grammarData;
             
             // ! NO_CONSOLE: ส่ง grammar sections info ไปยัง ErrorHandler แทน console.log
-            recordTelemetryNotice({
-                message: 'GrammarIndex initialized with grammar data',
-                source: 'GrammarIndex',
-                method: 'constructor',
-                severity: 'DEBUG',
-                context: {
-                    hasKeywords: !!grammarData.keywords,
-                    keywordsCount: Object.keys(grammarData.keywords || {}).length,
-                    hasOperators: !!grammarData.operators,
-                    operatorsCount: Object.keys(grammarData.operators || {}).length,
-                    hasPunctuation: !!grammarData.punctuation,
-                    punctuationCount: Object.keys(grammarData.punctuation || {}).length,
-                    hasLiterals: !!grammarData.literals,
-                    hasComments: !!grammarData.comments
-                }
-            });
+            // FIX: Telemetry removed - not needed
         }
         
         // ! โหลด Punctuation Binary Map จาก top-level import (SYNCHRONOUS)
@@ -108,8 +86,16 @@ export class GrammarIndex {
             // ! WHY: PureBinaryParser needs punctuation binary in constructor (synchronous)
             // ! SOLUTION: import at top of file, use here synchronously
             
-            // โหลด punctuationBinaryMap จาก imported config
-            this.punctuationBinaryMap = tokenizerBinaryConfig.punctuationBinaryMap?.map || {};
+            // ! NO_SILENT_FALLBACKS: ลบ || {} ออก - ต้อง FAIL ถ้าไม่มี map
+            const punctuationBinaryMapData = tokenizerBinaryConfig.punctuationBinaryMap?.map;
+            
+            if (!punctuationBinaryMapData || typeof punctuationBinaryMapData !== 'object') {
+                const configError = new Error('punctuationBinaryMap.map is missing or invalid in tokenizer-binary-config.js');
+                configError.isOperational = false;
+                throw configError;
+            }
+            
+            this.punctuationBinaryMap = punctuationBinaryMapData;
             
             // ! VALIDATION: ห้าม empty map - ถ้าไม่มี binary map = CRITICAL ERROR
             if (Object.keys(this.punctuationBinaryMap).length === 0) {
@@ -118,33 +104,17 @@ export class GrammarIndex {
                 throw validationError;
             }
             
-            // ! NO_CONSOLE: ส่ง punctuation map info ไปยัง ErrorHandler แทน console.log
-            recordTelemetryNotice({
-                message: 'Punctuation binary map loaded successfully (Top-level ES Module Import)',
-                source: 'GrammarIndex',
-                method: '_loadPunctuationBinaryMapSync',
-                severity: 'DEBUG',
-                context: {
-                    itemsCount: Object.keys(this.punctuationBinaryMap).length,
-                    loadMethod: 'TOP_LEVEL_IMPORT',
-                    source: 'tokenizer-binary-config.js',
-                    timing: 'SYNCHRONOUS'
-                }
-            });
+            // FIX: Telemetry removed
         } catch (error) {
             // ! NO_SILENT_FALLBACKS: ห้ามใช้ empty map - ต้อง FAIL
-            error.isOperational = false;
-            errorHandler.handleError(error, {
-                source: 'GrammarIndex',
-                method: '_loadPunctuationBinaryMapSync',
-                severity: 'CRITICAL',
-                context: {
-                    reason: 'Failed to load punctuation binary map from imported config',
-                    expectedFile: 'tokenizer-binary-config.js',
-                    impact: 'Parser cannot perform binary punctuation comparison',
-                    solution: 'Check that tokenizer-binary-config.js exports tokenizerBinaryConfig.punctuationBinaryMap.map'
+            // FIX: Binary Error Pattern
+            reportError(
+                BinaryCodes.PARSER.CONFIGURATION(10003),
+                { 
+                    error,
+                    file: 'tokenizer-binary-config.js'
                 }
-            });
+            );
             throw error;
         }
     }
@@ -275,36 +245,20 @@ export class GrammarIndex {
             // Note: punctuation seems to be flat already, but check anyway
             // If needed, we can apply same flattening logic here
             
-            // ! NO_CONSOLE: ส่ง grammar load info ไปยัง ErrorHandler แทน console.log
-            recordTelemetryNotice({
-                message: `Grammar loaded successfully for ${language} (ES Module)`,
-                source: 'GrammarIndex',
-                method: 'loadGrammar',
-                severity: 'DEBUG',
-                context: {
-                    language: language,
-                    grammarPath: grammarPath,
-                    loadMethod: 'ES_MODULE_IMPORT',
-                    keywordsCount: Object.keys(grammarData.keywords || {}).length,
-                    operatorsCount: Object.keys(grammarData.operators || {}).length,
-                    punctuationCount: Object.keys(grammarData.punctuation || {}).length,
-                    hasLiterals: !!grammarData.literals,
-                    hasComments: !!grammarData.comments
-                }
-            });
+            // FIX: Telemetry removed
             
             return grammarData;
         } catch (error) {
-            // ! NO_SILENT_FALLBACKS: ใช้ ErrorHandler กลาง - ห้าม throw new Error โดยตรง
-            error.isOperational = false; // Grammar file not found = Programming error
-            errorHandler.handleError(error, {
-                source: 'GrammarIndex',
-                method: 'loadGrammar',
-                severity: 'CRITICAL',
-                context: `Failed to load grammar for ${language} - Grammar module not found or invalid export`
-            });
-            // ErrorHandler จะจัดการ process.exit() เองถ้าเป็น critical error
-            throw error; // Re-throw after logging
+            // ! NO_SILENT_FALLBACKS: Grammar file not found = Programming error
+            // FIX: Binary Error Pattern
+            reportError(
+                BinaryCodes.PARSER.SYNTAX(10004),
+                { 
+                    error,
+                    language
+                }
+            );
+            throw error; // Re-throw - this is programming bug
         }
     }
 
@@ -697,21 +651,15 @@ export class GrammarIndex {
         }
         
         // ! NO_SILENT_FALLBACKS: ถ้าไม่มีใน binary map = CRITICAL ERROR
-        // ! OLD CODE (REMOVED): return punctuation.charCodeAt(0); // Silent fallback ❌
-        const error = new Error(`Punctuation '${punctuation}' not found in binary map`);
-        error.isOperational = false; // Missing binary = Programming error
-        errorHandler.handleError(error, {
-            source: 'GrammarIndex',
-            method: 'getPunctuationBinary',
-            severity: 'CRITICAL',
-            context: {
+        // FIX: Binary Error Pattern
+        reportError(
+            BinaryCodes.PARSER.VALIDATION(10005),
+            { 
                 punctuation,
-                reason: 'Punctuation must be registered in tokenizer-binary-config.js',
-                availablePunctuations: Object.keys(this.punctuationBinaryMap || {}),
-                fix: 'Add this punctuation to punctuationBinaryMap in tokenizer-binary-config.js'
+                availablePunctuations: Object.keys(this.punctuationBinaryMap || {})
             }
-        });
-        throw error; // FAIL fast - force developer to add binary mapping
+        );
+        throw new Error(`Punctuation '${punctuation}' not found in binary map`); // FAIL fast
     }
 
     /**

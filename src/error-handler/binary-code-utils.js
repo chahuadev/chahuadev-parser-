@@ -143,7 +143,7 @@ export function toBinaryString(binaryCode) {
  * @param {object} binaryErrorGrammar - Grammar object
  * @param {string} domainName - Fixed domain name
  * @param {string} categoryName - Fixed category name
- * @returns {function} Builder function(severity, source, offset)
+ * @returns {function} Builder function(offset, severity?, source?)
  * 
  * @example
  * const tokenizerSyntaxError = createErrorCodeBuilder(
@@ -152,7 +152,14 @@ export function toBinaryString(binaryCode) {
  *   'SYNTAX'
  * );
  * 
- * const code = tokenizerSyntaxError('ERROR', 'PARSER', 1001);
+ * // Simple: ใช้ default severity และ auto-infer source จาก domain
+ * const code1 = tokenizerSyntaxError(1001);
+ * 
+ * // Override severity
+ * const code2 = tokenizerSyntaxError(1002, 'WARNING');
+ * 
+ * // Override ทั้ง severity และ source
+ * const code3 = tokenizerSyntaxError(1003, 'ERROR', 'USER');
  */
 export function createErrorCodeBuilder(binaryErrorGrammar, domainName, categoryName) {
     const domain = binaryErrorGrammar.domains[domainName];
@@ -165,7 +172,16 @@ export function createErrorCodeBuilder(binaryErrorGrammar, domainName, categoryN
         throw new Error(`Category not found: ${categoryName}`);
     }
 
-    return function(severityName, sourceName, offset) {
+    // Determine default source from domain name
+    // PARSER domain → PARSER source, VALIDATOR domain → VALIDATOR source, etc.
+    const defaultSource = binaryErrorGrammar.sources[domainName] 
+        ? domainName 
+        : 'SYSTEM'; // Fallback to SYSTEM source
+
+    // Get default severity from category
+    const defaultSeverity = category.defaultSeverity || 'ERROR';
+
+    return function(offset, severityName = defaultSeverity, sourceName = defaultSource) {
         return composeBinaryCodeByName(
             binaryErrorGrammar,
             domainName,

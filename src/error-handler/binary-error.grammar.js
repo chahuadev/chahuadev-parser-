@@ -229,6 +229,9 @@ export const binaryErrorGrammar = {
             "description": "File I/O Operations - File read/write, path resolution, permissions",
             "allowedCategories": [
                 "RESOURCE",
+                "RESOURCE_NOT_FOUND",
+                "RESOURCE_UNAVAILABLE",
+                "RESOURCE_EXHAUSTED",
                 "PERMISSION",
                 "RUNTIME"
             ],
@@ -255,6 +258,9 @@ export const binaryErrorGrammar = {
             "allowedCategories": [
                 "TIMEOUT",
                 "RESOURCE",
+                "RESOURCE_NOT_FOUND",
+                "RESOURCE_UNAVAILABLE",
+                "RESOURCE_EXHAUSTED",
                 "RUNTIME"
             ],
             "requiredContext": [
@@ -540,13 +546,94 @@ export const binaryErrorGrammar = {
             ],
             "fixSuggestions": [
                 "Verify resource path",
-                "Check availability",
-                "Free resources"
+                "Check resource availability",
+                "Free up resources"
             ],
             "exampleErrors": [
                 "FILE_NOT_FOUND",
                 "RESOURCE_UNAVAILABLE",
                 "RESOURCE_EXHAUSTED"
+            ]
+        },
+        "RESOURCE_NOT_FOUND": {
+            "code": 129,
+            "hexCode": "0x0081",
+            "binaryCode": "0b0000000010000001",
+            "bitPosition": 7,
+            "label": "Resource Not Found",
+            "slug": "resource-not-found",
+            "description": "Resource (file, URL, asset) does not exist at the specified path",
+            "defaultSeverity": "ERROR",
+            "defaultSeverityCode": 16,
+            "commonCauses": [
+                "File path incorrect",
+                "File deleted",
+                "Path does not exist"
+            ],
+            "fixSuggestions": [
+                "Verify file path is correct",
+                "Check if file was moved or deleted",
+                "Create missing resource"
+            ],
+            "exampleErrors": [
+                "FILE_NOT_FOUND",
+                "PATH_NOT_FOUND",
+                "URL_404"
+            ]
+        },
+        "RESOURCE_UNAVAILABLE": {
+            "code": 130,
+            "hexCode": "0x0082",
+            "binaryCode": "0b0000000010000010",
+            "bitPosition": 7,
+            "label": "Resource Unavailable",
+            "slug": "resource-unavailable",
+            "description": "Resource exists but is temporarily unavailable (locked, busy, server down)",
+            "defaultSeverity": "WARNING",
+            "defaultSeverityCode": 8,
+            "commonCauses": [
+                "File locked by another process",
+                "Server temporarily down",
+                "Resource busy"
+            ],
+            "fixSuggestions": [
+                "Retry after delay",
+                "Check if resource is locked",
+                "Wait for resource to become available"
+            ],
+            "exampleErrors": [
+                "FILE_LOCKED",
+                "SERVER_UNAVAILABLE",
+                "RESOURCE_BUSY"
+            ]
+        },
+        "RESOURCE_EXHAUSTED": {
+            "code": 131,
+            "hexCode": "0x0083",
+            "binaryCode": "0b0000000010000011",
+            "bitPosition": 7,
+            "label": "Resource Exhausted",
+            "slug": "resource-exhausted",
+            "description": "Resource limit reached (disk full, memory full, pool empty, quota exceeded)",
+            "defaultSeverity": "CRITICAL",
+            "defaultSeverityCode": 32,
+            "commonCauses": [
+                "Disk full",
+                "Memory exhausted",
+                "Connection pool empty",
+                "Quota exceeded"
+            ],
+            "fixSuggestions": [
+                "Free up disk space",
+                "Increase memory allocation",
+                "Close unused connections",
+                "Request quota increase"
+            ],
+            "exampleErrors": [
+                "DISK_FULL",
+                "OUT_OF_MEMORY",
+                "POOL_EXHAUSTED",
+                "QUOTA_EXCEEDED"
             ]
         },
         "TIMEOUT": {
@@ -637,7 +724,7 @@ export const binaryErrorGrammar = {
             "icon": "[TRACE]",
             "priority": 0,
             "isRecoverable": true,
-            "logPath": "telemetry/trace"
+            "logPath": "telemetry/trace.log"
         },
         "DEBUG": {
             "code": 2,
@@ -655,7 +742,7 @@ export const binaryErrorGrammar = {
             "icon": "[DEBUG]",
             "priority": 1,
             "isRecoverable": true,
-            "logPath": "telemetry/debug"
+            "logPath": "telemetry/debug.log"
         },
         "INFO": {
             "code": 4,
@@ -664,16 +751,16 @@ export const binaryErrorGrammar = {
             "bitPosition": 2,
             "label": "Info",
             "slug": "info",
-            "description": "Informational messages - normal operation",
+            "description": "Informational message - normal operation",
             "shouldThrow": false,
             "shouldLog": true,
             "exitCode": 0,
             "logLevel": "info",
-            "color": "green",
+            "color": "cyan",
             "icon": "[INFO]",
             "priority": 2,
             "isRecoverable": true,
-            "logPath": "telemetry/info"
+            "logPath": "telemetry/info.log"
         },
         "WARNING": {
             "code": 8,
@@ -691,7 +778,7 @@ export const binaryErrorGrammar = {
             "icon": "[WARN]",
             "priority": 3,
             "isRecoverable": true,
-            "logPath": "errors/warnings"
+            "logPath": "errors/warnings.log"
         },
         "ERROR": {
             "code": 16,
@@ -709,7 +796,7 @@ export const binaryErrorGrammar = {
             "icon": "[ERROR]",
             "priority": 4,
             "isRecoverable": true,
-            "logPath": "errors/syntax-errors"
+            "logPath": "errors/syntax-errors.log"
         },
         "CRITICAL": {
             "code": 32,
@@ -723,11 +810,11 @@ export const binaryErrorGrammar = {
             "shouldLog": true,
             "exitCode": 1,
             "logLevel": "error",
-            "color": "red",
+            "color": "magenta",
             "icon": "[CRITICAL]",
             "priority": 5,
             "isRecoverable": false,
-            "logPath": "errors/critical"
+            "logPath": "errors/critical.log"
         },
         "FATAL": {
             "code": 64,
@@ -745,7 +832,7 @@ export const binaryErrorGrammar = {
             "icon": "[FATAL]",
             "priority": 6,
             "isRecoverable": false,
-            "logPath": "errors/fatal"
+            "logPath": "errors/fatal.log"
         },
         "EMERGENCY": {
             "code": 128,
@@ -763,7 +850,7 @@ export const binaryErrorGrammar = {
             "icon": "[EMERGENCY]",
             "priority": 7,
             "isRecoverable": false,
-            "logPath": "errors/security"
+            "logPath": "errors/security.log"
         }
     },
 

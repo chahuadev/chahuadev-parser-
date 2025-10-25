@@ -12,8 +12,8 @@
  * - All errors sent to ErrorHandler
  */
 
-import errorHandler from '../../error-handler/ErrorHandler.js';
-import { recordTelemetryNotice } from '../../error-handler/error-emitter.js';
+import { reportError } from '../../error-handler/binary-reporter.js';
+import BinaryCodes from '../../error-handler/binary-codes.js';
 
 /**
  * Binary Scout - Quantum-inspired structure scanner
@@ -26,33 +26,35 @@ class BinaryScout {
      */
     constructor(tokens, grammarIndex) {
         if (!tokens || !Array.isArray(tokens)) {
+            // FIX: Binary Error Pattern
             const error = new Error('BinaryScout requires valid tokens array');
             error.name = 'ValidationError';
             error.isOperational = true;
-            errorHandler.handleError(error, {
-                source: 'BinaryScout',
+            reportError(BinaryCodes.VALIDATOR.VALIDATION(5001), {
                 method: 'constructor',
-                severity: 'ERROR',
+                message: 'BinaryScout requires valid tokens array',
+                error: error,
                 context: { tokens: tokens }
             });
             throw error;
         }
 
         if (!grammarIndex) {
+            // FIX: Binary Error Pattern
             const error = new Error('BinaryScout requires valid grammarIndex');
             error.name = 'ValidationError';
             error.isOperational = true;
-            errorHandler.handleError(error, {
-                source: 'BinaryScout',
+            reportError(BinaryCodes.VALIDATOR.VALIDATION(5002), {
                 method: 'constructor',
-                severity: 'ERROR'
+                message: 'BinaryScout requires valid grammarIndex',
+                error: error
             });
             throw error;
         }
 
         this.tokens = tokens;
         this.grammarIndex = grammarIndex;
-        this.structureMap = new Map(); // startPos  StructureInfo
+        this.structureMap = new Map(); // startPos → StructureInfo
         
         // Cache binary values for O(1) comparison (100% Binary-First)
         try {
@@ -68,11 +70,12 @@ class BinaryScout {
                 RBRACE: grammarIndex.getPunctuationBinary('}'),
             };
         } catch (error) {
+            // FIX: Binary Error Pattern
             error.isOperational = true;
-            errorHandler.handleError(error, {
-                source: 'BinaryScout',
+            reportError(BinaryCodes.SYSTEM.CONFIGURATION(5003), {
                 method: 'constructor',
-                severity: 'ERROR',
+                message: 'Failed to initialize binary cache',
+                error: error,
                 context: { step: 'binary_cache_initialization' }
             });
             throw error;
@@ -112,28 +115,15 @@ class BinaryScout {
 
             const elapsed = performance.now() - startTime;
             
-            // Send metrics to ErrorHandler (INFO level - not an error)
-            recordTelemetryNotice({
-                message: 'Scout scan completed',
-                source: 'BinaryScout',
-                method: 'scanStructure',
-                severity: 'INFO',
-                context: {
-                    tokensScanned: this.tokens.length,
-                    structuresFound: this.structureMap.size,
-                    timeMs: elapsed.toFixed(2),
-                    performance: 'success'
-                }
-            });
-            
             return this.structureMap;
 
         } catch (error) {
+            // FIX: Binary Error Pattern
             error.isOperational = true;
-            errorHandler.handleError(error, {
-                source: 'BinaryScout',
+            reportError(BinaryCodes.PARSER.SYNTAX(5004), {
                 method: 'scanStructure',
-                severity: 'ERROR',
+                message: 'Structure scan failed',
+                error: error,
                 context: {
                     tokensLength: this.tokens.length,
                     structuresFound: this.structureMap.size
@@ -173,11 +163,12 @@ class BinaryScout {
             return endPos;
 
         } catch (error) {
+            // FIX: Binary Error Pattern
             error.isOperational = true;
-            errorHandler.handleError(error, {
-                source: 'BinaryScout',
+            reportError(BinaryCodes.PARSER.VALIDATION(5005), {
                 method: 'scanFunction',
-                severity: 'WARNING',
+                message: 'Function scan failed',
+                error: error,
                 context: { startPos }
             });
             return startPos; // Fallback: don't jump
@@ -217,11 +208,12 @@ class BinaryScout {
             return endPos;
 
         } catch (error) {
+            // FIX: Binary Error Pattern
             error.isOperational = true;
-            errorHandler.handleError(error, {
-                source: 'BinaryScout',
+            reportError(BinaryCodes.PARSER.VALIDATION(5006), {
                 method: 'scanClass',
-                severity: 'WARNING',
+                message: 'Class scan failed',
+                error: error,
                 context: { startPos }
             });
             return startPos;
@@ -259,11 +251,12 @@ class BinaryScout {
             return endPos;
 
         } catch (error) {
+            // FIX: Binary Error Pattern
             error.isOperational = true;
-            errorHandler.handleError(error, {
-                source: 'BinaryScout',
+            reportError(BinaryCodes.PARSER.VALIDATION(5007), {
                 method: 'scanBlock',
-                severity: 'WARNING',
+                message: 'Block scan failed',
+                error: error,
                 context: { startPos, typeLabel }
             });
             return startPos;
@@ -316,11 +309,12 @@ class BinaryScout {
             return finalEndPos;
 
         } catch (error) {
+            // FIX: Binary Error Pattern
             error.isOperational = true;
-            errorHandler.handleError(error, {
-                source: 'BinaryScout',
+            reportError(BinaryCodes.PARSER.VALIDATION(5008), {
                 method: 'scanTryCatch',
-                severity: 'WARNING',
+                message: 'Try-catch scan failed',
+                error: error,
                 context: { startPos }
             });
             return startPos;
@@ -353,14 +347,15 @@ class BinaryScout {
             }
         }
 
-        // No matching brace found - send to ErrorHandler
+        // FIX: Binary Error Pattern
+        // No matching brace found - send to Binary Error System
         const error = new Error('No matching closing brace found');
         error.name = 'ParserError';
         error.isOperational = true;
-        errorHandler.handleError(error, {
-            source: 'BinaryScout',
+        reportError(BinaryCodes.PARSER.SYNTAX(5009), {
             method: 'findMatchingBrace',
-            severity: 'WARNING',
+            message: 'No matching closing brace found',
+            error: error,
             context: { startPos, tokensLength: this.tokens.length }
         });
 
@@ -459,11 +454,12 @@ class BinaryScout {
                 }
             }
         } catch (error) {
+            // FIX: Binary Error Pattern
             error.isOperational = true;
-            errorHandler.handleError(error, {
-                source: 'BinaryScout',
+            reportError(BinaryCodes.PARSER.VALIDATION(5010), {
                 method: 'scanClassMethods',
-                severity: 'WARNING',
+                message: 'Class methods scan failed',
+                error: error,
                 context: { startPos, endPos }
             });
         }

@@ -11,8 +11,8 @@
 // ! Binary Prophet - Speculative engine that resolves Pure Binary ambiguities without backtracking
 // ! ══════════════════════════════════════════════════════════════════════════════
 import { performance } from 'node:perf_hooks';
-import errorHandler from '../../error-handler/ErrorHandler.js';
-import { recordTelemetryNotice } from '../../error-handler/error-emitter.js';
+import { reportError } from '../../error-handler/binary-reporter.js';
+import BinaryCodes from '../../error-handler/binary-codes.js';
 import PureBinaryParser from './pure-binary-parser.js';
 
 // ! Sandbox parser: isolated copy of Architect logic for quantum experimentation only
@@ -36,12 +36,13 @@ class SandboxBinaryParser extends PureBinaryParser {
 class BinaryProphet {
     constructor(grammarIndex, options = {}) {
         if (!grammarIndex) {
+            // FIX: Binary Error Pattern
             const error = new Error('BinaryProphet requires a GrammarIndex instance');
             error.isOperational = false;
-            errorHandler.handleError(error, {
-                source: 'BinaryProphet',
+            reportError(BinaryCodes.SYSTEM.CONFIGURATION(6001), {
                 method: 'constructor',
-                severity: 'CRITICAL'
+                message: 'BinaryProphet requires a GrammarIndex instance',
+                error: error
             });
             throw error;
         }
@@ -91,10 +92,10 @@ class BinaryProphet {
 
         const successfulUniverses = hypotheses.filter(hypothesis => hypothesis.success);
         if (successfulUniverses.length === 0) {
-            errorHandler.handleError(new Error('Prophet speculation unable to resolve ambiguity'), {
-                source: 'BinaryProphet',
+            // FIX: Binary Error Pattern
+            reportError(BinaryCodes.PARSER.VALIDATION(6002), {
                 method: 'speculateObjectProperty',
-                severity: 'WARNING',
+                message: 'Prophet speculation unable to resolve ambiguity',
                 context: {
                     propertyKey: context.propertyKey,
                     universesTested: hypotheses.length,
@@ -113,21 +114,6 @@ class BinaryProphet {
             bestUniverse.confidence,
             this.metrics.successfulProphecies
         );
-
-        recordTelemetryNotice({
-            message: 'Prophet speculation completed',
-            source: 'BinaryProphet',
-            method: 'speculateObjectProperty',
-            severity: 'INFO',
-            context: {
-                propertyKey: context.propertyKey,
-                winningAssumption: bestUniverse.assumption,
-                confidence: bestUniverse.confidence,
-                universesTested: hypotheses.length,
-                endIndex: bestUniverse.endIndex,
-                durationMs: (performance.now() - startTime).toFixed(2)
-            }
-        });
 
         return {
             success: true,
@@ -168,11 +154,12 @@ class BinaryProphet {
                 universesSimulated: 1
             };
         } catch (error) {
+            // FIX: Binary Error Pattern
             error.isOperational = true;
-            errorHandler.handleError(error, {
-                source: 'BinaryProphet',
+            reportError(BinaryCodes.PARSER.VALIDATION(6003), {
                 method: 'simulateTraditionalMethod',
-                severity: 'DEBUG',
+                message: 'Traditional method simulation failed',
+                error: error,
                 context: {
                     propertyKey: context?.propertyKey
                 }
@@ -226,11 +213,12 @@ class BinaryProphet {
                 universesSimulated: 1
             };
         } catch (error) {
+            // FIX: Binary Error Pattern
             error.isOperational = true;
-            errorHandler.handleError(error, {
-                source: 'BinaryProphet',
+            reportError(BinaryCodes.PARSER.VALIDATION(6004), {
                 method: 'simulateArrowFunction',
-                severity: 'DEBUG',
+                message: 'Arrow function simulation failed',
+                error: error,
                 context: {
                     propertyKey: context?.propertyKey
                 }

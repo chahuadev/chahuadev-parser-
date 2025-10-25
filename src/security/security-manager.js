@@ -10,7 +10,8 @@
 // ! @security_level FORTRESS - Maximum Security Protection
 // ! ══════════════════════════════════════════════════════════════════════════════
 
-import errorHandler from '../error-handler/ErrorHandler.js';
+import { handleSecurityError, handleSystemError } from '../error-handler/binary-reporter.js';
+import BinaryCodes from '../error-handler/binary-codes.js';
 
 import fs from 'fs';
 import path from 'path';
@@ -113,33 +114,31 @@ class SecurityManager {
         // !          คุณต้อง inject มันเองเพื่อให้ชัดเจนว่านี่คือการตัดสินใจที่รู้สึกตัว
         // !
         if (!options.rateLimitStore) {
-            throw new Error(
-                'CRITICAL: rateLimitStore is REQUIRED (NO_INTERNAL_CACHING violation). ' +
-                '\n\nWHY: Internal state breaks rate limiting in multi-instance deployments. ' +
-                '\n     If you run 10 servers, each has separate requestCounts Map. ' +
-                '\n     Rate limit of 100/min becomes 1000/min total - SECURITY BREACH!' +
-                '\n\nSOLUTION (Production):' +
-                '\n  const redis = require(\'redis\').createClient();' +
-                '\n  const securityManager = new SecurityManager({ rateLimitStore: redis });' +
-                '\n\nSOLUTION (Testing):' +
-                '\n  const testStore = new Map();' +
-                '\n  const securityManager = new SecurityManager({ rateLimitStore: testStore });' +
-                '\n\nLearn more: See src/rules/NO_INTERNAL_CACHING.js'
-            );
+            // FIX: Binary Error Pattern
+            reportError(BinaryCodes.SECURITY.CONFIGURATION('CRITICAL', 'SECURITY', 1002));
+            return;
         }
         
         // Validate injected store implements required interface
         if (typeof options.rateLimitStore.get !== 'function') {
-            throw new Error('rateLimitStore must implement get() method');
+            // FIX: Binary Error Pattern
+            reportError(BinaryCodes.SECURITY.CONFIGURATION('ERROR', 'SECURITY', 1003));
+            return;
         }
         if (typeof options.rateLimitStore.set !== 'function') {
-            throw new Error('rateLimitStore must implement set() method');
+            // FIX: Binary Error Pattern
+            reportError(BinaryCodes.SECURITY.CONFIGURATION('ERROR', 'SECURITY', 1004));
+            return;
         }
         if (typeof options.rateLimitStore.has !== 'function') {
-            throw new Error('rateLimitStore must implement has() method');
+            // FIX: Binary Error Pattern
+            reportError(BinaryCodes.SECURITY.CONFIGURATION('ERROR', 'SECURITY', 1005));
+            return;
         }
         if (typeof options.rateLimitStore.delete !== 'function') {
-            throw new Error('rateLimitStore must implement delete() method');
+            // FIX: Binary Error Pattern
+            reportError(BinaryCodes.SECURITY.CONFIGURATION('ERROR', 'SECURITY', 1006));
+            return;
         }
         
         this.requestCounts = options.rateLimitStore;
@@ -156,19 +155,12 @@ class SecurityManager {
         let securityLevel = 'FORTRESS';
         if (this.config.SECURITY_LEVEL) {
             if (typeof this.config.SECURITY_LEVEL !== 'string') {
-                this.logSecurityEvent('CONFIG_ERROR', 'SECURITY_LEVEL must be a string', {
-                    type: typeof this.config.SECURITY_LEVEL
-                });
-                throw new Error('SECURITY_LEVEL configuration must be a string');
+                // FIX: Binary Error Pattern
+                reportError(BinaryCodes.SECURITY.CONFIGURATION('ERROR', 'SECURITY', 1001));
+                return;
             }
             securityLevel = this.config.SECURITY_LEVEL;
         }
-        
-        this.logSecurityEvent('INIT', 'Security Manager initialized', { 
-            pid: process.pid,
-            configLevel: securityLevel,
-            workingDir: this.workingDirectory
-        });
     }
 
     // ! ══════════════════════════════════════════════════════════════════════════════
@@ -221,21 +213,9 @@ class SecurityManager {
         for (const key in source) {
             // ! NO_SILENT_FALLBACKS: Explicit check for dangerous keys - FAIL LOUD
             if (DANGEROUS_KEYS.includes(key)) {
-                this.logSecurityEvent(
-                    'PROTOTYPE_POLLUTION_BLOCKED',
-                    `Blocked attempt to modify dangerous property: ${key}`,
-                    { 
-                        key, 
-                        configMerge: true,
-                        severity: 'CRITICAL'
-                    }
-                );
-                // ! FAIL LOUD: Throw error instead of silently skipping
-                throw new SecurityError(
-                    `CRITICAL: Attempt to modify protected property '${key}' detected`,
-                    null,
-                    'PROTO_POLLUTION_001'
-                );
+                // FIX: Binary Error Pattern
+                reportError(BinaryCodes.SECURITY.VALIDATION('CRITICAL', 'SECURITY', 1002));
+                return result;
             }
             
             // ! NO_SILENT_FALLBACKS: Explicit type checking
@@ -260,64 +240,59 @@ class SecurityManager {
     // ! ══════════════════════════════════════════════════════════════════════════════
 
     validatePath(inputPath, operation = 'READ') {
-        try {
-            // Input type validation
-            if (!inputPath || typeof inputPath !== 'string') {
-                throw new InputValidationError('Invalid path input type', inputPath);
-            }
-            
-            // Length validation
-            if (inputPath.length > this.config.MAX_PATH_LENGTH) {
-                throw new PathTraversalError(`Path too long: ${inputPath.length} characters`, inputPath);
-            }
-            
-            // Dangerous characters check
-            if (this.config.DANGEROUS_CHARS_REGEX.test(inputPath)) {
-                throw new InputValidationError('Dangerous characters detected in path', inputPath);
-            }
-            
-            // Path traversal protection
-            if (this.config.PATH_TRAVERSAL_REGEX.test(inputPath)) {
-                throw new PathTraversalError('Path traversal attempt detected', inputPath);
-            }
-            
-            // Normalize and resolve path
-            const normalizedPath = path.normalize(inputPath);
-            const resolvedPath = path.resolve(normalizedPath);
-            
-            // Check forbidden paths
-            this.checkForbiddenPaths(resolvedPath);
-            
-            // Working directory boundary check
-            this.checkWorkingDirectoryBoundary(resolvedPath, operation);
-            
-            // File extension validation (for file operations)
-            if (operation === 'WRITE' || operation === 'READ') {
-                this.validateFileExtension(resolvedPath);
-            }
-            
-            this.logSecurityEvent('PATH_VALIDATED', `Path validated successfully: ${operation}`, {
-                originalPath: inputPath,
-                resolvedPath: resolvedPath,
-                operation
-            });
-            
-            return resolvedPath;
-            
-        } catch (error) {
-            errorHandler.handleError(error, {
-                source: 'SecurityManager',
-                method: 'validatePath',
-                severity: 'HIGH',
-                context: `Path validation failed for ${inputPath} in operation ${operation}`
-            });
-            this.logSecurityEvent('PATH_VIOLATION', error.message, {
-                path: inputPath,
-                operation,
-                errorType: error.constructor.name
-            });
-            throw error;
+        // Input type validation
+        if (!inputPath || typeof inputPath !== 'string') {
+            // FIX: Binary Error Pattern
+            reportError(BinaryCodes.SECURITY.VALIDATION('ERROR', 'SECURITY', 2001));
+            return null;
         }
+        
+        // Length validation
+        if (inputPath.length > this.config.MAX_PATH_LENGTH) {
+            // FIX: Binary Error Pattern
+            reportError(BinaryCodes.SECURITY.VALIDATION('ERROR', 'SECURITY', 2002));
+            return null;
+        }
+        
+        // Dangerous characters check
+        if (this.config.DANGEROUS_CHARS_REGEX.test(inputPath)) {
+            // FIX: Binary Error Pattern
+            reportError(BinaryCodes.SECURITY.VALIDATION('ERROR', 'SECURITY', 2003));
+            return null;
+        }
+        
+        // Path traversal protection
+        if (this.config.PATH_TRAVERSAL_REGEX.test(inputPath)) {
+            // FIX: Binary Error Pattern
+            reportError(BinaryCodes.SECURITY.VALIDATION('ERROR', 'SECURITY', 2004));
+            return null;
+        }
+        
+        // Normalize and resolve path
+        const normalizedPath = path.normalize(inputPath);
+        const resolvedPath = path.resolve(normalizedPath);
+        
+        // Check forbidden paths
+        const forbiddenCheck = this.checkForbiddenPaths(resolvedPath);
+        if (!forbiddenCheck) {
+            return null;
+        }
+        
+        // Working directory boundary check
+        const boundaryCheck = this.checkWorkingDirectoryBoundary(resolvedPath, operation);
+        if (!boundaryCheck) {
+            return null;
+        }
+        
+        // File extension validation (for file operations)
+        if (operation === 'WRITE' || operation === 'READ') {
+            const extCheck = this.validateFileExtension(resolvedPath);
+            if (!extCheck) {
+                return null;
+            }
+        }
+        
+        return resolvedPath;
     }
     
     // ! ══════════════════════════════════════════════════════════════════════════════
@@ -328,73 +303,59 @@ class SecurityManager {
     async validateFile(filePath, operation = 'READ') {
         const validatedPath = this.validatePath(filePath, operation);
         
-        try {
-            // Check file existence using async operation
-            let exists = false;
-            let stats = null;
-            
-            try {
-                stats = await fs.promises.stat(validatedPath);
-                exists = true;
-            } catch (error) {
-                errorHandler.handleError(error, {
-                    source: 'SecurityManager',
-                    method: 'validateFile',
-                    severity: 'MEDIUM',
-                    context: `File stat failed for ${validatedPath}`
-                });
-                if (error.code !== 'ENOENT') {
-                    throw new FileValidationError(`File access error: ${error.message}`, validatedPath);
-                }
-                exists = false;
-            }
-            
-            if (!exists && operation === 'READ') {
-                throw new FileValidationError('File does not exist', validatedPath);
-            }
-            
-            if (exists && stats) {
-                // Symlink check
-                if (stats.isSymbolicLink() && !this.config.ALLOW_SYMLINKS) {
-                    throw new AccessDeniedError('Symbolic links are not allowed', validatedPath);
-                }
-                
-                // File size check
-                if (stats.size > this.config.MAX_FILE_SIZE) {
-                    throw new FileValidationError(
-                        `File too large: ${stats.size} bytes (max: ${this.config.MAX_FILE_SIZE})`,
-                        validatedPath,
-                        { fileSize: stats.size, maxSize: this.config.MAX_FILE_SIZE }
-                    );
-                }
-                
-                // Permission check (async)
-                await this.checkFilePermissions(validatedPath, operation);
-            }
-            
-            this.logSecurityEvent('FILE_VALIDATED', `File validated: ${operation}`, {
-                filePath: validatedPath,
-                operation,
-                exists,
-                fileSize: stats ? stats.size : 0
-            });
-            
-            return validatedPath;
-            
-        } catch (error) {
-            errorHandler.handleError(error, {
-                source: 'SecurityManager',
-                method: 'validateFile',
-                severity: 'HIGH',
-                context: `File validation failed for ${validatedPath} in operation ${operation}`
-            });
-            this.logSecurityEvent('FILE_VIOLATION', this.sanitizeLogMessage(error.message), {
-                filePath: validatedPath,
-                operation,
-                errorType: error.constructor.name
-            });
-            throw error;
+        // ! Check if validatePath returned null (validation failed)
+        if (!validatedPath) {
+            return null;
         }
+        
+        // Check file existence using async operation
+        let exists = false;
+        let stats = null;
+        
+        try {
+            stats = await fs.promises.stat(validatedPath);
+            exists = true;
+        } catch (error) {
+            // FIX: Binary Error Pattern
+            if (error.code === 'ENOENT') {
+                reportError(BinaryCodes.IO.RESOURCE_NOT_FOUND('WARNING', 'SECURITY', 3002), { path: validatedPath });
+                exists = false;
+            } else {
+                // FIX: Binary Error Pattern
+                reportError(BinaryCodes.IO.RESOURCE_UNAVAILABLE('ERROR', 'SECURITY', 3003), { path: validatedPath, error: error.message });
+                return null;
+            }
+        }
+        
+        if (!exists && operation === 'READ') {
+            // FIX: Binary Error Pattern
+            reportError(BinaryCodes.IO.RESOURCE_NOT_FOUND('ERROR', 'SECURITY', 3004), { path: validatedPath });
+            return null;
+        }
+        
+        if (exists && stats) {
+            // Symlink check
+            if (stats.isSymbolicLink() && !this.config.ALLOW_SYMLINKS) {
+                // FIX: Binary Error Pattern
+                reportError(BinaryCodes.SECURITY.PERMISSION('ERROR', 'SECURITY', 3005));
+                return null;
+            }
+            
+            // File size check
+            if (stats.size > this.config.MAX_FILE_SIZE) {
+                // FIX: Binary Error Pattern
+                reportError(BinaryCodes.SECURITY.VALIDATION('ERROR', 'SECURITY', 3006));
+                return null;
+            }
+            
+            // Permission check (async)
+            const permissionOk = await this.checkFilePermissions(validatedPath, operation);
+            if (!permissionOk) {
+                return null;
+            }
+        }
+        
+        return validatedPath;
     }
     
     /**
@@ -405,34 +366,34 @@ class SecurityManager {
             try {
                 return input.match(pattern);
             } catch (error) {
-                errorHandler.handleError(error, {
-                    source: 'SecurityManager',
-                    method: 'safeRegexExecution',
-                    severity: 'MEDIUM',
-                    context: `Regex execution failed for pattern: ${pattern.source}`
-                });
-                // !  NO_SILENT_FALLBACKS: Throw error instead of returning null
-                this.logSecurityEvent('REGEX_ERROR', `Regex execution failed: ${error.message}`, {
-                    pattern: pattern.source,
-                    context
-                });
-                throw error;
+                // FIX: Binary Error Pattern
+                reportError(
+                    BinaryCodes.SECURITY.VALIDATION('WARNING', 'SECURITY', 3007),
+                    {
+                        source: 'SecurityManager.safeRegexExecution',
+                        pattern: pattern.source,
+                        originalError: error.message,
+                        context
+                    }
+                );
+                return null;
             }
         }
         
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             const timeout = setTimeout(() => {
-                this.logSecurityEvent('REDOS_DETECTED', 'Regex execution timeout', {
-                    pattern: pattern.source,
-                    context,
-                    timeout: this.config.MAX_REGEX_EXECUTION_TIME
-                });
-                
-                reject(new ReDoSError(
-                    `Regex execution timeout (${this.config.MAX_REGEX_EXECUTION_TIME}ms)`,
-                    pattern.source,
-                    context
-                ));
+                // FIX: Binary Error Pattern
+                reportError(
+                    BinaryCodes.SECURITY.VALIDATION('ERROR', 'SECURITY', 3008),
+                    {
+                        source: 'SecurityManager.safeRegexExecution',
+                        issue: 'Regex execution timeout (ReDoS protection)',
+                        pattern: pattern.source,
+                        context,
+                        timeout: this.config.MAX_REGEX_EXECUTION_TIME
+                    }
+                );
+                resolve(null);
             }, this.config.MAX_REGEX_EXECUTION_TIME);
             
             try {
@@ -440,18 +401,18 @@ class SecurityManager {
                 clearTimeout(timeout);
                 resolve(result);
             } catch (error) {
-                errorHandler.handleError(error, {
-                    source: 'SecurityManager',
-                    method: 'safeRegexExecution',
-                    severity: 'MEDIUM',
-                    context: `Regex execution error for pattern: ${pattern.source}`
-                });
+                // FIX: Binary Error Pattern
+                reportError(
+                    BinaryCodes.SECURITY.VALIDATION('WARNING', 'SECURITY', 3009),
+                    {
+                        source: 'SecurityManager.safeRegexExecution',
+                        pattern: pattern.source,
+                        originalError: error.message,
+                        context
+                    }
+                );
                 clearTimeout(timeout);
-                reject(new ReDoSError(
-                    `Regex execution error: ${error.message}`,
-                    pattern.source,
-                    context
-                ));
+                resolve(null);
             }
         });
     }
@@ -476,10 +437,16 @@ class SecurityManager {
         if (hasKey) {
             const storedCount = await Promise.resolve(this.requestCounts.get(key));
             if (typeof storedCount !== 'number') {
-                this.logSecurityEvent('RATE_LIMIT_CORRUPTION', 'Invalid count type in requestCounts store', {
-                    key,
-                    type: typeof storedCount
-                });
+                // FIX: Binary Error Pattern
+                reportError(
+                    BinaryCodes.SECURITY.VALIDATION('WARNING', 'SECURITY', 5001),
+                    {
+                        source: 'SecurityManager.checkRateLimit',
+                        issue: 'Invalid count type in requestCounts store',
+                        key,
+                        type: typeof storedCount
+                    }
+                );
                 // Reset corrupted entry
                 count = 0;
             } else {
@@ -488,17 +455,18 @@ class SecurityManager {
         }
         
         if (count >= this.config.MAX_REQUESTS_PER_MINUTE) {
-            this.logSecurityEvent('RATE_LIMIT_EXCEEDED', 'Rate limit exceeded', {
-                identifier,
-                count,
-                limit: this.config.MAX_REQUESTS_PER_MINUTE
-            });
-            
-            throw new SecurityError(
-                `Rate limit exceeded: ${count}/${this.config.MAX_REQUESTS_PER_MINUTE} requests per minute`,
-                null,
-                'RATE_001'
+            // FIX: Binary Error Pattern
+            reportError(
+                BinaryCodes.SECURITY.VALIDATION('ERROR', 'SECURITY', 5002),
+                {
+                    source: 'SecurityManager.checkRateLimit',
+                    issue: 'Rate limit exceeded',
+                    identifier,
+                    count,
+                    limit: this.config.MAX_REQUESTS_PER_MINUTE
+                }
             );
+            return false;
         }
         
         await Promise.resolve(this.requestCounts.set(key, count + 1));
@@ -509,10 +477,16 @@ class SecurityManager {
         if (this.requestCounts.size !== undefined) {
             // In-memory Map has .size property
             if (!this.config.MAX_RATE_LIMIT_KEYS) {
-                this.logSecurityEvent('CONFIG_ERROR', 'MAX_RATE_LIMIT_KEYS not configured', {
-                    type: typeof this.config.MAX_RATE_LIMIT_KEYS
-                });
-                throw new Error('MAX_RATE_LIMIT_KEYS configuration is required for DoS protection');
+                // FIX: Binary Error Pattern
+                reportError(
+                    BinaryCodes.SECURITY.CONFIGURATION('ERROR', 'SECURITY', 5003),
+                    {
+                        source: 'SecurityManager.checkRateLimit',
+                        issue: 'MAX_RATE_LIMIT_KEYS not configured',
+                        type: typeof this.config.MAX_RATE_LIMIT_KEYS
+                    }
+                );
+                return false;
             }
             
             if (this.requestCounts.size > this.config.MAX_RATE_LIMIT_KEYS) {
@@ -524,11 +498,17 @@ class SecurityManager {
                     await Promise.resolve(this.requestCounts.delete(sortedKeys[i]));
                 }
                 
-                this.logSecurityEvent('RATE_LIMIT_EVICTION', 'LRU eviction triggered to prevent memory leak', {
-                    entriesRemoved: entriesToRemove,
-                    currentSize: this.requestCounts.size,
-                    maxSize: this.config.MAX_RATE_LIMIT_KEYS
-                });
+                // FIX: Binary Error Pattern
+                reportError(
+                    BinaryCodes.SECURITY.VALIDATION('WARNING', 'SECURITY', 5004),
+                    {
+                        source: 'SecurityManager.checkRateLimit',
+                        issue: 'LRU eviction triggered to prevent memory leak',
+                        entriesRemoved: entriesToRemove,
+                        currentSize: this.requestCounts.size,
+                        maxSize: this.config.MAX_RATE_LIMIT_KEYS
+                    }
+                );
             }
             
             // Cleanup old entries (keep last 5 minutes) - only for in-memory Map
@@ -548,6 +528,8 @@ class SecurityManager {
             }
         }
         // External stores (Redis) handle TTL automatically, no manual cleanup needed
+        
+        return true;
     }
     
     // ! ══════════════════════════════════════════════════════════════════════════════
@@ -561,12 +543,19 @@ class SecurityManager {
     checkForbiddenPaths(resolvedPath) {
         for (const forbiddenPattern of this.config.FORBIDDEN_PATHS) {
             if (forbiddenPattern.test(resolvedPath)) {
-                throw new AccessDeniedError(
-                    `Access denied to forbidden path: ${resolvedPath}`,
-                    resolvedPath
+                // FIX: Binary Error Pattern
+                reportError(
+                    BinaryCodes.SECURITY.PERMISSION('ERROR', 'SECURITY', 4001),
+                    {
+                        source: 'SecurityManager.checkForbiddenPaths',
+                        issue: 'Access denied to forbidden path',
+                        resolvedPath
+                    }
                 );
+                return false;
             }
         }
+        return true;
     }
     
     /**
@@ -575,11 +564,19 @@ class SecurityManager {
     checkWorkingDirectoryBoundary(resolvedPath, operation) {
         // For write operations, ensure we stay within working directory
         if (operation === 'WRITE' && !resolvedPath.startsWith(this.workingDirectory)) {
-            throw new AccessDeniedError(
-                `Write operation outside working directory: ${resolvedPath}`,
-                resolvedPath
+            // FIX: Binary Error Pattern
+            reportError(
+                BinaryCodes.SECURITY.PERMISSION('ERROR', 'SECURITY', 4002),
+                {
+                    source: 'SecurityManager.checkWorkingDirectoryBoundary',
+                    issue: 'Write operation outside working directory',
+                    resolvedPath,
+                    workingDirectory: this.workingDirectory
+                }
             );
+            return false;
         }
+        return true;
     }
     
     /**
@@ -589,12 +586,20 @@ class SecurityManager {
         const ext = path.extname(filePath).toLowerCase();
         
         if (ext && !this.config.ALLOWED_EXTENSIONS.includes(ext)) {
-            throw new FileValidationError(
-                `File extension not allowed: ${ext}`,
-                filePath,
-                { extension: ext, allowedExtensions: this.config.ALLOWED_EXTENSIONS }
+            // FIX: Binary Error Pattern
+            reportError(
+                BinaryCodes.SECURITY.VALIDATION('ERROR', 'SECURITY', 4003),
+                {
+                    source: 'SecurityManager.validateFileExtension',
+                    issue: 'File extension not allowed',
+                    filePath,
+                    extension: ext,
+                    allowedExtensions: this.config.ALLOWED_EXTENSIONS
+                }
             );
+            return false;
         }
+        return true;
     }
     
     /**
@@ -611,31 +616,50 @@ class SecurityManager {
                     // File exists, check write permission
                     await fs.promises.access(filePath, fs.constants.W_OK);
                 } catch (error) {
-                    errorHandler.handleError(error, {
-                        source: 'SecurityManager',
-                        method: 'checkFilePermissions',
-                        severity: 'MEDIUM',
-                        context: `File permission check failed for ${filePath}`
-                    });
+                    // FIX: Binary Error Pattern
+                    reportError(
+                        BinaryCodes.SECURITY.PERMISSION('WARNING', 'SECURITY', 6001),
+                        {
+                            source: 'SecurityManager.checkFilePermissions',
+                            filePath,
+                            operation,
+                            originalError: error.message,
+                            errorCode: error.code
+                        }
+                    );
                     if (error.code === 'ENOENT') {
                         // File doesn't exist, check directory write permission
                         await fs.promises.access(path.dirname(filePath), fs.constants.W_OK);
                     } else {
-                        throw error;
+                        // FIX: Binary Error Pattern
+                        reportError(
+                            BinaryCodes.SECURITY.PERMISSION('ERROR', 'SECURITY', 6002),
+                            {
+                                source: 'SecurityManager.checkFilePermissions',
+                                issue: 'Write permission denied',
+                                filePath,
+                                originalError: error.message
+                            }
+                        );
+                        return false;
                     }
                 }
             }
+            return true;
         } catch (error) {
-            errorHandler.handleError(error, {
-                source: 'SecurityManager',
-                method: 'checkFilePermissions',
-                severity: 'HIGH',
-                context: `Permission check failed for ${operation} operation on ${filePath}`
-            });
-            throw new AccessDeniedError(
-                `Permission denied for ${operation} operation: ${filePath}`,
-                filePath
+            // FIX: Binary Error Pattern
+            reportError(
+                BinaryCodes.SECURITY.PERMISSION('ERROR', 'SECURITY', 6003),
+                {
+                    source: 'SecurityManager.checkFilePermissions',
+                    issue: 'Permission denied',
+                    filePath,
+                    operation,
+                    originalError: error.message,
+                    stack: error.stack
+                }
             );
+            return false;
         }
     }
     
@@ -685,24 +709,19 @@ class SecurityManager {
         if (this.config.ENABLE_SECURITY_LOGGING && this.securityLogPath) {
             try {
                 const logEntry = JSON.stringify(event) + '\n';
-                // ! NO_SILENT_FALLBACKS: Log errors to console as fallback
-                // ! WHY: Cannot use logSecurityEvent here (infinite recursion)
-                // ! WHY: Must have SOME notification mechanism for logging failures
                 fs.promises.appendFile(this.securityLogPath, logEntry).catch((writeError) => {
-                    errorHandler.handleError(writeError, {
-                        source: 'SecurityManager',
-                        method: 'logSecurityEvent',
-                        severity: 'MEDIUM',
-                        context: `Failed to write security log - Event: ${type}, Message: ${message}`
-                    });
+                    // FIX: Binary Error Pattern
+                    reportError(
+                        BinaryCodes.IO.RESOURCE_UNAVAILABLE('WARNING', 'SECURITY', 3008),
+                        { path: this.securityLogPath, error: writeError.message }
+                    );
                 });
             } catch (error) {
-                errorHandler.handleError(error, {
-                    source: 'SecurityManager',
-                    method: 'logSecurityEvent',
-                    severity: 'CRITICAL',
-                    context: `Critical logging error - Event: ${type}, Message: ${message}`
-                });
+                // FIX: Binary Error Pattern
+                reportError(
+                    BinaryCodes.IO.RESOURCE_UNAVAILABLE('ERROR', 'SECURITY', 3009),
+                    { path: this.securityLogPath, error: error.message, stack: error.stack }
+                );
             }
         }
         
@@ -797,12 +816,16 @@ class SecurityManager {
                 lastViolation = violations[lastIndex];
             } else {
                 // Should never happen, but fail loud if it does
-                errorHandler.handleError(new Error('violations array has undefined entry at last index'), {
-                    source: 'SecurityManager',
-                    method: 'generateSecurityReport',
-                    severity: 'CRITICAL',
-                    context: 'Data integrity issue in violations array'
-                });
+                // FIX: Binary Error Pattern
+                reportError(
+                    BinaryCodes.SECURITY.VALIDATION('CRITICAL', 'SECURITY', 9001),
+                    {
+                        source: 'SecurityManager.generateSecurityReport',
+                        issue: 'Data integrity issue - violations array has undefined entry at last index',
+                        lastIndex,
+                        violationsLength: violations.length
+                    }
+                );
             }
         }
         

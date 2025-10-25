@@ -5,7 +5,8 @@
 // !  License: MIT
 // !  Contact: chahuadev@gmail.com
 // ! ══════════════════════════════════════════════════════════════════════════════
-import errorHandler from './error-handler/ErrorHandler.js';
+import { reportError } from './error-handler/binary-reporter.js';
+import BinaryCodes from './error-handler/binary-codes.js';
 import * as vscode from 'vscode';
 import { ABSOLUTE_RULES, ValidationEngine } from './rules/validator.js';
 import { SecurityMiddleware } from './security/security-middleware.js';
@@ -34,10 +35,11 @@ function emitExtensionLog(message, method, severity = 'INFO', context = {}) {
     notice.name = 'ExtensionNotice';
     notice.isOperational = true;
 
-    errorHandler.handleError(notice, {
-        source: 'Extension',
+    // FIX: Binary Error Pattern
+    reportError(BinaryCodes.SYSTEM.RUNTIME(5000), {
         method,
-        severity,
+        message: normalizedMessage,
+        error: notice,
         context
     });
 }
@@ -67,9 +69,18 @@ function activate(context) {
         // ! SECURITY FIX: Dependency Injection for NO_MOCKING compliance
         // ! Pass vscode instance to SecurityMiddleware instead of letting it create mocks
         securityMiddleware = new SecurityMiddleware(vscode, securityConfig.policies);
+        
+        // ! NO_SILENT_FALLBACKS: Validate policies loaded correctly
+        const policies = securityConfig.policies;
+        if (!policies || typeof policies !== 'object') {
+            const configError = new Error('Security policies missing or invalid in securityConfig');
+            configError.isOperational = false;
+            throw configError;
+        }
+        
         emitExtensionLog('Security middleware initialized', 'activate', 'INFO', {
             securityLevel,
-            policies: Object.keys(securityConfig.policies || {})
+            policies: Object.keys(policies)
         });
         
         // ! Initialize validation engine
@@ -484,9 +495,26 @@ async function secureDocumentScan(document) {
                 )
             );
             
-            // ! Merge with existing diagnostics
-            const existingDiagnostics = diagnosticCollection.get(document.uri) || [];
-            diagnosticCollection.set(document.uri, [...existingDiagnostics, ...securityDiagnostics]);
+            // ! NO_SILENT_FALLBACKS: Validate diagnosticCollection.get() result
+            const existingDiagnostics = diagnosticCollection.get(document.uri);
+            if (!Array.isArray(existingDiagnostics)) {
+                errorHandler.handleError(
+                    new Error('diagnosticCollection.get() returned non-array value'),
+                    {
+                        source: 'Extension',
+                        method: 'scanDocumentForSecurityIssues',
+                        severity: 'WARNING',
+                        context: {
+                            uri: document.uri.toString(),
+                            existingType: typeof existingDiagnostics
+                        }
+                    }
+                );
+                // ถ้าไม่ใช่ array ให้ใช้ empty array แทน (แต่ต้อง log warning ก่อน)
+                diagnosticCollection.set(document.uri, securityDiagnostics);
+            } else {
+                diagnosticCollection.set(document.uri, [...existingDiagnostics, ...securityDiagnostics]);
+            }
         }
         
         return {

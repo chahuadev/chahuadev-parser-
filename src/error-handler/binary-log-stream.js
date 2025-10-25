@@ -129,12 +129,13 @@ function initLogStreams(baseDir = binaryErrorGrammar.config.baseLogDir) {
                 fs.mkdirSync(dirPath, { recursive: true });
             }
 
-            // Generate log filename with timestamp
-            const filename = `${path.basename(relativePath)}-${_sessionTimestamp}.log`;
+            // ! NO_TIMESTAMP: Use fixed filename for easier error tracking
+            // ! เขียนทับไฟล์เดิมทุกครั้ง (overwrite mode) แทนการ append ด้วย timestamp
+            const filename = path.basename(relativePath);
             const logFilePath = path.join(dirPath, filename);
 
-            // Open file descriptor in append mode
-            const fd = fs.openSync(logFilePath, 'a');
+            // Open file descriptor in WRITE mode (overwrite existing file)
+            const fd = fs.openSync(logFilePath, 'w');
 
             _logStreams[severityCode] = {
                 fd: fd,
@@ -308,7 +309,7 @@ function extractSource(binaryCode) {
 
 /**
  * Get severity code by label from Grammar (Single Source of Truth)
- * @param {string} label - Severity label (TRACE, DEBUG, INFO, etc.)
+ * @param {string} label - Severity label (TRACE, DEBUG, INFO, etc.) - case-insensitive
  * @returns {number} Severity code or null if not found
  */
 function getSeverityCodeByLabel(label) {
@@ -317,8 +318,11 @@ function getSeverityCodeByLabel(label) {
         return null;
     }
     
-    // Convert Object to Array before find (Grammar uses Object structure)
-    const severity = Object.values(binaryErrorGrammar.severities).find(s => s.label === label);
+    // FIX BUG-005: Case-insensitive lookup (Grammar ใช้ "Critical" แต่ code ใช้ "CRITICAL")
+    const labelLower = label.toLowerCase();
+    const severity = Object.values(binaryErrorGrammar.severities).find(
+        s => s.label.toLowerCase() === labelLower
+    );
     return severity ? severity.code : null;
 }
 

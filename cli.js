@@ -9,15 +9,16 @@
 /**
  * Chahuadev Sentinel CLI
  * Command-line interface for code quality checking
- * WITH SECURITY PROTECTION
+ * WITH SECURITY PROTECTION + CONSOLE FALLBACK LOGGER (กล้องวงจรปิด)
  */
 
 import { ABSOLUTE_RULES, ValidationEngine } from './src/rules/validator.js';
 import { SecurityManager } from './src/security/security-manager.js';
 import { coerceRuleId, resolveRuleSlug } from './src/constants/rule-constants.js';
 import { RULE_SEVERITY_FLAGS, coerceRuleSeverity, resolveRuleSeveritySlug } from './src/constants/severity-constants.js';
-import { reportError } from './src/error-handler/binary-reporter.js';
+import { handleSystemError, handleValidationError, handleIOError, reportError } from './src/error-handler/binary-reporter.js';
 import BinaryCodes from './src/error-handler/binary-codes.js';
+import { ErrorCollector } from './src/error-handler/error-collector.js';
 
 import fs from 'fs';
 import path from 'path';// Load CLI configuration from JSON 
@@ -36,6 +37,12 @@ class ChahuadevCLI {
         };
         this.securityManager = null;
         this.currentScanOptions = null;
+        // ! ERROR COLLECTOR: เก็บ error แบบ streaming (ไม่หยุดการทำงาน)
+        this.errorCollector = new ErrorCollector({
+            streamMode: true,        // เขียน log ทันที
+            throwOnCritical: false,  // ไม่ throw แม้เจอ critical error (เก็บต่อไป)
+            maxErrors: 10000         // จำกัด 10k errors เพื่อป้องกัน infinite loop
+        });
     }
 
     async initialize() {
@@ -72,15 +79,8 @@ class ChahuadevCLI {
             console.log(cliConfig.messages.cliInitialized);
             return true;
         } catch (error) {
-            // FIX: Binary Error Pattern: แทนที่ console.error ด้วย Binary Code
-            reportError(
-                BinaryCodes.SYSTEM.CONFIGURATION('CRITICAL', 'SYSTEM', 1001),
-                { 
-                    stage: 'CLI Initialization',
-                    originalError: error.message,
-                    stack: error.stack
-                }
-            );
+            // FIX: Binary Error Pattern
+            handleSystemError('CONFIGURATION', 1001, error);
             return false;
         }
     }
@@ -128,16 +128,16 @@ ${cliConfig.helpText.footer}`);
             }
             
             if (!fs.existsSync(filePath)) {
-                // FIX: Binary Error Pattern: แทนที่ throw new Error ด้วย Binary Code
-                reportError(
-                    BinaryCodes.IO.RESOURCE('ERROR', 'IO', 2001),
+                // ! ERROR COLLECTOR: เก็บ error แต่ไม่ throw (ทำงานต่อไป)
+                this.errorCollector.collect(
+                    BinaryCodes.IO.RESOURCE_NOT_FOUND(2001),
                     { 
-                        operation: 'File Scan',
-                        path: filePath,
-                        reason: 'File not found'
+                        method: 'scanFile',
+                        message: `File not found: ${filePath}`,
+                        fileName: filePath
                     }
                 );
-                return { violations: [], error: 'File not found' };
+                return { fileName: filePath, violations: [], success: false, error: 'FILE_NOT_FOUND' };
             }
 
             const content = fs.readFileSync(filePath, 'utf8');
@@ -151,24 +151,24 @@ ${cliConfig.helpText.footer}`);
 
             return results;
         } catch (error) {
-            // ! NO_SILENT_FALLBACKS: ถ้าเป็น non-operational error (bug) ต้อง re-throw
-            // ! ไม่ให้กลืน critical errors แบบเงียบๆ
-            if (error.isOperational === false) {
-                // This is a programming bug (like grammar incomplete) - let it fail loud!
-                throw error;
-            }
-            
-            // FIX: Binary Error Pattern: แทนที่ console.error ด้วย Binary Code
-            reportError(
-                BinaryCodes.VALIDATOR.VALIDATION('ERROR', 'VALIDATOR', 3001),
-                { 
-                    operation: 'File Scan',
-                    path: filePath,
-                    originalError: error.message,
-                    stack: error.stack
+            // ! ERROR COLLECTOR: เก็บ error แทน throw
+            this.errorCollector.collect(
+                BinaryCodes.VALIDATOR.LOGIC(3001),
+                {
+                    method: 'scanFile',
+                    message: `Failed to scan file: ${error.message}`,
+                    fileName: filePath,
+                    error: error
                 }
             );
-            return { violations: [], error: error.message };
+            
+            // ! NO_SILENT_FALLBACKS: Return error result แทน throw
+            return { 
+                fileName: filePath, 
+                violations: [], 
+                success: false, 
+                error: error.message 
+            };
         }
     }
 
@@ -180,6 +180,9 @@ ${cliConfig.helpText.footer}`);
 
     async scanPattern(pattern, options = {}) {
         this.currentScanOptions = options;
+        // ! ERROR COLLECTOR: Reset ก่อนเริ่มสแกนใหม่
+        this.errorCollector.clear();
+        
         try {
             // Use configured patterns with fallback
             const scanPattern = pattern || cliConfig.defaultPatterns.include;
@@ -194,47 +197,63 @@ ${cliConfig.helpText.footer}`);
             
             if (!options.quiet && options.verbose) {
                 console.log(`\n${cliConfig.messages.scanningFiles} (${files.length} files)`);
+                console.log(`📊 Error Collector: Streaming mode enabled (non-throwing)`);
             }
             
             const results = [];
+            // ! NON-THROWING SCAN: สแกนทุกไฟล์ไม่หยุด แม้เจอ error
             for (const file of files) {
                 try {
                     const result = await this.scanFile(file, options);
                     results.push({ file, ...result });
                 } catch (fileError) {
-                    // ! NO_SILENT_FALLBACKS: Log error but continue to next file
-                    // FIX: Binary Error Pattern: แทนที่ console.error ด้วย Binary Code
-                    reportError(
-                        BinaryCodes.VALIDATOR.VALIDATION('WARNING', 'VALIDATOR', 4001),
-                        { 
-                            operation: 'Pattern Scan',
-                            file: file,
-                            originalError: fileError.message,
-                            stack: fileError.stack
+                    // ! ERROR COLLECTOR: เก็บ error แต่ทำงานต่อ
+                    this.errorCollector.collect(
+                        BinaryCodes.VALIDATOR.LOGIC(4001),
+                        {
+                            method: 'scanPattern',
+                            message: `Critical error scanning file: ${fileError.message}`,
+                            fileName: file,
+                            error: fileError
                         }
                     );
+                    
+                    // เพิ่ม error result แต่ไม่หยุด
                     results.push({ 
                         file, 
+                        fileName: file,
                         violations: [], 
+                        success: false, 
                         error: fileError.message 
                     });
-                    // Continue to next file
                 }
+            }
+
+            // ! SUMMARY: Show error collector stats
+            if (!options.quiet && options.verbose) {
+                const report = this.errorCollector.generateReport();
+                console.log(`\n📊 Error Collection Summary:`);
+                console.log(`   Total Errors: ${report.summary.totalErrors}`);
+                console.log(`   Total Warnings: ${report.summary.totalWarnings}`);
+                console.log(`   Duration: ${report.summary.duration}`);
+                console.log(`   Check logs/errors/*.log for details`);
             }
 
             return results;
         } catch (error) {
-            // FIX: Binary Error Pattern: แทนที่ console.error ด้วย Binary Code
-            reportError(
-                BinaryCodes.VALIDATOR.VALIDATION('ERROR', 'VALIDATOR', 5001),
-                { 
-                    operation: 'Pattern Scan',
-                    pattern: pattern,
-                    originalError: error.message,
-                    stack: error.stack
+            // ! ERROR COLLECTOR: เก็บ critical error
+            this.errorCollector.collect(
+                BinaryCodes.SYSTEM.RUNTIME(5001),
+                {
+                    method: 'scanPattern',
+                    message: `Pattern scan failed: ${error.message}`,
+                    pattern,
+                    error: error
                 }
             );
-            throw error;
+            
+            // Return empty results แทน throw
+            return [];
         } finally {
             this.currentScanOptions = null;
         }
@@ -366,14 +385,14 @@ ${cliConfig.helpText.footer}`);
             try {
                 entries = fs.readdirSync(resolvedDir, { withFileTypes: true });
             } catch (error) {
-                // ! NO_SILENT_FALLBACKS - ทำให้ชัดเจนว่าอ่านโฟลเดอร์ไม่ได้ แต่ยังทำงานต่อ
-                // FIX: Binary Error Pattern: แทนที่ console.warn ด้วย Binary Code
-                reportError(
-                    BinaryCodes.IO.RESOURCE('WARNING', 'IO', 6001),
-                    { 
-                        operation: 'Directory Scan',
-                        path: resolvedDir,
-                        originalError: error.message
+                // ! ERROR COLLECTOR: เก็บ error แต่ทำงานต่อ
+                this.errorCollector.warn(
+                    BinaryCodes.IO.RESOURCE_UNAVAILABLE(6001),
+                    {
+                        method: 'findFilesRecursive',
+                        message: `Cannot read directory: ${resolvedDir}`,
+                        directory: resolvedDir,
+                        error: error
                     }
                 );
                 errorCount++;
@@ -394,14 +413,14 @@ ${cliConfig.helpText.footer}`);
                         }
                     }
                 } catch (itemError) {
-                    // ! NO_SILENT_FALLBACKS: Log error but continue
-                    // FIX: Binary Error Pattern: แทนที่ console.warn ด้วย Binary Code
-                    reportError(
-                        BinaryCodes.IO.RESOURCE('WARNING', 'IO', 7001),
-                        { 
-                            operation: 'File Access',
-                            path: fullPath,
-                            originalError: itemError.message
+                    // ! ERROR COLLECTOR: เก็บ error แต่ทำงานต่อ
+                    this.errorCollector.warn(
+                        BinaryCodes.IO.RESOURCE_UNAVAILABLE(7001),
+                        {
+                            method: 'findFilesRecursive',
+                            message: `Cannot access: ${fullPath}`,
+                            filePath: fullPath,
+                            error: itemError
                         }
                     );
                     errorCount++;
@@ -428,16 +447,16 @@ ${cliConfig.helpText.footer}`);
                 }
             }
         } else {
-            // FIX: Binary Error Pattern: แทนที่ throw new Error ด้วย Binary Code
-            reportError(
-                BinaryCodes.IO.RESOURCE('ERROR', 'IO', 8001),
-                { 
-                    operation: 'Path Validation',
-                    path: pattern,
-                    reason: 'Path does not exist'
+            // ! ERROR COLLECTOR: เก็บ error แต่ไม่ throw
+            this.errorCollector.warn(
+                BinaryCodes.IO.RESOURCE_NOT_FOUND(8001),
+                {
+                    method: 'findFilesRecursive',
+                    message: `Path not found: ${pattern}`,
+                    pattern
                 }
             );
-            throw new Error(`The specified path or pattern "${pattern}" does not exist.`);
+            return files;
         }
 
         if (this.shouldLogVerbose()) {
@@ -448,6 +467,8 @@ ${cliConfig.helpText.footer}`);
 
     showSummary(results, options = {}, aggregatedViolations = {}) {
         const hasViolations = this.stats.totalViolations > 0;
+        const errorReport = this.errorCollector.generateReport();
+        const hasCollectedErrors = this.errorCollector.hasErrors();
         
         if (options.json) {
             const jsonOutput = {
@@ -456,23 +477,49 @@ ${cliConfig.helpText.footer}`);
                     processedFiles: this.stats.processedFiles,
                     totalViolations: this.stats.totalViolations
                 },
+                errorCollector: errorReport,
                 results: results,
                 aggregatedViolations,
-                reportPath: 'logs/validation-report.md', // FIX: Hardcoded for now
-                hasViolations
+                reportPath: 'logs/validation-report.md',
+                hasViolations,
+                hasErrors: hasCollectedErrors
             };
             console.log(JSON.stringify(jsonOutput, null, 2));
         } else {
             if (!options.quiet) {
-                if (hasViolations) {
-                    console.log('\nValidation FAILED. ดูรายละเอียดได้ที่ validation-report.md');
+                console.log('\n' + '='.repeat(70));
+                console.log('📊 SCAN SUMMARY');
+                console.log('='.repeat(70));
+                console.log(`Files Scanned:     ${this.stats.processedFiles}/${this.stats.totalFiles}`);
+                console.log(`Violations Found:  ${this.stats.totalViolations}`);
+                console.log(`Errors Collected:  ${errorReport.summary.totalErrors}`);
+                console.log(`Warnings:          ${errorReport.summary.totalWarnings}`);
+                console.log(`Duration:          ${errorReport.summary.duration}`);
+                console.log('='.repeat(70));
+                
+                if (hasViolations || hasCollectedErrors) {
+                    console.log('\n❌ Validation FAILED');
+                    console.log('   Check logs/errors/*.log for detailed error information');
+                    
+                    if (hasCollectedErrors) {
+                        console.log(`\n🔍 Top Errors by File:`);
+                        const byFile = errorReport.byFile;
+                        const topFiles = Object.entries(byFile)
+                            .sort((a, b) => b[1].length - a[1].length)
+                            .slice(0, 5);
+                        
+                        topFiles.forEach(([file, errors]) => {
+                            console.log(`   ${file}: ${errors.length} errors`);
+                        });
+                    }
                 } else {
-                    console.log('\nValidation PASSED. ไม่พบการผิดกฎ');
+                    console.log('\n✅ Validation PASSED - No violations found');
                 }
             }
         }
         
-        return hasViolations ? 1 : 0; // Exit code
+        // Exit code: 1 if violations OR collected errors
+        return (hasViolations || hasCollectedErrors) ? 1 : 0;
     }
 }
 
@@ -541,15 +588,8 @@ async function main() {
         return exitCode;
         
     } catch (error) {
-        // FIX: Binary Error Pattern: แทนที่ console.error ด้วย Binary Code
-        reportError(
-            BinaryCodes.SYSTEM.RUNTIME('CRITICAL', 'SYSTEM', 9001),
-            { 
-                operation: 'CLI Execution',
-                originalError: error.message,
-                stack: error.stack
-            }
-        );
+        // FIX: Binary Error Pattern
+        handleSystemError('RUNTIME', 9001, error);
         return 1;
     }
 }
@@ -566,15 +606,8 @@ if (import.meta.url === `file:///${process.argv[1].replace(/\\/g, '/')}` ||
     main().then(exitCode => {
         return flushAndExit(exitCode ?? 0);
     }).catch(async error => {
-        // FIX: Binary Error Pattern: แทนที่ console.error ด้วย Binary Code (จุดสุดท้าย!)
-        reportError(
-            BinaryCodes.SYSTEM.RUNTIME('FATAL', 'SYSTEM', 9999),
-            { 
-                operation: 'CLI Fatal Unhandled Exception',
-                originalError: error.message,
-                stack: error.stack
-            }
-        );
+        // FIX: Binary Error Pattern
+        handleSystemError('RUNTIME', 9999, error);
         await flushAndExit(1);
     });
 }

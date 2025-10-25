@@ -117,12 +117,9 @@
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
 import { GrammarIndex } from './grammar-index.js';
-import errorHandler from '../../error-handler/ErrorHandler.js';
-import { recordTelemetryNotice } from '../../error-handler/error-emitter.js';
-import { SYNTAX_ERROR_CODES } from '../../error-handler/error-catalog.js';
-import { ERROR_SEVERITY_FLAGS } from '../../constants/severity-constants.js';
+import { reportError } from '../../error-handler/binary-reporter.js';
+import BinaryCodes from '../../error-handler/binary-codes.js';
 import { tokenizerBinaryConfig } from './tokenizer-binary-config.js';
-import { emitError, emitCritical } from '../../error-handler/emit-error.js';
 
 // ! ══════════════════════════════════════════════════════════════════════════════
 // ! ES MODULE DIRECTORY RESOLUTION
@@ -145,16 +142,43 @@ const CONFIG = tokenizerBinaryConfig;
 const STRICT_MODE = true; // Set false เพื่อใช้ fallback (ไม่แนะนำ)
 
 // Extract constants from configuration - ZERO HARDCODE
+// FIX: NO_SILENT_FALLBACKS - ห้ามใช้ || fallback, ต้อง Fail Fast
+if (!CONFIG.unicodeRanges?.ranges) {
+    throw new Error('CRITICAL: CONFIG.unicodeRanges.ranges is missing - Tokenizer cannot function without Unicode ranges');
+}
+if (!CONFIG.characterFlags?.flags) {
+    throw new Error('CRITICAL: CONFIG.characterFlags.flags is missing - Tokenizer cannot classify characters');
+}
+if (!CONFIG.tokenBinaryTypes?.types) {
+    throw new Error('CRITICAL: CONFIG.tokenBinaryTypes.types is missing - Tokenizer cannot assign token types');
+}
+if (!CONFIG.grammarMetadata?.fields) {
+    throw new Error('CRITICAL: CONFIG.grammarMetadata.fields is missing - Cannot distinguish metadata from data in grammar files');
+}
+
 const UNICODE = CONFIG.unicodeRanges.ranges;
 const CHAR_FLAGS = CONFIG.characterFlags.flags;
 const TOKEN_TYPES = CONFIG.tokenBinaryTypes.types;
-const GRAMMAR_METADATA_FIELDS = CONFIG.grammarMetadata?.fields || [];
+const GRAMMAR_METADATA_FIELDS = CONFIG.grammarMetadata.fields;
 const TOKEN_TYPE_STRINGS = CONFIG.tokenTypeStrings.types;
 const ERROR_MESSAGES = CONFIG.errorMessages.templates;
 const PARSING_RULES = CONFIG.parsingRules.rules;
 const SECURITY_LIMITS = CONFIG.securityConfig.limits;
-const UNICODE_IDENTIFIER_CONFIG = CONFIG.unicodeIdentifierConfig || {};
-const UNICODE_AUTO_CONFIG = UNICODE_IDENTIFIER_CONFIG.autoConfig || {};
+
+// ! NO_SILENT_FALLBACKS: ห้ามใช้ || {} ซ่อน config loading failure
+const UNICODE_IDENTIFIER_CONFIG = CONFIG.unicodeIdentifierConfig;
+if (!UNICODE_IDENTIFIER_CONFIG || typeof UNICODE_IDENTIFIER_CONFIG !== 'object') {
+    const configError = new Error('unicodeIdentifierConfig is missing or invalid in tokenizer-binary-config');
+    configError.isOperational = false;
+    throw configError;
+}
+
+const UNICODE_AUTO_CONFIG = UNICODE_IDENTIFIER_CONFIG.autoConfig;
+if (!UNICODE_AUTO_CONFIG || typeof UNICODE_AUTO_CONFIG !== 'object') {
+    const configError = new Error('unicodeIdentifierConfig.autoConfig is missing or invalid');
+    configError.isOperational = false;
+    throw configError;
+}
 
 const isFiniteNumber = (value) => typeof value === 'number' && Number.isFinite(value);
 
@@ -164,7 +188,12 @@ const ASCII_BOUNDARY_CODE = isFiniteNumber(UNICODE.ASCII_BOUNDARY?.code)
 
 // ! NO_HARDCODE: Punctuation binary map - โหลดจาก config
 // ! For 100% binary parsing without string comparison
-const PUNCTUATION_BINARY_MAP = CONFIG.punctuationBinaryMap?.map || {};
+const PUNCTUATION_BINARY_MAP = CONFIG.punctuationBinaryMap?.map;
+if (!PUNCTUATION_BINARY_MAP || typeof PUNCTUATION_BINARY_MAP !== 'object' || Object.keys(PUNCTUATION_BINARY_MAP).length === 0) {
+    const configError = new Error('punctuationBinaryMap.map is missing, invalid, or empty in tokenizer-binary-config');
+    configError.isOperational = false;
+    throw configError;
+}
 
 const BASE_WHITESPACE_CODES = [
     UNICODE.SPACE?.code,
@@ -337,13 +366,14 @@ function loadAutoUnicodeIdentifierRanges() {
 
     if (!fileContent) {
         if (UNICODE_AUTO_CONFIG.requireData === true) {
+            // FIX: Binary Error Pattern
             const warning = lastError || new Error('Unicode identifier auto-configuration data not available');
             warning.isOperational = true;
-            errorHandler.handleError(warning, {
-                source: 'UniversalCharacterClassifier',
+            reportError(BinaryCodes.PARSER.VALIDATION(4101), {
                 method: 'loadAutoUnicodeIdentifierRanges',
-                severity: 'WARNING',
-                context: `Unable to load unicode identifier range data from configured paths: ${candidatePaths.join(', ')}`
+                message: `Unable to load unicode identifier range data from configured paths: ${candidatePaths.join(', ')}`,
+                error: warning,
+                context: { candidatePaths }
             });
         }
 
@@ -354,17 +384,28 @@ function loadAutoUnicodeIdentifierRanges() {
     try {
         parsed = JSON.parse(fileContent);
     } catch (parseError) {
+        // FIX: Binary Error Pattern
         parseError.isOperational = true;
-        errorHandler.handleError(parseError, {
-            source: 'UniversalCharacterClassifier',
+        reportError(BinaryCodes.PARSER.SYNTAX(4102), {
             method: 'loadAutoUnicodeIdentifierRanges',
-            severity: 'WARNING',
-            context: `Failed to parse unicode identifier data from ${resolvedPath}`
+            message: `Failed to parse unicode identifier data from ${resolvedPath}`,
+            error: parseError,
+            context: { resolvedPath }
         });
         return [];
     }
 
-    const categories = parsed?.categories || {};
+    // ! NO_SILENT_FALLBACKS: ห้ามใช้ || {} ซ่อน parse failure
+    const categories = parsed?.categories;
+    if (!categories || typeof categories !== 'object') {
+        reportError(BinaryCodes.PARSER.SYNTAX(10004), {
+            method: 'loadUnicodeIdentifierRanges',
+            message: 'Unicode identifier JSON missing categories object',
+            context: { resolvedPath, parsedType: typeof parsed, hasCategories: Boolean(parsed?.categories) }
+        });
+        return [];
+    }
+    
     const includeCategories = Array.isArray(UNICODE_AUTO_CONFIG.categories?.include) && UNICODE_AUTO_CONFIG.categories.include.length > 0
         ? UNICODE_AUTO_CONFIG.categories.include
         : Object.keys(categories);
@@ -415,13 +456,14 @@ function loadAutoUnicodeIdentifierRanges() {
     }
 
     if (autoRanges.length === 0 && UNICODE_AUTO_CONFIG.requireData === true) {
+        // FIX: Binary Error Pattern
         const warning = new Error('Unicode auto identifier configuration produced no ranges');
         warning.isOperational = true;
-        errorHandler.handleError(warning, {
-            source: 'UniversalCharacterClassifier',
+        reportError(BinaryCodes.PARSER.VALIDATION(4103), {
             method: 'loadAutoUnicodeIdentifierRanges',
-            severity: 'WARNING',
-            context: `No unicode identifier ranges extracted from ${resolvedPath} using categories ${includeCategories.join(', ') || 'ALL'}`
+            message: `No unicode identifier ranges extracted from ${resolvedPath} using categories ${includeCategories.join(', ') || 'ALL'}`,
+            error: warning,
+            context: { resolvedPath, includeCategories }
         });
     }
 
@@ -610,13 +652,14 @@ class PureBinaryTokenizer {
             this.brain = grammarIndexOrLanguage;
             this.language = 'javascript'; // Default, could be extracted from brain if needed
         } else {
+            // FIX: Binary Error Pattern
             const error = new Error('PureBinaryTokenizer requires either a language string or GrammarIndex object');
             error.name = 'TokenizerError';
             error.isOperational = false; // Programming error
-            errorHandler.handleError(error, {
-                source: 'PureBinaryTokenizer',
+            reportError(BinaryCodes.SYSTEM.CONFIGURATION(4104), {
                 method: 'constructor',
-                severity: 'ERROR'
+                message: 'PureBinaryTokenizer requires either a language string or GrammarIndex object',
+                error: error
             });
             throw error;
         }
@@ -660,15 +703,18 @@ class PureBinaryTokenizer {
                     const requiredSections = ['keywords', 'operators', 'punctuation', 'literals', 'comments'];
                     for (const section of requiredSections) {
                         if (!this.grammarCache[section] || typeof this.grammarCache[section] !== 'object') {
-                            // ! ═══════════════════════════════════════════════════════════════
-                            // ! BINARY ERROR EMISSION - แค่ส่งเลข!
-                            // ! ═══════════════════════════════════════════════════════════════
-                            emitCritical(SYNTAX_ERROR_CODES.GRAMMAR_SECTION_MISSING, {
-                                language: this.language,
-                                missingSection: section,
-                                availableSections: Object.keys(this.grammarCache)
+                            // FIX: Binary Error Pattern
+                            // BINARY ERROR EMISSION - แค่ส่งเลข!
+                            reportError(BinaryCodes.SYSTEM.CONFIGURATION(4114), {
+                                method: 'assertGrammarBrainIntegrity',
+                                message: `Grammar section missing: ${section}`,
+                                context: {
+                                    language: this.language,
+                                    missingSection: section,
+                                    availableSections: Object.keys(this.grammarCache)
+                                }
                             });
-                            // ! emitCritical() throws - code ไม่ถึงจุดนี้
+                            throw new Error(`Grammar section missing: ${section}`);
                         }
                     }
                     
@@ -679,7 +725,18 @@ class PureBinaryTokenizer {
                     this.sectionCache.literals = this.flattenSection(this.grammarCache.literals);
                     this.sectionCache.comments = this.grammarCache.comments;
                 } else {
-                    // ! LEGACY MODE: ใช้ fallback (ไม่แนะนำ)
+                    // ! ⚠️ LEGACY MODE DEPRECATED: Silent fallbacks hide grammar loading failures
+                    // ! TODO: Remove this branch after migrating all grammars to GrammarIndex
+                    reportError(BinaryCodes.SYSTEM.CONFIGURATION(4115), {
+                        method: 'loadGrammar',
+                        message: 'Using legacy fallback mode - silent failures possible, upgrade to STRICT_MODE',
+                        context: {
+                            language: this.language,
+                            strictMode: STRICT_MODE,
+                            recommendation: 'Enable STRICT_MODE to detect grammar loading failures'
+                        }
+                    });
+                    
                     this.sectionCache.keywords = this.flattenSection(this.grammarCache.keywords || {});
                     this.sectionCache.operators = this.flattenSection(this.grammarCache.operators || {});
                     this.sectionCache.punctuation = this.flattenSection(this.grammarCache.punctuation || {});
@@ -711,6 +768,18 @@ class PureBinaryTokenizer {
                 this.sectionCache.literals = this.grammarCache.literals;
                 this.sectionCache.comments = this.grammarCache.comments;
             } else {
+                // ! ⚠️ LEGACY FILE MODE DEPRECATED: Silent fallbacks hide grammar file corruption
+                reportError(BinaryCodes.SYSTEM.CONFIGURATION(4116), {
+                    method: 'loadGrammar',
+                    message: 'Using legacy file loading with fallbacks - file corruption can be hidden',
+                    context: {
+                        language: this.language,
+                        grammarPath,
+                        strictMode: STRICT_MODE,
+                        recommendation: 'Enable STRICT_MODE and migrate to GrammarIndex'
+                    }
+                });
+                
                 // Cache sections ที่ใช้บ่อย (Stream ทั้ง section)
                 this.sectionCache.keywords = this.grammarCache.keywords || {};
                 this.sectionCache.operators = this.grammarCache.operators || {};
@@ -722,12 +791,13 @@ class PureBinaryTokenizer {
             this.assertGrammarBrainIntegrity(this.grammarCache);
             this.assertFlattenedGrammarSections();
         } catch (error) {
+            // FIX: Binary Error Pattern
             error.isOperational = false; // Grammar loading error = Programming error
-            errorHandler.handleError(error, {
-                source: 'BinaryComputationTokenizer',
+            reportError(BinaryCodes.SYSTEM.CONFIGURATION(4105), {
                 method: 'loadGrammar',
-                severity: 'CRITICAL',
-                context: `Failed to load grammar for ${this.language} - Grammar file or GrammarIndex loading error`
+                message: `Failed to load grammar for ${this.language} - Grammar file or GrammarIndex loading error`,
+                error: error,
+                context: { language: this.language }
             });
             throw error; // Re-throw after logging
         }
@@ -743,7 +813,7 @@ class PureBinaryTokenizer {
 
         if (!grammarCache || typeof grammarCache !== 'object') {
             this.throwCriticalTokenizerFailure(
-                SYNTAX_ERROR_CODES.TOKENIZER_BRAIN_INITIALIZED,
+                'TOKENIZER_BRAIN_INVALID',
                 'GrammarIndex payload is missing or invalid',
                 contextSnapshot
             );
@@ -751,7 +821,7 @@ class PureBinaryTokenizer {
 
         if (!contextSnapshot.hasKeywords || !contextSnapshot.hasOperators || !contextSnapshot.hasPunctuation) {
             this.throwCriticalTokenizerFailure(
-                SYNTAX_ERROR_CODES.TOKENIZER_BRAIN_INITIALIZED,
+                'TOKENIZER_BRAIN_INCOMPLETE',
                 'GrammarIndex is missing required sections',
                 contextSnapshot
             );
@@ -759,15 +829,39 @@ class PureBinaryTokenizer {
     }
 
     assertFlattenedGrammarSections() {
+        // ! NO_SILENT_FALLBACKS: ลบ || {} ออก - ถ้า section เป็น null/undefined ต้อง throw
+        // ! ถ้าใช้ || {} จะทำให้ Object.keys({}).length === 0 ดูเหมือน "ผ่าน" แต่จริงๆ data หาย
+        if (!this.sectionCache.keywords || typeof this.sectionCache.keywords !== 'object') {
+            this.throwCriticalTokenizerFailure(
+                'GRAMMAR_SECTION_KEYWORDS_NULL',
+                'sectionCache.keywords is null/undefined - grammar loading failed',
+                { keywordsType: typeof this.sectionCache.keywords }
+            );
+        }
+        if (!this.sectionCache.operators || typeof this.sectionCache.operators !== 'object') {
+            this.throwCriticalTokenizerFailure(
+                'GRAMMAR_SECTION_OPERATORS_NULL',
+                'sectionCache.operators is null/undefined - grammar loading failed',
+                { operatorsType: typeof this.sectionCache.operators }
+            );
+        }
+        if (!this.sectionCache.punctuation || typeof this.sectionCache.punctuation !== 'object') {
+            this.throwCriticalTokenizerFailure(
+                'GRAMMAR_SECTION_PUNCTUATION_NULL',
+                'sectionCache.punctuation is null/undefined - grammar loading failed',
+                { punctuationType: typeof this.sectionCache.punctuation }
+            );
+        }
+        
         const contextSnapshot = {
-            keywordsCount: Object.keys(this.sectionCache.keywords || {}).length,
-            operatorsCount: Object.keys(this.sectionCache.operators || {}).length,
-            punctuationCount: Object.keys(this.sectionCache.punctuation || {}).length
+            keywordsCount: Object.keys(this.sectionCache.keywords).length,
+            operatorsCount: Object.keys(this.sectionCache.operators).length,
+            punctuationCount: Object.keys(this.sectionCache.punctuation).length
         };
 
         if (!contextSnapshot.operatorsCount || !contextSnapshot.punctuationCount) {
             this.throwCriticalTokenizerFailure(
-                SYNTAX_ERROR_CODES.GRAMMAR_SECTIONS_FLATTENED,
+                'GRAMMAR_SECTIONS_EMPTY',
                 'Flattened grammar sections are empty or incomplete',
                 contextSnapshot
             );
@@ -779,14 +873,14 @@ class PureBinaryTokenizer {
     }
 
     throwCriticalTokenizerFailure(errorCode, message, context = {}) {
+        // FIX: Binary Error Pattern
         const failure = new Error(message);
         failure.isOperational = false;
-        errorHandler.handleError(failure, {
-            source: 'PureBinaryTokenizer',
+        reportError(BinaryCodes.SYSTEM.CONFIGURATION(4106), {
             method: 'loadGrammarSections',
-            severityCode: ERROR_SEVERITY_FLAGS.CRITICAL,
-            errorCode,
-            context
+            message: message,
+            error: failure,
+            context: { errorCode, ...context }
         });
         throw failure;
     }
@@ -801,12 +895,13 @@ class PureBinaryTokenizer {
         // ! STRICT_MODE: ไม่ใช้ fallback เมื่อ section ไม่ถูกต้อง
         if (STRICT_MODE) {
             if (!section || typeof section !== 'object') {
+                // FIX: Binary Error Pattern
                 const error = new Error('Grammar section is null, undefined, or not an object');
                 error.isOperational = false;
-                errorHandler.handleError(error, {
-                    source: 'BinaryComputationTokenizer',
+                reportError(BinaryCodes.SYSTEM.CONFIGURATION(4107), {
                     method: 'flattenSection',
-                    severity: 'CRITICAL',
+                    message: 'Grammar section is null, undefined, or not an object',
+                    error: error,
                     context: {
                         sectionType: typeof section,
                         sectionValue: section,
@@ -825,8 +920,8 @@ class PureBinaryTokenizer {
         const flat = {};
         
         for (const [key, value] of Object.entries(section)) {
-            // Skip metadata fields
-            if (key.startsWith('__section_')) {
+            // Skip metadata fields (both __section_ and __grammar_ prefixes)
+            if (key.startsWith('__section_') || key.startsWith('__grammar_')) {
                 continue;
             }
             
@@ -887,14 +982,15 @@ class PureBinaryTokenizer {
 
             // Security check: โหลดจาก config
             if (input.length > SECURITY_LIMITS.MAX_INPUT_LENGTH) {
+                // FIX: Binary Error Pattern
                 const error = new Error(`Input exceeds maximum length of ${SECURITY_LIMITS.MAX_INPUT_LENGTH} characters`);
                 error.name = 'SecurityError';
                 error.isOperational = true; // User input error
-                errorHandler.handleError(error, {
-                    source: 'PureBinaryTokenizer',
+                reportError(BinaryCodes.VALIDATOR.VALIDATION(4108), {
                     method: 'tokenize',
-                    severity: 'WARNING',
-                    context: `Input length: ${input.length}`
+                    message: `Input exceeds maximum length of ${SECURITY_LIMITS.MAX_INPUT_LENGTH} characters`,
+                    error: error,
+                    context: { inputLength: input.length, maxLength: SECURITY_LIMITS.MAX_INPUT_LENGTH }
                 });
                 throw error;
             }
@@ -909,18 +1005,6 @@ class PureBinaryTokenizer {
             // ! NO_HARDCODE: ใช้ค่าจาก UNICODE.BYTE_ORDER_MARK แทนการ hardcode 65279
             if (input.charCodeAt(0) === UNICODE.BYTE_ORDER_MARK.code) {
                 input = input.slice(1);
-                // ! NO_CONSOLE: ส่ง BOM skip info ไปยัง ErrorHandler แทน console.log
-                recordTelemetryNotice({
-                    message: 'BOM (Byte Order Mark) detected and skipped',
-                    source: 'PureBinaryTokenizer',
-                    method: 'tokenize',
-                    severity: 'INFO',
-                    context: { 
-                        charCode: UNICODE.BYTE_ORDER_MARK.code,
-                        description: UNICODE.BYTE_ORDER_MARK.description,
-                        action: 'skipped_bom' 
-                    }
-                });
             }
             
             // 2. ตรวจจับและข้าม Shebang (#!/usr/bin/env node)
@@ -930,14 +1014,6 @@ class PureBinaryTokenizer {
                 const endOfLine = input.indexOf('\n');
                 if (endOfLine !== -1) {
                     input = input.slice(endOfLine + 1);
-                    // ! NO_CONSOLE: ส่ง Shebang skip info ไปยัง ErrorHandler แทน console.log
-                    recordTelemetryNotice({
-                        message: 'Shebang line detected and skipped',
-                        source: 'PureBinaryTokenizer',
-                        method: 'tokenize',
-                        severity: 'INFO',
-                        context: { pattern: '#!', action: 'skipped_shebang' }
-                    });
                 } else {
                     // ถ้าทั้งไฟล์มีแค่ shebang ให้เป็นไฟล์ว่าง
                     input = '';
@@ -1074,8 +1150,8 @@ class PureBinaryTokenizer {
             return this.computeOperatorOrPunctuation();
         }
         
-        // ! NO_SILENT_FALLBACKS: ห้าม fallback - ต้อง throw error ทันที
-        // ! ให้ ErrorHandler กลางจัดการ (src/error-handler/ErrorHandler.js)
+        // FIX: Binary Error Pattern
+        // NO_SILENT_FALLBACKS: ห้าม fallback - ต้อง throw error ทันที
         const error = new Error(
             `Unknown character at position ${this.position}: "${char}" (charCode: ${char.charCodeAt(0)})`
         );
@@ -1085,7 +1161,18 @@ class PureBinaryTokenizer {
         error.character = char;
         error.isOperational = false; // Programming error - ต้อง crash
         
-        throw error; // Let ErrorHandler decide what to do
+        reportError(BinaryCodes.PARSER.SYNTAX(4117), {
+            method: 'computeToken',
+            message: `Unknown character at position ${this.position}: "${char}" (charCode: ${char.charCodeAt(0)})`,
+            error: error,
+            context: {
+                position: this.position,
+                character: char,
+                charCode: char.charCodeAt(0)
+            }
+        });
+        
+        throw error;
     }
 
     /**
@@ -1133,29 +1220,33 @@ class PureBinaryTokenizer {
         
         // Security check: โหลดจาก config
         if (startPattern.length > SECURITY_LIMITS.MAX_PATTERN_LENGTH) {
+            // FIX: Binary Error Pattern
             const error = new Error(`Pattern exceeds maximum length of ${SECURITY_LIMITS.MAX_PATTERN_LENGTH}`);
             error.name = 'SecurityError';
             error.isOperational = false; // Grammar pattern error = Programming bug
-            errorHandler.handleError(error, {
-                source: 'PureBinaryTokenizer',
+            reportError(BinaryCodes.VALIDATOR.VALIDATION(4109), {
                 method: 'computeCommentToken',
-                severity: 'ERROR'
+                message: `Pattern exceeds maximum length of ${SECURITY_LIMITS.MAX_PATTERN_LENGTH}`,
+                error: error,
+                context: { patternLength: startPattern.length, maxLength: SECURITY_LIMITS.MAX_PATTERN_LENGTH }
             });
             throw error;
         }
         
         // ตรวจสอบว่าตรงกับ start pattern หรือไม่
         if (!this.matchPattern(start, startPattern)) {
+            // FIX: Binary Error Pattern
             const errorMsg = ERROR_MESSAGES.EXPECTED_PATTERN
                 .replace('{pattern}', startPattern)
                 .replace('{position}', start);
             const error = new Error(errorMsg);
             error.name = 'TokenizerError';
             error.isOperational = false; // Pattern mismatch = Programming bug
-            errorHandler.handleError(error, {
-                source: 'PureBinaryTokenizer',
+            reportError(BinaryCodes.PARSER.SYNTAX(4110), {
                 method: 'computeCommentToken',
-                severity: 'ERROR'
+                message: errorMsg,
+                error: error,
+                context: { startPattern, position: start }
             });
             throw error;
         }
@@ -1196,13 +1287,15 @@ class PureBinaryTokenizer {
         while (end < this.inputLength) {
             // Security check: โหลดจาก config
             if ((end - start) > SECURITY_LIMITS.MAX_STRING_LENGTH) {
+                // FIX: Binary Error Pattern
                 const error = new Error(`String exceeds maximum length of ${SECURITY_LIMITS.MAX_STRING_LENGTH}`);
                 error.name = 'SecurityError';
                 error.isOperational = true; // User input error
-                errorHandler.handleError(error, {
-                    source: 'PureBinaryTokenizer',
+                reportError(BinaryCodes.VALIDATOR.VALIDATION(4111), {
                     method: 'computeStringToken',
-                    severity: 'WARNING'
+                    message: `String exceeds maximum length of ${SECURITY_LIMITS.MAX_STRING_LENGTH}`,
+                    error: error,
+                    context: { stringLength: end - start, maxLength: SECURITY_LIMITS.MAX_STRING_LENGTH }
                 });
                 throw error;
             }
@@ -1258,13 +1351,15 @@ class PureBinaryTokenizer {
         while (end < this.inputLength) {
             // Security check: โหลดจาก config
             if ((end - start) > SECURITY_LIMITS.MAX_TOKEN_LENGTH) {
+                // FIX: Binary Error Pattern
                 const error = new Error(`Token exceeds maximum length of ${SECURITY_LIMITS.MAX_TOKEN_LENGTH}`);
                 error.name = 'SecurityError';
                 error.isOperational = true; // User input error
-                errorHandler.handleError(error, {
-                    source: 'PureBinaryTokenizer',
+                reportError(BinaryCodes.VALIDATOR.VALIDATION(4112), {
                     method: 'computeIdentifierOrKeyword',
-                    severity: 'WARNING'
+                    message: `Token exceeds maximum length of ${SECURITY_LIMITS.MAX_TOKEN_LENGTH}`,
+                    error: error,
+                    context: { tokenLength: end - start, maxLength: SECURITY_LIMITS.MAX_TOKEN_LENGTH }
                 });
                 throw error;
             }
@@ -1284,22 +1379,16 @@ class PureBinaryTokenizer {
         const value = this.input.slice(start, end);
         this.position = end;
         
-        // ค้นหาใน keywords section cache (ไม่ต้องถาม brain)
-        const keywordsSection = this.sectionCache.keywords;
-        const isKeyword = keywordsSection && 
-                         keywordsSection.hasOwnProperty(value) && 
-                         !value.startsWith('__section_');
-        
-        if (isKeyword) {
-            return {
-                type: TOKEN_TYPE_STRINGS.KEYWORD,
-                binary: (1 << TOKEN_TYPES.KEYWORD.bit),
-                value: value,
-                length: end - start,
-                start: start,
-                end: end
-            };
-        }
+        // === DUMB TOKENIZER: ส่งทุกอย่างเป็น IDENTIFIER ===
+        // ! Tokenizer ไม่รู้จัก keyword (รู้แค่คณิตศาสตร์)
+        // ! Grammar/Parser จะตัดสินทีหลังว่า IDENTIFIER ไหนเป็น KEYWORD จริงๆ
+        // ! 
+        // ! ตัวอย่าง:
+        // !   Input: "const x = 5"
+        // !   Tokenizer output: [IDENTIFIER("const"), IDENTIFIER("x"), ...]
+        // !   Grammar/Parser: เปลี่ยน IDENTIFIER("const") → KEYWORD("const")
+        // !
+        // ! เหตุผล: Separate "math" (token shape) from "meaning" (keyword semantics)
         
         return {
             type: TOKEN_TYPE_STRINGS.IDENTIFIER,
@@ -1323,13 +1412,15 @@ class PureBinaryTokenizer {
         while (end < this.inputLength) {
             // Security check: โหลดจาก config
             if ((end - start) > SECURITY_LIMITS.MAX_NUMBER_LENGTH) {
+                // FIX: Binary Error Pattern
                 const error = new Error(`Number exceeds maximum length of ${SECURITY_LIMITS.MAX_NUMBER_LENGTH}`);
                 error.name = 'SecurityError';
                 error.isOperational = true; // User input error
-                errorHandler.handleError(error, {
-                    source: 'PureBinaryTokenizer',
+                reportError(BinaryCodes.VALIDATOR.VALIDATION(4113), {
                     method: 'computeNumber',
-                    severity: 'WARNING'
+                    message: `Number exceeds maximum length of ${SECURITY_LIMITS.MAX_NUMBER_LENGTH}`,
+                    error: error,
+                    context: { numberLength: end - start, maxLength: SECURITY_LIMITS.MAX_NUMBER_LENGTH }
                 });
                 throw error;
             }
@@ -1406,14 +1497,17 @@ class PureBinaryTokenizer {
                     ? (() => {
                         const binaryValue = PUNCTUATION_BINARY_MAP[punctMatch.value];
                         if (binaryValue === undefined || binaryValue === null) {
-                            // ! ═══════════════════════════════════════════════════════════
-                            // ! BINARY ERROR EMISSION - แค่ส่งเลข!
-                            // ! ═══════════════════════════════════════════════════════════
-                            emitCritical(SYNTAX_ERROR_CODES.PUNCTUATION_BINARY_UNDEFINED, {
-                                punctuation: punctMatch.value,
-                                availableMappings: Object.keys(PUNCTUATION_BINARY_MAP).slice(0, 10) // First 10
+                            // FIX: Binary Error Pattern
+                            // BINARY ERROR EMISSION - แค่ส่งเลข!
+                            reportError(BinaryCodes.SYSTEM.CONFIGURATION(4115), {
+                                method: 'computeOperatorOrPunctuation',
+                                message: `Punctuation binary value undefined: ${punctMatch.value}`,
+                                context: {
+                                    punctuation: punctMatch.value,
+                                    availableMappings: Object.keys(PUNCTUATION_BINARY_MAP).slice(0, 10)
+                                }
                             });
-                            // ! emitCritical() throws - never reach here
+                            throw new Error(`Punctuation binary value undefined: ${punctMatch.value}`);
                         }
                         return binaryValue;
                     })()
@@ -1428,30 +1522,27 @@ class PureBinaryTokenizer {
         // ! STRICT_MODE: ต้อง throw เพื่อบังคับให้แก้ grammar
         const char = this.input[start];
         
-        // ! ตรวจสอบว่า character นี้น่าจะเป็น operator หรือ punctuation
+        // FIX: Binary Error Pattern
+        // ตรวจสอบว่า character นี้น่าจะเป็น operator หรือ punctuation
         const isProbablyPunctuation = /^[\(\)\{\}\[\];,\.]$/.test(char);
-        const binaryErrorCode = isProbablyPunctuation 
-            ? SYNTAX_ERROR_CODES.GRAMMAR_PUNCTUATION_UNDEFINED 
-            : SYNTAX_ERROR_CODES.GRAMMAR_OPERATOR_UNDEFINED;
         
-        // ! ═══════════════════════════════════════════════════════════════════════
-        // ! BINARY ERROR EMISSION - โง่ที่สุด แค่ส่งเลข!
-        // ! ═══════════════════════════════════════════════════════════════════════
-        // ! ErrorHandler จะไปหา message, explanation, fix จาก Dictionary เอง
-        // ! เราแค่ส่ง: Binary Code + Context ขั้นต่ำ
-        // ! ═══════════════════════════════════════════════════════════════════════
-        emitCritical(binaryErrorCode, {
-            position: start,
-            character: char,
-            charCode: char.charCodeAt(0),
-            characterType: isProbablyPunctuation ? 'punctuation' : 'operator',
-            grammar_operators_count: Object.keys(this.sectionCache.operators || {}).length,
-            grammar_punctuation_count: Object.keys(this.sectionCache.punctuation || {}).length
-        }, {
-            severityOverride: STRICT_MODE ? ERROR_SEVERITY_FLAGS.CRITICAL : ERROR_SEVERITY_FLAGS.HIGH
+        // BINARY ERROR EMISSION - โง่ที่สุด แค่ส่งเลข!
+        reportError(BinaryCodes.SYSTEM.CONFIGURATION(4116), {
+            method: 'computeOperatorOrPunctuation',
+            message: `Unknown ${isProbablyPunctuation ? 'punctuation' : 'operator'}: ${char}`,
+            context: {
+                position: start,
+                character: char,
+                charCode: char.charCodeAt(0),
+                characterType: isProbablyPunctuation ? 'punctuation' : 'operator',
+                // ! NO_SILENT_FALLBACKS: ห้ามใช้ || {} ในการนับ - ถ้า null ต้อง throw
+                // ! เพราะ Object.keys(null || {}).length === 0 ทำให้ดูเหมือนมี 0 operators แต่จริงๆ data หาย
+                grammar_operators_count: this.sectionCache.operators ? Object.keys(this.sectionCache.operators).length : 'NULL',
+                grammar_punctuation_count: this.sectionCache.punctuation ? Object.keys(this.sectionCache.punctuation).length : 'NULL'
+            }
         });
         
-        // ! emitCritical() จะ throw error เองแล้ว - code ไม่มีทางถึงจุดนี้
+        throw new Error(`Unknown ${isProbablyPunctuation ? 'punctuation' : 'operator'}: ${char}`);
     }
 
     /**

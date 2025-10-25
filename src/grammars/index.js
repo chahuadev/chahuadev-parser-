@@ -15,8 +15,8 @@ import { GrammarIndex } from './shared/grammar-index.js';
 import { PureBinaryParser } from './shared/pure-binary-parser.js';
 import EnhancedBinaryParser from './shared/enhanced-binary-parser.js';
 import { BinaryComputationTokenizer } from './shared/tokenizer-helper.js';
-import errorHandler from '../error-handler/ErrorHandler.js';
-import { FILE_SYSTEM_ERROR_CODES } from '../error-handler/error-catalog.js';
+import { reportError } from '../error-handler/binary-reporter.js';
+import BinaryCodes from '../error-handler/binary-codes.js';
 import { ERROR_SEVERITY_FLAGS } from '../constants/severity-constants.js';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -97,17 +97,14 @@ export async function createParser(rules, options = {}) {
             };
         }
     } catch (configError) {
-        configError.isOperational = true;
-        errorHandler.handleError(configError, {
-            source: 'GrammarIndex',
-            method: 'createParser',
-            severityCode: ERROR_SEVERITY_FLAGS.MEDIUM,
-            errorCode: FILE_SYSTEM_ERROR_CODES.FILE_NOT_FOUND,
-            context: {
-                configFile: 'shared/configs/quantum-architecture.js (ES Module)',
-                fallback: 'DEFAULT_QUANTUM_CONFIG'
+        // FIX: Binary Error Pattern
+        reportError(
+            BinaryCodes.SYSTEM.CONFIGURATION(10001),
+            { 
+                error: configError,
+                configFile: 'shared/configs/quantum-architecture.js'
             }
-        });
+        );
         fileQuantumConfig = { ...DEFAULT_QUANTUM_CONFIG };
     }
 

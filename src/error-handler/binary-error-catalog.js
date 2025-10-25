@@ -406,7 +406,7 @@ export const binaryErrorCatalog = {
         "RESOURCE": {
             "code": 128,
             "humanReadable": {
-                "what": "Resource not found, unavailable, or exhausted",
+                "what": "Resource not found, unavailable, or exhausted (general category)",
                 "when": "During resource access - resource doesn't exist or can't be acquired",
                 "why": "File/URL not found, server unavailable, memory/disk exhausted, quota exceeded",
                 "realWorldAnalogy": "เหมือนของหมด - ไฟล์ไม่มี, ของหมดสต็อก, พื้นที่เต็ม",
@@ -423,6 +423,75 @@ export const binaryErrorCatalog = {
                     "Free up memory - fix memory leaks",
                     "Free disk space - delete unused files",
                     "Increase connection pool size or close unused connections"
+                ]
+            }
+        },
+        "RESOURCE_NOT_FOUND": {
+            "code": 129,
+            "humanReadable": {
+                "what": "Resource does not exist at the specified path",
+                "when": "During resource access - file, URL, or asset not found",
+                "why": "Path incorrect, file deleted, resource moved, URL 404",
+                "realWorldAnalogy": "เหมือนหาของไม่เจอ - ไปร้านแล้วของหมด, หาไฟล์ไม่เจอ",
+                "commonScenarios": [
+                    "File not found at path - fs.readFile('missing.txt')",
+                    "URL 404 Not Found - HTTP GET returned 404",
+                    "Module not found - require('./missing-module')",
+                    "Asset not found - image/font file missing",
+                    "Directory not found - path does not exist"
+                ],
+                "howToFix": [
+                    "Verify file path is correct (check typos, case sensitivity)",
+                    "Check if file was moved or deleted",
+                    "Create missing file/directory",
+                    "Update path to correct location",
+                    "Restore file from backup if deleted"
+                ]
+            }
+        },
+        "RESOURCE_UNAVAILABLE": {
+            "code": 130,
+            "humanReadable": {
+                "what": "Resource exists but is temporarily unavailable",
+                "when": "During resource access - resource locked, busy, or server down",
+                "why": "File locked by another process, server maintenance, resource busy",
+                "realWorldAnalogy": "เหมือนร้านปิด - ร้านมีแต่ปิด, ไฟล์ถูกล็อค",
+                "commonScenarios": [
+                    "File locked by another process - EBUSY error",
+                    "Server temporarily unavailable - 503 Service Unavailable",
+                    "Resource busy - database locked during backup",
+                    "Port already in use - EADDRINUSE",
+                    "Device unavailable - USB drive ejected"
+                ],
+                "howToFix": [
+                    "Retry after short delay (exponential backoff)",
+                    "Wait for lock to release - check which process is locking",
+                    "Check server status - wait for maintenance to complete",
+                    "Close other connections using the resource",
+                    "Use different port or resource"
+                ]
+            }
+        },
+        "RESOURCE_EXHAUSTED": {
+            "code": 131,
+            "humanReadable": {
+                "what": "Resource limit reached - no more capacity",
+                "when": "During resource allocation - memory full, disk full, quota exceeded",
+                "why": "Memory leak, disk space consumed, connection pool empty, rate limit hit",
+                "realWorldAnalogy": "เหมือนของหมด - น้ำมันหมด, เงินหมด, พื้นที่เต็ม",
+                "commonScenarios": [
+                    "Out of memory - heap exhausted, OOM killer triggered",
+                    "Disk full - ENOSPC (no space left on device)",
+                    "Connection pool exhausted - max connections reached",
+                    "File descriptor limit - too many open files",
+                    "Rate limit exceeded - API quota exhausted"
+                ],
+                "howToFix": [
+                    "Free up memory - fix memory leaks, restart process",
+                    "Free disk space - delete unused files, expand volume",
+                    "Close unused connections - implement connection pooling",
+                    "Increase resource limits (ulimit, max connections)",
+                    "Request quota increase from provider"
                 ]
             }
         },

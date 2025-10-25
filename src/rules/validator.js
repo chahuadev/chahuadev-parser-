@@ -29,12 +29,10 @@
 // !  IMPORTS - นำเข้ากฎทั้ง 8 ข้อจากไฟล์แยก
 // ! ══════════════════════════════════════════════════════════════════════════════
 
-import errorHandler from '../error-handler/ErrorHandler.js';
-import { recordTelemetryNotice } from '../error-handler/error-emitter.js';
-import {
-    ERROR_SOURCE_CODES,
-    RUNTIME_ERROR_CODES
-} from '../error-handler/error-catalog.js';
+// FIX: Migration to Binary Error System - Phase 5 Complete
+import { reportError } from '../error-handler/binary-reporter.js';
+import BinaryCodes from '../error-handler/binary-codes.js';
+import { createErrorCollector } from '../error-handler/error-collector.js';
 import {
     RULE_SLUGS,
     RULE_SLUG_TO_ID,
@@ -134,7 +132,15 @@ function normalizeRuleDefinition(key, definition) {
 
     const resolvedId = determineRuleId(key, definition);
     if (!resolvedId) {
-        throw new Error(`Unable to resolve binary rule identifier for key ${String(key)}`);
+        // FIX: Binary Error Pattern
+        const error = new Error(`Unable to resolve binary rule identifier for key ${String(key)}`);
+        reportError(BinaryCodes.VALIDATOR.VALIDATION(7001), {
+            method: 'normalizeRuleDefinition',
+            message: `Unable to resolve binary rule identifier for key ${String(key)}`,
+            error: error,
+            context: { key, definition }
+        });
+        throw error;
     }
 
     const slug = determineRuleSlug(resolvedId, key, definition);
@@ -158,7 +164,8 @@ function normalizeRuleDefinition(key, definition) {
         slug,
         severity,
         severityLabel: resolveRuleSeveritySlug(severity),
-        patterns: normalizedPatterns || definition.patterns
+        patterns: normalizedPatterns || definition.patterns,
+        enabled: definition.enabled !== false // Default: enabled unless explicitly disabled
     };
 }
 
@@ -204,39 +211,29 @@ export const ABSOLUTE_RULES = mergeRuleCollections(
 import { createParser, tokenize } from '../grammars/index.js';
 
 export class ValidationEngine {
-    constructor() {
+    constructor(options = {}) {
         this.rules = ABSOLUTE_RULES;
         this.parser = null;
+        
+        // ! ERROR COLLECTOR: Real-time error streaming
+        this.errorCollector = createErrorCollector({
+            streamMode: options.streamMode !== false, // Default: true
+            throwOnCritical: options.throwOnCritical !== false, // Default: true
+            maxErrors: options.maxErrors || Infinity
+        });
     }
 
     async initializeParserStudy() {
         try {
             this.parser = await createParser(ABSOLUTE_RULES);
-            recordTelemetryNotice({
-                message: 'ValidationEngine initialized successfully',
-                source: 'ValidationEngine',
-                method: 'initializeParserStudy',
-                severity: resolveErrorSeveritySlug(ERROR_SEVERITY_FLAGS.LOW),
-                context: {
-                    status: 'parser_ready',
-                    parser: this.parser?.constructor?.name || 'PureBinaryParser'
-                }
-            });
             return true;
         } catch (error) {
-            const severity = ERROR_SEVERITY_FLAGS.CRITICAL;
-            errorHandler.handleError({
-                error,
-                source: 'ValidationEngine',
+            // FIX: Binary Error Pattern - ส่งแค่ binary code + context
+            const errorCode = BinaryCodes.PARSER.SYNTAX('CRITICAL', 'VALIDATOR', 1001);
+            reportError(errorCode, {
                 method: 'initializeParserStudy',
-                errorCode: RUNTIME_ERROR_CODES.PARSE_FAILURE,
-                severityCode: severity,
-                sourceCode: ERROR_SOURCE_CODES.VALIDATOR,
-                context: {
-                    status: 'parser_boot_failure',
-                    message: error?.message || 'ValidationEngine initialization failed',
-                    stack: error?.stack || null
-                }
+                originalError: error?.message,
+                stack: error?.stack
             });
             throw new Error(`ValidationEngine initialization failed: ${error.message}`);
         }
@@ -244,38 +241,87 @@ export class ValidationEngine {
 
     async validateCode(code, fileName = 'unknown') {
         if (!this.parser) {
-            throw new Error('ValidationEngine not initialized. Call initializeParserStudy() first.');
+            // FIX: Binary Error Pattern
+            const error = new Error('ValidationEngine not initialized. Call initializeParserStudy() first.');
+            reportError(BinaryCodes.SYSTEM.CONFIGURATION(7002), {
+                method: 'validateCode',
+                message: 'ValidationEngine not initialized',
+                error: error
+            });
+            throw error;
         }
 
         try {
             // Tokenize and parse using production parser (NO_MOCKING compliant)
             const tokens = tokenize(code, this.parser.grammarIndex);
-            const ast = this.parser.parse(tokens);
+            
+            // ! NO_SILENT_FALLBACKS: Parse และตรวจสอบ AST validity
+            let ast;
+            try {
+                ast = this.parser.parse(tokens);
+            } catch (parseError) {
+                // ! Parser threw error - นี่คือ syntax error ต้อง report และ re-throw
+                reportError(BinaryCodes.PARSER.SYNTAX(2004), {
+                    method: 'validateCode',
+                    message: 'Parser failed - syntax error in source code',
+                    error: parseError,
+                    context: { fileName, tokensCount: tokens.length }
+                });
+                throw new Error(`Parse failed for ${fileName}: ${parseError.message}`);
+            }
+            
+            // ! ตรวจสอบ AST validity
+            if (!ast || typeof ast !== 'object') {
+                reportError(BinaryCodes.PARSER.SYNTAX(2005), {
+                    method: 'validateCode',
+                    message: 'Parser returned invalid AST (null/undefined/non-object)',
+                    context: { fileName, astType: typeof ast, ast }
+                });
+                throw new Error(`Invalid AST for ${fileName}: expected object, got ${typeof ast}`);
+            }
             
             // Detect violations based on ABSOLUTE_RULES
             const violations = this.detectViolations(ast, code, fileName);
             
+            // ! NO_SILENT_FALLBACKS: ห้ามใช้ || [] ซ่อน parser failure
+            if (!Array.isArray(violations)) {
+                reportError(BinaryCodes.VALIDATOR.LOGIC(2003), {
+                    method: 'validateCode',
+                    message: 'detectViolations() returned non-array value - parse failure hidden by silent fallback',
+                    context: { fileName, violationsType: typeof violations, violations }
+                });
+                throw new Error(`Invalid violations result for ${fileName}: expected array, got ${typeof violations}`);
+            }
+            
+            // ! DEBUG: Log violation count
+            console.log(`[DEBUG] detectViolations returned ${violations.length} violations`);
+            
             return {
                 fileName,
                 filePath: fileName,
-                violations: violations || [],
-                success: (violations || []).length === 0
+                violations,
+                success: violations.length === 0
             };
         } catch (error) {
-            const severity = ERROR_SEVERITY_FLAGS.HIGH;
-            errorHandler.handleError({
-                error,
-                source: 'ValidationEngine',
+            // ! Re-throw errors already reported by inner try-catch
+            // ! Inner catch already called reportError for parse errors
+            // ! Outer catch only handles unexpected errors
+            
+            // Check if error was already reported (has our custom message prefix)
+            if (error.message.startsWith('Parse failed for') || 
+                error.message.startsWith('Invalid AST for') ||
+                error.message.startsWith('Invalid violations result for')) {
+                // Already reported by inner catch, just re-throw
+                throw error;
+            }
+            
+            // FIX: Binary Error Pattern - ส่งแค่ binary code + context (unexpected errors only)
+            reportError(BinaryCodes.VALIDATOR.LOGIC(2001), {
                 method: 'validateCode',
-                errorCode: RUNTIME_ERROR_CODES.PARSE_FAILURE,
-                severityCode: severity,
-                sourceCode: ERROR_SOURCE_CODES.VALIDATOR,
-                filePath: fileName,
-                context: {
-                    status: 'validation_failure',
-                    fileName,
-                    message: error?.message || 'Validation failure during code analysis'
-                }
+                message: 'Unexpected error during validation',
+                fileName,
+                error: error,
+                context: { errorMessage: error?.message, stack: error?.stack }
             });
             throw new Error(`Validation failed for ${fileName}: ${error.message}`);
         }
@@ -301,25 +347,39 @@ export class ValidationEngine {
                             this.enrichViolationWithRuleMetadata(violation, rule.id, rule)
                         );
                         violations.push(...enriched);
+                        
+                        // ! STREAM TO ERROR COLLECTOR: Real-time violation streaming
+                        for (const violation of enriched) {
+                            this.errorCollector.collect(
+                                BinaryCodes.VALIDATOR.VALIDATION(3000 + (rule.id || 0)),
+                                {
+                                    method: 'detectViolations',
+                                    fileName,
+                                    rule: rule.slug || rule.id,
+                                    message: violation.message,
+                                    line: violation.line,
+                                    column: violation.column,
+                                    severity: violation.severity
+                                },
+                                { nonThrowing: true } // Don't throw on violations
+                            );
+                        }
                     }
                 }
             } catch (ruleError) {
-                const severity = ERROR_SEVERITY_FLAGS.MEDIUM;
-                const ruleIdentifier = rule?.slug || rule?.id || '<unknown-rule>';
-                errorHandler.handleError({
-                    error: ruleError,
-                    source: 'ValidationEngine',
-                    method: 'detectViolations',
-                    errorCode: RUNTIME_ERROR_CODES.PARSE_FAILURE,
-                    severityCode: severity,
-                    sourceCode: ERROR_SOURCE_CODES.VALIDATOR,
-                    filePath: fileName,
-                    context: {
-                        status: 'rule_evaluation_failure',
-                        rule: ruleIdentifier,
-                        message: ruleError?.message || 'Rule evaluation failed'
-                    }
-                });
+                // ! STREAM RULE ERROR: Rule execution failure
+                this.errorCollector.collect(
+                    BinaryCodes.VALIDATOR.VALIDATION(3001),
+                    {
+                        method: 'detectViolations',
+                        rule: rule?.slug || rule?.id || '<unknown>',
+                        fileName,
+                        message: `Rule check failed: ${ruleError.message}`,
+                        error: ruleError
+                    },
+                    { nonThrowing: true }
+                );
+                // ! NO_SILENT_FALLBACKS: Log error but continue to next rule
             }
         }
         
@@ -331,14 +391,25 @@ export class ValidationEngine {
     }
 
     getRule(ruleId) {
-    const resolvedId = coerceRuleId(ruleId);
+        const resolvedId = coerceRuleId(ruleId);
         if (resolvedId && this.rules[resolvedId]) {
             return this.rules[resolvedId];
         }
 
-        throw new Error(`Rule '${ruleId}' not found. Available: ${Object.values(this.rules)
+        // FIX: Binary Error Pattern
+        const error = new Error(`Rule '${ruleId}' not found. Available: ${Object.values(this.rules)
             .map(rule => rule.slug || rule.id)
             .join(', ')}`);
+        reportError(BinaryCodes.VALIDATOR.VALIDATION(7003), {
+            method: 'getRule',
+            message: `Rule '${ruleId}' not found`,
+            error: error,
+            context: {
+                requestedRuleId: ruleId,
+                availableRules: Object.keys(this.rules)
+            }
+        });
+        throw error;
     }
 
     enrichViolationWithRuleMetadata(violation, ruleId, rule) {
@@ -423,6 +494,28 @@ export class ValidationEngine {
         }
 
         return cloned;
+    }
+    
+    /**
+     * Get error collector report
+     * @returns {object} Error collection summary
+     */
+    getErrorReport() {
+        return this.errorCollector.generateReport();
+    }
+    
+    /**
+     * Clear error collector
+     */
+    clearErrors() {
+        this.errorCollector.clear();
+    }
+    
+    /**
+     * Check if any errors collected
+     */
+    hasCollectedErrors() {
+        return this.errorCollector.hasErrors();
     }
 }
 

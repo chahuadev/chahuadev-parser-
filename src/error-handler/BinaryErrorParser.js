@@ -93,7 +93,9 @@ class BinaryErrorParser {
      */
     handleError(payload) {
         // Pure Binary: ไม่มี kind field แล้ว - เป็น binary 100%
-        const { code, context = {} } = payload;
+        const { code } = payload;
+        // ! FIX BUG-003: ป้องกัน null context crash - ใช้ || แทน default parameter
+        const context = payload.context || {};
 
         // แกะ Binary Code
         const components = this.decomposeBinaryCode(code);
@@ -132,20 +134,21 @@ class BinaryErrorParser {
 
         // Log to binary-log-stream (auto-categorized by severity)
         const severityCode = components.severity;
+        // ! FIX BUG-004: ไม่ spread context เพื่อป้องกัน circular reference crash
+        // แทนที่จะเป็น ...context (spread operator) ให้ส่ง context เป็น nested object
         logStream.writeLog(severityCode, humanReadable, {
             binaryCode: code,
             domain: domainInfo?.label,
             category: categoryInfo?.label,
             source: sourceInfo?.label,
-            ...context
+            context: context // ส่งเป็น nested object แทน spread
         });
 
-        // ตัดสินใจว่าจะ throw หรือไม่
-        if (severityInfo && severityInfo.shouldThrow) {
-            const error = this.createError(errorObject, humanReadable);
-            throw error;
-        }
-
+        // ! NO_THROW: ไม่ throw error ออกไป - ให้เป็นหน้าที่ของ caller ตัดสินใจ
+        // ! การันตี 100%: error ถูก log แล้วก่อนถึงจุดนี้ - จะไม่หายไปไหน
+        // ! BinaryErrorParser เป็นเพียง "บริษัทรับเหมา" - รับ error เข้ามา log แล้ว return
+        // ! ไม่ใช่หน้าที่ของเราที่จะ throw หรือหยุดระบบ
+        
         return errorObject;
     }
 
@@ -298,7 +301,17 @@ class BinaryErrorParser {
             lines.push('│ CONTEXT DETAILS                                                             │');
             lines.push('├─────────────────────────────────────────────────────────────────────────────┤');
             Object.entries(context).forEach(([key, value]) => {
-                const valueStr = typeof value === 'object' ? JSON.stringify(value) : String(value);
+                // ! FIX BUG-004: Protect against circular references in context
+                let valueStr;
+                if (typeof value === 'object') {
+                    try {
+                        valueStr = JSON.stringify(value);
+                    } catch (circularError) {
+                        valueStr = '<circular>';
+                    }
+                } else {
+                    valueStr = String(value);
+                }
                 lines.push(`│ ${key.padEnd(16)} ${valueStr}`);
             });
             lines.push('└─────────────────────────────────────────────────────────────────────────────┘');

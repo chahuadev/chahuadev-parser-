@@ -12,8 +12,8 @@
  * - All errors sent to ErrorHandler
  */
 
-import errorHandler from '../../error-handler/ErrorHandler.js';
-import { recordTelemetryNotice } from '../../error-handler/error-emitter.js';
+import { reportError } from '../../error-handler/binary-reporter.js';
+import BinaryCodes from '../../error-handler/binary-codes.js';
 import { BinaryScout } from './binary-scout.js';
 import PureBinaryParser from './pure-binary-parser.js';
 import BinaryProphet from './binary-prophet.js';
@@ -80,26 +80,14 @@ class EnhancedBinaryParser extends PureBinaryParser {
                     this.structureMap = scout.scanStructure();
 
                     this.stats.scoutTime = performance.now() - scoutStartTime;
-
-                    // ! รายงานความสำเร็จผ่านศูนย์กลาง
-                    recordTelemetryNotice({
-                        message: 'Scout reconnaissance completed',
-                        source: 'EnhancedBinaryParser',
-                        method: 'parse',
-                        severity: 'INFO',
-                        context: {
-                            scoutTime: this.stats.scoutTime.toFixed(2),
-                            structuresFound: this.structureMap.size,
-                            phase: 'scout_completed'
-                        }
-                    });
                 } catch (scoutError) {
                     // ! Scout ต้องรายงานข้อผิดพลาดแต่อย่าหยุดระบบ
+                    // FIX: Binary Error Pattern
                     scoutError.isOperational = true;
-                    errorHandler.handleError(scoutError, {
-                        source: 'EnhancedBinaryParser',
+                    reportError(BinaryCodes.PARSER.VALIDATION(4002), {
                         method: 'parse',
-                        severity: 'WARNING',
+                        message: 'Binary Scout failed, continuing without structure map',
+                        error: scoutError,
                         context: { 
                             phase: 'scout_failed',
                             fallback: 'continuing_without_structure_map'
@@ -117,30 +105,15 @@ class EnhancedBinaryParser extends PureBinaryParser {
             // Calculate total time
             this.stats.totalTime = performance.now() - totalStartTime;
 
-            // Send completion metrics to ErrorHandler (INFO)
-            recordTelemetryNotice({
-                message: 'Enhanced parse completed',
-                source: 'EnhancedBinaryParser',
-                method: 'parse',
-                severity: 'INFO',
-                context: {
-                    scoutTime: this.stats.scoutTime.toFixed(2),
-                    parseTime: this.stats.parseTime.toFixed(2),
-                    totalTime: this.stats.totalTime.toFixed(2),
-                    quantumJumps: this.stats.quantumJumps,
-                    tokensProcessed: tokens.length,
-                    performance: 'success'
-                }
-            });
-
             return ast;
 
         } catch (error) {
+            // FIX: Binary Error Pattern
             error.isOperational = true;
-            errorHandler.handleError(error, {
-                source: 'EnhancedBinaryParser',
+            reportError(BinaryCodes.PARSER.SYNTAX(4003), {
                 method: 'parse',
-                severity: 'ERROR',
+                message: 'Enhanced parser failed',
+                error: error,
                 context: {
                     tokensLength: tokens?.length || 0,
                     stats: this.stats
@@ -160,20 +133,6 @@ class EnhancedBinaryParser extends PureBinaryParser {
             const structure = this.structureMap?.get(this.current);
             
             if (structure && structure.type === 'function') {
-                // We know the endpoint! Send info to ErrorHandler
-                recordTelemetryNotice({
-                    message: 'Function structure detected',
-                    source: 'EnhancedBinaryParser',
-                    method: 'parseFunctionDeclaration',
-                    severity: 'DEBUG',
-                    context: {
-                        currentPos: this.current,
-                        knownEndpoint: structure.endPos,
-                        complexity: structure.estimatedComplexity,
-                        quantumJumpPossible: true
-                    }
-                });
-
                 // Pre-allocate AST nodes based on estimated size
                 if (this.options.preAllocation) {
                     const estimatedNodes = Math.ceil((structure.endPos - structure.startPos) / 5);
@@ -185,11 +144,12 @@ class EnhancedBinaryParser extends PureBinaryParser {
             return super.parseFunctionDeclaration(start);
 
         } catch (error) {
+            // FIX: Binary Error Pattern
             error.isOperational = true;
-            errorHandler.handleError(error, {
-                source: 'EnhancedBinaryParser',
+            reportError(BinaryCodes.PARSER.SYNTAX(4004), {
                 method: 'parseFunctionDeclaration',
-                severity: 'ERROR',
+                message: 'Function declaration parsing failed',
+                error: error,
                 context: { start, currentPos: this.current }
             });
             throw error;
@@ -219,27 +179,16 @@ class EnhancedBinaryParser extends PureBinaryParser {
         if (!this.options.quantumJumps) return;
 
         try {
-            recordTelemetryNotice({
-                message: 'Quantum jump executed',
-                source: 'EnhancedBinaryParser',
-                method: 'quantumJump',
-                severity: 'DEBUG',
-                context: {
-                    from: this.current,
-                    to: targetPos,
-                    distance: targetPos - this.current
-                }
-            });
-
             this.current = targetPos;
             this.stats.quantumJumps++;
 
         } catch (error) {
+            // FIX: Binary Error Pattern
             error.isOperational = true;
-            errorHandler.handleError(error, {
-                source: 'EnhancedBinaryParser',
+            reportError(BinaryCodes.PARSER.VALIDATION(4005), {
                 method: 'quantumJump',
-                severity: 'WARNING',
+                message: 'Quantum jump failed',
+                error: error,
                 context: { targetPos }
             });
         }
@@ -278,21 +227,6 @@ class EnhancedBinaryParser extends PureBinaryParser {
         }
 
         this.current += prophecy.endIndex;
-
-        if (this.options?.monitoringConfig?.collectMetrics) {
-            recordTelemetryNotice({
-                message: 'Prophet resolved ambiguous object property',
-                source: 'EnhancedBinaryParser',
-                method: 'parseObjectPropertyValue',
-                severity: 'INFO',
-                context: {
-                    propertyKey: meta?.propertyKey,
-                    assumption: prophecy.assumption,
-                    confidence: prophecy.confidence,
-                    universesTested: prophecy.universesTested
-                }
-            });
-        }
 
         return prophecy.node;
     }
