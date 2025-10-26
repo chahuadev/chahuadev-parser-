@@ -15,6 +15,7 @@
 // ! ======================================================================
 import { RULE_IDS, resolveRuleSlug } from '../constants/rule-constants.js';
 import { RULE_SEVERITY_FLAGS } from '../constants/severity-constants.js';
+import { patternBasedCheck } from './rule-checker.js';
 
 const RULE_ID = RULE_IDS.NO_HARDCODE;
 const RULE_SLUG = resolveRuleSlug(RULE_ID);
@@ -1772,6 +1773,11 @@ const ABSOLUTE_RULES = {
         fix: {
             en: 'Move to config file or environment variable: process.env.API_URL or import from config.js',
             th: 'ย้ายไปไฟล์ config หรือ environment variable: process.env.API_URL หรือ import จาก config.js'
+        },
+        
+        // ! CHECK FUNCTION: Use shared pattern-based checker
+        check(ast, code, fileName) {
+            return patternBasedCheck(this, ast, code, fileName);
         }
     }
 };

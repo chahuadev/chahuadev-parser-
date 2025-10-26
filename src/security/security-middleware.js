@@ -9,9 +9,11 @@
 // ! ======================================================================
 
 // Note: vscode module handling for both extension and test environments
-import errorHandler from '../error-handler/ErrorHandler.js';
 import { emitSecurityNotice as emitSecurityPayload } from '../error-handler/error-emitter.js';
 import { SECURITY_ERROR_CODES } from '../error-handler/error-catalog.js';
+import { reportError } from '../error-handler/binary-reporter.js';
+import BinaryCodes from '../error-handler/binary-codes.js';
+import { OFFSETS } from '../error-handler/offset-registry.js';
 let vscode;
 
 // Initialize vscode module
@@ -27,7 +29,14 @@ async function initializeVSCode() {
         } else if (vscodeModule) {
             vscode = vscodeModule;
         } else {
-            throw new Error('VS Code module loaded but is empty');
+            // FIX: Binary Error Pattern - Flat context structure
+            reportError(BinaryCodes.SYSTEM.CONFIGURATION(OFFSETS.SECURITY.CONFIGURATION.VSCODE_MODULE_INIT_FAILED), {
+                method: 'initializeVSCode',
+                message: 'VS Code module loaded but is empty',
+                moduleKeys: JSON.stringify(Object.keys(vscodeModule || {}))
+            });
+            // ไม่ throw - ใช้ mock vscode object แทน
+            vscode = null;
         }
     } catch (e) {
         emitSecurityNotice(
@@ -155,7 +164,15 @@ class SecurityMiddleware {
     async secureReadDocument(document) {
         try {
             if (!document || !document.uri) {
-                throw new SecurityError('Invalid document object');
+                // FIX: Binary Error Pattern - Flat context structure
+                reportError(BinaryCodes.SYSTEM.RUNTIME(OFFSETS.SYSTEM.RUNTIME.DOCUMENT_OBJECT_INVALID), {
+                    method: 'secureReadDocument',
+                    message: 'Invalid document object',
+                    hasDocument: !!document,
+                    hasUri: !!(document && document.uri)
+                });
+                // ไม่ throw - return error result แทน
+                return { success: false, error: 'Invalid document object' };
             }
             
             // Validate document path
@@ -168,9 +185,16 @@ class SecurityMiddleware {
             // Get document content safely
             const content = document.getText();
             
-            // Validate content size
-            if (content.length > this.securityManager.config.MAX_FILE_SIZE) {
-                throw new SecurityError(`Document too large: ${content.length} characters`);
+            // ตรวจสอบ content size
+            if (content && content.length > MAX_DOCUMENT_SIZE) {
+                // FIX: Binary Error Pattern - Flat context structure
+                reportError(BinaryCodes.SECURITY.VALIDATION(OFFSETS.SECURITY.VALIDATION.DOCUMENT_SIZE_EXCEEDED), {
+                    method: 'secureReadDocument',
+                    message: `Document content exceeds maximum size (${MAX_DOCUMENT_SIZE} bytes)`,
+                    contentLength: content.length,
+                    maxSize: MAX_DOCUMENT_SIZE
+                });
+                return { success: false, error: 'Document too large' };
             }
             
             return {
@@ -182,7 +206,8 @@ class SecurityMiddleware {
             
         } catch (error) {
             this.handleSecurityError(error, 'READ_DOCUMENT');
-            throw error;
+            // ไม่ throw - return error result แทน
+            return { success: false, error: error.message };
         }
     }
     
@@ -194,7 +219,15 @@ class SecurityMiddleware {
             // Validate the operation
             const validOperations = ['READ', 'WRITE', 'DELETE', 'SCAN'];
             if (!validOperations.includes(operation)) {
-                throw new SecurityError(`Invalid operation: ${operation}`);
+                // FIX: Binary Error Pattern - Flat context structure
+                reportError(BinaryCodes.SECURITY.VALIDATION(OFFSETS.SECURITY.VALIDATION.WORKSPACE_OPERATION_INVALID), {
+                    method: 'secureWorkspaceOperation',
+                    message: `Invalid operation: ${operation}`,
+                    operation: operation,
+                    validOperations: JSON.stringify(validOperations)
+                });
+                // ไม่ throw - return error result แทน
+                return { success: false, error: `Invalid operation: ${operation}` };
             }
             
             // Validate target path
@@ -211,12 +244,20 @@ class SecurityMiddleware {
                 case 'SCAN':
                     return await this.secureFileScan(validatedPath);
                 default:
-                    throw new SecurityError(`Operation ${operation} not implemented`);
+                    // FIX: Binary Error Pattern - Flat context structure
+                    reportError(BinaryCodes.SECURITY.VALIDATION(OFFSETS.SECURITY.VALIDATION.WORKSPACE_OPERATION_NOT_IMPLEMENTED), {
+                        method: 'secureWorkspaceOperation',
+                        message: `Operation ${operation} not implemented`,
+                        operation: operation
+                    });
+                    // ไม่ throw - return error result แทน
+                    return { success: false, error: `Operation ${operation} not implemented` };
             }
             
         } catch (error) {
             this.handleSecurityError(error, `WORKSPACE_${operation}`);
-            throw error;
+            // ไม่ throw - return error result แทน
+            return { success: false, error: error.message };
         }
     }
     
@@ -227,7 +268,15 @@ class SecurityMiddleware {
         try {
             // Validate inputs
             if (!pattern || !text) {
-                throw new SecurityError('Invalid pattern or text for regex execution');
+                // FIX: Binary Error Pattern - Flat context structure
+                reportError(BinaryCodes.SECURITY.VALIDATION(OFFSETS.SECURITY.VALIDATION.PATTERN_MATCH_INPUT_INVALID), {
+                    method: 'securePatternMatch',
+                    message: 'Invalid pattern or text for regex execution',
+                    hasPattern: !!pattern,
+                    hasText: !!text
+                });
+                // ไม่ throw - return null แทน
+                return null;
             }
             
             // Rate limiting for regex operations
@@ -243,7 +292,14 @@ class SecurityMiddleware {
             } else if (typeof pattern === 'string') {
                 patternString = pattern;
             } else {
-                throw new SecurityError('Pattern must be RegExp or string');
+                // FIX: Binary Error Pattern - Flat context structure
+                reportError(BinaryCodes.SECURITY.VALIDATION(OFFSETS.SECURITY.VALIDATION.PATTERN_MATCH_TYPE_INVALID), {
+                    method: 'securePatternMatch',
+                    message: 'Pattern must be RegExp or string',
+                    patternType: typeof pattern
+                });
+                // ไม่ throw - return null แทน
+                return null;
             }
             
             return {

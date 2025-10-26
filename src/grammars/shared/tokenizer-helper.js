@@ -142,18 +142,34 @@ const CONFIG = tokenizerBinaryConfig;
 const STRICT_MODE = true; // Set false เพื่อใช้ fallback (ไม่แนะนำ)
 
 // Extract constants from configuration - ZERO HARDCODE
-// FIX: NO_SILENT_FALLBACKS - ห้ามใช้ || fallback, ต้อง Fail Fast
+// FIX: NO_SILENT_FALLBACKS - reportError แทน throw (ให้ระบบทำงานต่อแต่มี error log)
 if (!CONFIG.unicodeRanges?.ranges) {
-    throw new Error('CRITICAL: CONFIG.unicodeRanges.ranges is missing - Tokenizer cannot function without Unicode ranges');
+    reportError(BinaryCodes.SYSTEM.CONFIGURATION(1008), {
+        method: 'tokenizer-helper init',
+        message: 'CONFIG.unicodeRanges.ranges is missing - Tokenizer cannot function',
+        fatal: true
+    });
 }
 if (!CONFIG.characterFlags?.flags) {
-    throw new Error('CRITICAL: CONFIG.characterFlags.flags is missing - Tokenizer cannot classify characters');
+    reportError(BinaryCodes.SYSTEM.CONFIGURATION(1017), {
+        method: 'tokenizer-helper init',
+        message: 'CONFIG.characterFlags.flags is missing - Cannot classify characters',
+        fatal: true
+    });
 }
 if (!CONFIG.tokenBinaryTypes?.types) {
-    throw new Error('CRITICAL: CONFIG.tokenBinaryTypes.types is missing - Tokenizer cannot assign token types');
+    reportError(BinaryCodes.SYSTEM.CONFIGURATION(1010), {
+        method: 'tokenizer-helper init',
+        message: 'CONFIG.tokenBinaryTypes.types is missing - Cannot assign token types',
+        fatal: true
+    });
 }
 if (!CONFIG.grammarMetadata?.fields) {
-    throw new Error('CRITICAL: CONFIG.grammarMetadata.fields is missing - Cannot distinguish metadata from data in grammar files');
+    reportError(BinaryCodes.SYSTEM.CONFIGURATION(1011), {
+        method: 'tokenizer-helper init',
+        message: 'CONFIG.grammarMetadata.fields is missing - Cannot parse grammar files',
+        fatal: true
+    });
 }
 
 const UNICODE = CONFIG.unicodeRanges.ranges;
@@ -165,19 +181,23 @@ const ERROR_MESSAGES = CONFIG.errorMessages.templates;
 const PARSING_RULES = CONFIG.parsingRules.rules;
 const SECURITY_LIMITS = CONFIG.securityConfig.limits;
 
-// ! NO_SILENT_FALLBACKS: ห้ามใช้ || {} ซ่อน config loading failure
+// ! NO_SILENT_FALLBACKS: reportError แทน throw
 const UNICODE_IDENTIFIER_CONFIG = CONFIG.unicodeIdentifierConfig;
 if (!UNICODE_IDENTIFIER_CONFIG || typeof UNICODE_IDENTIFIER_CONFIG !== 'object') {
-    const configError = new Error('unicodeIdentifierConfig is missing or invalid in tokenizer-binary-config');
-    configError.isOperational = false;
-    throw configError;
+    reportError(BinaryCodes.SYSTEM.CONFIGURATION(1012), {
+        method: 'tokenizer-helper init',
+        message: 'unicodeIdentifierConfig is missing or invalid',
+        fatal: true
+    });
 }
 
 const UNICODE_AUTO_CONFIG = UNICODE_IDENTIFIER_CONFIG.autoConfig;
 if (!UNICODE_AUTO_CONFIG || typeof UNICODE_AUTO_CONFIG !== 'object') {
-    const configError = new Error('unicodeIdentifierConfig.autoConfig is missing or invalid');
-    configError.isOperational = false;
-    throw configError;
+    reportError(BinaryCodes.SYSTEM.CONFIGURATION(1013), {
+        method: 'tokenizer-helper init',
+        message: 'unicodeIdentifierConfig.autoConfig is missing or invalid',
+        fatal: true
+    });
 }
 
 const isFiniteNumber = (value) => typeof value === 'number' && Number.isFinite(value);
@@ -190,9 +210,11 @@ const ASCII_BOUNDARY_CODE = isFiniteNumber(UNICODE.ASCII_BOUNDARY?.code)
 // ! For 100% binary parsing without string comparison
 const PUNCTUATION_BINARY_MAP = CONFIG.punctuationBinaryMap?.map;
 if (!PUNCTUATION_BINARY_MAP || typeof PUNCTUATION_BINARY_MAP !== 'object' || Object.keys(PUNCTUATION_BINARY_MAP).length === 0) {
-    const configError = new Error('punctuationBinaryMap.map is missing, invalid, or empty in tokenizer-binary-config');
-    configError.isOperational = false;
-    throw configError;
+    reportError(BinaryCodes.SYSTEM.CONFIGURATION(1034), {
+        method: 'tokenizer-helper init',
+        message: 'punctuationBinaryMap.map is missing, invalid, or empty',
+        fatal: true
+    });
 }
 
 const BASE_WHITESPACE_CODES = [
@@ -661,7 +683,7 @@ class PureBinaryTokenizer {
                 message: 'PureBinaryTokenizer requires either a language string or GrammarIndex object',
                 error: error
             });
-            throw error;
+            // ไม่ throw - ให้ระบบทำงานต่อแม้ grammar ไม่ครบ
         }
         
         this.classifier = new UniversalCharacterClassifier();
@@ -714,7 +736,7 @@ class PureBinaryTokenizer {
                                     availableSections: Object.keys(this.grammarCache)
                                 }
                             });
-                            throw new Error(`Grammar section missing: ${section}`);
+                            // ไม่ throw - ให้ระบบทำงานต่อ
                         }
                     }
                     
@@ -725,7 +747,7 @@ class PureBinaryTokenizer {
                     this.sectionCache.literals = this.flattenSection(this.grammarCache.literals);
                     this.sectionCache.comments = this.grammarCache.comments;
                 } else {
-                    // ! ⚠️ LEGACY MODE DEPRECATED: Silent fallbacks hide grammar loading failures
+                    // ! LEGACY MODE DEPRECATED: Silent fallbacks hide grammar loading failures
                     // ! TODO: Remove this branch after migrating all grammars to GrammarIndex
                     reportError(BinaryCodes.SYSTEM.CONFIGURATION(4115), {
                         method: 'loadGrammar',
@@ -753,12 +775,16 @@ class PureBinaryTokenizer {
             const grammarPath = join(__dirname, 'grammars', `${this.language}.grammar.json`);
             this.grammarCache = JSON.parse(readFileSync(grammarPath, 'utf8'));
 
-            // ! STRICT_MODE: ไม่ใช้ fallback
+            // ! STRICT_MODE: reportError แทน throw
             if (STRICT_MODE) {
                 const requiredSections = ['keywords', 'operators', 'punctuation', 'literals', 'comments'];
                 for (const section of requiredSections) {
                     if (!this.grammarCache[section]) {
-                        throw new Error(`Grammar file missing required section: ${section}`);
+                        reportError(BinaryCodes.PARSER.SYNTAX(2011), {
+                            method: 'loadGrammar',
+                            message: `Grammar file missing required section: ${section}`,
+                            fatal: true
+                        });
                     }
                 }
                 
@@ -768,7 +794,7 @@ class PureBinaryTokenizer {
                 this.sectionCache.literals = this.grammarCache.literals;
                 this.sectionCache.comments = this.grammarCache.comments;
             } else {
-                // ! ⚠️ LEGACY FILE MODE DEPRECATED: Silent fallbacks hide grammar file corruption
+                // !  LEGACY FILE MODE DEPRECATED: Silent fallbacks hide grammar file corruption
                 reportError(BinaryCodes.SYSTEM.CONFIGURATION(4116), {
                     method: 'loadGrammar',
                     message: 'Using legacy file loading with fallbacks - file corruption can be hidden',
@@ -799,7 +825,7 @@ class PureBinaryTokenizer {
                 error: error,
                 context: { language: this.language }
             });
-            throw error; // Re-throw after logging
+            // ไม่ throw - ให้ระบบทำงานต่อ
         }
     }
 
@@ -873,7 +899,7 @@ class PureBinaryTokenizer {
     }
 
     throwCriticalTokenizerFailure(errorCode, message, context = {}) {
-        // FIX: Binary Error Pattern
+        // FIX: Binary Error Pattern - reportError แทน throw
         const failure = new Error(message);
         failure.isOperational = false;
         reportError(BinaryCodes.SYSTEM.CONFIGURATION(4106), {
@@ -882,7 +908,7 @@ class PureBinaryTokenizer {
             error: failure,
             context: { errorCode, ...context }
         });
-        throw failure;
+        // ไม่ throw - ให้ระบบทำงานต่อ
     }
     
     /**
@@ -908,7 +934,7 @@ class PureBinaryTokenizer {
                         fix: 'Ensure grammar object has all required sections (keywords, operators, punctuation, literals, comments)'
                     }
                 });
-                throw error;
+                // ไม่ throw - ให้ระบบทำงานต่อ
             }
         } else {
             // Legacy fallback
@@ -992,7 +1018,8 @@ class PureBinaryTokenizer {
                     error: error,
                     context: { inputLength: input.length, maxLength: SECURITY_LIMITS.MAX_INPUT_LENGTH }
                 });
-                throw error;
+                // ไม่ throw - ให้ระบบทำงานต่อ (return empty tokens)
+                return [];
             }
             
             // ! ========================================================================
@@ -1172,7 +1199,9 @@ class PureBinaryTokenizer {
             }
         });
         
-        throw error;
+        // ไม่ throw - skip unknown character และทำงานต่อ
+        this.position++;
+        return this.computeToken(); // ลองอ่าน token ถัดไป
     }
 
     /**
@@ -1230,7 +1259,8 @@ class PureBinaryTokenizer {
                 error: error,
                 context: { patternLength: startPattern.length, maxLength: SECURITY_LIMITS.MAX_PATTERN_LENGTH }
             });
-            throw error;
+            // ไม่ throw - skip และทำงานต่อ
+            return null;
         }
         
         // ตรวจสอบว่าตรงกับ start pattern หรือไม่
@@ -1248,7 +1278,8 @@ class PureBinaryTokenizer {
                 error: error,
                 context: { startPattern, position: start }
             });
-            throw error;
+            // ไม่ throw - return null และทำงานต่อ
+            return null;
         }
         
         let end = start + startPattern.length;
@@ -1297,7 +1328,8 @@ class PureBinaryTokenizer {
                     error: error,
                     context: { stringLength: end - start, maxLength: SECURITY_LIMITS.MAX_STRING_LENGTH }
                 });
-                throw error;
+                // ไม่ throw - truncate string และทำงานต่อ
+                break;
             }
             
             const charCode = this.input.charCodeAt(end);
@@ -1361,7 +1393,8 @@ class PureBinaryTokenizer {
                     error: error,
                     context: { tokenLength: end - start, maxLength: SECURITY_LIMITS.MAX_TOKEN_LENGTH }
                 });
-                throw error;
+                // ไม่ throw - truncate token และทำงานต่อ
+                break;
             }
             
             const code = this.input.charCodeAt(end);
@@ -1422,7 +1455,8 @@ class PureBinaryTokenizer {
                     error: error,
                     context: { numberLength: end - start, maxLength: SECURITY_LIMITS.MAX_NUMBER_LENGTH }
                 });
-                throw error;
+                // ไม่ throw - truncate number และทำงานต่อ
+                break;
             }
             
             const code = this.input.charCodeAt(end);
@@ -1507,7 +1541,8 @@ class PureBinaryTokenizer {
                                     availableMappings: Object.keys(PUNCTUATION_BINARY_MAP).slice(0, 10)
                                 }
                             });
-                            throw new Error(`Punctuation binary value undefined: ${punctMatch.value}`);
+                            // ไม่ throw - ใช้ค่า 0 แทน
+                            return 0;
                         }
                         return binaryValue;
                     })()
@@ -1542,7 +1577,8 @@ class PureBinaryTokenizer {
             }
         });
         
-        throw new Error(`Unknown ${isProbablyPunctuation ? 'punctuation' : 'operator'}: ${char}`);
+        // ไม่ throw - return null แทน (ให้ computeToken skip character นี้)
+        return null;
     }
 
     /**

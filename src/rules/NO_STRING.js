@@ -15,6 +15,7 @@
 // ! ======================================================================
 import { RULE_IDS, resolveRuleSlug } from '../constants/rule-constants.js';
 import { RULE_SEVERITY_FLAGS } from '../constants/severity-constants.js';
+import { patternBasedCheck } from './rule-checker.js';
 
 const RULE_ID = RULE_IDS.NO_STRING;
 const RULE_SLUG = resolveRuleSlug(RULE_ID);
@@ -104,7 +105,12 @@ const ABSOLUTE_RULES = {
 		fix: { 
             en: 'Define numeric constants in constants.js (e.g., TOKEN_TYPES.KEYWORD = 0b010000) and replace all string equality checks with bitwise or numeric comparisons.', 
             th: 'กำหนดค่าคงที่เป็นตัวเลขใน constants.js (เช่น TOKEN_TYPES.KEYWORD = 0b010000) แล้วแทนที่การเทียบสตริงทั้งหมดด้วยการเปรียบเทียบแบบตัวเลขหรือบิต' 
-             }
+        },
+        
+        // ! CHECK FUNCTION: Use shared pattern-based checker
+        check(ast, code, fileName) {
+            return patternBasedCheck(this, ast, code, fileName);
+        }
 	}
 };
 

@@ -16,12 +16,109 @@
 // ! ======================================================================
 import { RULE_IDS, resolveRuleSlug } from '../constants/rule-constants.js';
 import { RULE_SEVERITY_FLAGS } from '../constants/severity-constants.js';
+import { patternBasedCheck } from './rule-checker.js';
 
 const RULE_ID = RULE_IDS.NO_SILENT_FALLBACKS;
 const RULE_SLUG = resolveRuleSlug(RULE_ID);
 const RULE_SEVERITY_ERROR = RULE_SEVERITY_FLAGS.ERROR;
 const RULE_SEVERITY_WARNING = RULE_SEVERITY_FLAGS.WARNING;
 const RULE_SEVERITY_CRITICAL = RULE_SEVERITY_FLAGS.CRITICAL;
+
+// ! ======================================================================
+// ! AST-BASED CHECKER: Detect silent catch blocks
+// ! ======================================================================
+function checkSilentCatchBlocks(ast, code, fileName) {
+    const violations = [];
+
+    function hasErrorLogging(node) {
+        if (!node || typeof node !== 'object') return false;
+        
+        // Check if node calls logger.error, reportError, or throws
+        if (node.type === 'CallExpression') {
+            const callee = node.callee;
+            
+            // logger.error(), errorHandler.log(), reportError()
+            if (callee?.type === 'MemberExpression') {
+                const obj = callee.object?.name;
+                const prop = callee.property?.name;
+                if ((obj === 'logger' || obj === 'errorHandler' || obj === 'console') && 
+                    (prop === 'error' || prop === 'fatal' || prop === 'critical')) {
+                    return true;
+                }
+            }
+            
+            // reportError(), logError()
+            if (callee?.type === 'Identifier') {
+                const name = callee.name;
+                if (name === 'reportError' || name === 'logError' || name === 'handleError') {
+                    return true;
+                }
+            }
+        }
+        
+        // Check if node throws
+        if (node.type === 'ThrowStatement') {
+            return true;
+        }
+        
+        // Recursively check children
+        for (const key of Object.keys(node)) {
+            const child = node[key];
+            if (Array.isArray(child)) {
+                for (const item of child) {
+                    if (hasErrorLogging(item)) return true;
+                }
+            } else if (child && typeof child === 'object') {
+                if (hasErrorLogging(child)) return true;
+            }
+        }
+        
+        return false;
+    }
+
+    function visit(node) {
+        if (!node || typeof node !== 'object') return;
+        
+        // Check TryStatement catch blocks
+        if (node.type === 'TryStatement' && node.handler) {
+            const catchBlock = node.handler.body;
+            
+            // Empty catch block
+            if (!catchBlock.body || catchBlock.body.length === 0) {
+                violations.push({
+                    ruleId: RULE_ID,
+                    message: 'Empty catch block - errors silently swallowed (ห้ามกลืน error แบบเงียบ)',
+                    severity: RULE_SEVERITY_CRITICAL,
+                    line: node.handler.loc?.start?.line || 1,
+                    column: (node.handler.loc?.start?.column || 0) + 1
+                });
+            }
+            // Catch block without error logging or throw
+            else if (!hasErrorLogging(catchBlock)) {
+                violations.push({
+                    ruleId: RULE_ID,
+                    message: 'Catch block without error logging or throw - silent failure (ต้องมี logger.error หรือ throw)',
+                    severity: RULE_SEVERITY_ERROR,
+                    line: node.handler.loc?.start?.line || 1,
+                    column: (node.handler.loc?.start?.column || 0) + 1
+                });
+            }
+        }
+        
+        // Traverse children
+        for (const key of Object.keys(node)) {
+            const child = node[key];
+            if (Array.isArray(child)) {
+                child.forEach(visit);
+            } else if (child && typeof child === 'object') {
+                visit(child);
+            }
+        }
+    }
+
+    visit(ast);
+    return violations;
+}
 
 const ABSOLUTE_RULES = {
 // ! ======================================================================
@@ -715,6 +812,14 @@ const ABSOLUTE_RULES = {
         fix: {
             en: 'Add logger.error(error) before return, or throw error instead of returning default. NEVER silently swallow errors.',
             th: 'เพิ่ม logger.error(error) ก่อน return หรือ throw error แทนการ return ค่า default ห้ามกลืน error แบบเงียบๆ เด็ดขาด'
+        },
+        
+        // ! CHECK FUNCTION: Combined pattern + AST-based checking
+        check(ast, code, fileName) {
+            const patternViolations = patternBasedCheck(this, ast, code, fileName);
+            const astViolations = checkSilentCatchBlocks(ast, code, fileName);
+            console.log(`[NO_SILENT_FALLBACKS] ${fileName}: patterns=${patternViolations.length}, ast=${astViolations.length}`);
+            return [...patternViolations, ...astViolations];
         }
     }
 };

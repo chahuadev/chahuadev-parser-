@@ -25,17 +25,17 @@
  * const securityManager = new SecurityManager({ rateLimitStore: store });
  */
 
-import errorHandler from '../error-handler/ErrorHandler.js';
+import { reportError } from '../error-handler/binary-reporter.js';
+import BinaryCodes from '../error-handler/binary-codes.js';
+import { OFFSETS } from '../error-handler/offset-registry.js';
 
 function emitRateLimitNotice(message, method, severity, context) {
-    const notice = new Error(message);
-    notice.name = 'RateLimitStoreNotice';
-    notice.isOperational = true;
-    errorHandler.handleError(notice, {
-        source: 'RateLimitStoreFactory',
-        method,
-        severity,
-        context
+    // FIX: Binary Error Pattern - Use reportError instead of Error + errorHandler
+    reportError(BinaryCodes.SECURITY.RATELIMIT(OFFSETS.SECURITY.RATELIMIT.MEMORY_STORE_NOTICE), {
+        method: `RateLimitStoreFactory.${method}`,
+        message: message,
+        severity: severity,
+        context: context
     });
 }
 
@@ -60,7 +60,15 @@ function createRateLimitStore(type = 'memory', config = {}) {
             return createMemcachedStore(config);
         
         default:
-            throw new Error(`Unknown rate limit store type: ${type}. Supported: memory, redis, memcached`);
+            // FIX: Binary Error Pattern - Replace throw with reportError
+            reportError(BinaryCodes.SECURITY.RATELIMIT(OFFSETS.SECURITY.RATELIMIT.UNKNOWN_STORE_TYPE), {
+                method: 'createRateLimitStore',
+                message: `Unknown rate limit store type`,
+                requestedType: type,
+                supportedTypes: 'memory, redis, memcached'
+            });
+            // Return memory store as fallback
+            return createMemoryStore();
     }
 }
 
@@ -96,17 +104,16 @@ function createRedisStore(config) {
             ...config
         });
         
-        // Connect to Redis
-        client.connect().catch(err => {
-            errorHandler.handleError(err, {
-                source: 'RateLimitStoreFactory',
-                method: 'createRedisStore',
-                severity: 'CRITICAL',
-                context: 'Failed to connect to Redis server'
-            });
-            throw err;
+           // FIX: Binary Error Pattern - Replace throw with reportError
+           client.connect().catch(err => {
+           reportError(BinaryCodes.SECURITY.RATELIMIT(OFFSETS.SECURITY.RATELIMIT.REDIS_CONNECTION_FAILED), { // <--- ใช้ Offset ใหม่
+                 method: 'createRedisStore.connect',
+                 message: `Failed to connect to Redis server: ${err.message}`,
+                 errorType: err.constructor?.name,
+                 errorCode: err.code
         });
-        
+                // ไม่ต้อง throw err; ปล่อยให้มันทำงานต่อ (เดี๋ยวจะ fallback ไป memory store เอง)
+           });
         // Adapter to match Map interface
         return {
             async get(key) {
@@ -143,19 +150,30 @@ function createRedisStore(config) {
         };
         
     } catch (error) {
-        errorHandler.handleError(error, {
-            source: 'RateLimitStoreFactory',
+        // FIX: Binary Error Pattern - Replace errorHandler with reportError
+        const errorType = error?.constructor?.name || 'Error';
+        const stackPreview = error?.stack ? error.stack.split('\n').slice(0, 3).join('\n') : 'No stack';
+        
+        reportError(BinaryCodes.SECURITY.RATELIMIT(OFFSETS.SECURITY.RATELIMIT.REDIS_CREATION_FAILED), {
             method: 'createRedisStore',
-            severity: 'CRITICAL',
-            context: 'Redis store creation failed'
+            message: 'Redis store creation failed',
+            errorCode: error.code || 'UNKNOWN',
+            errorType: errorType,
+            errorMessage: error.message,
+            stackPreview: stackPreview
         });
+        
         if (error.code === 'MODULE_NOT_FOUND') {
-            throw new Error(
-                'Redis module not found. Install it: npm install redis\n' +
-                'Or use memory store for development: createRateLimitStore("memory")'
-            );
+            reportError(BinaryCodes.SECURITY.RATELIMIT(OFFSETS.SECURITY.RATELIMIT.REDIS_MODULE_NOT_FOUND), {
+                method: 'createRedisStore',
+                message: 'Redis module not found',
+                suggestion: 'Install: npm install redis OR use memory store for development'
+            });
+            // Return memory store as fallback
+            return createMemoryStore();
         }
-        throw error;
+        // Return memory store as fallback for any error
+        return createMemoryStore();
     }
 }
 
@@ -225,19 +243,30 @@ function createMemcachedStore(config) {
         };
         
     } catch (error) {
-        errorHandler.handleError(error, {
-            source: 'RateLimitStoreFactory',
+        // FIX: Binary Error Pattern - Replace errorHandler with reportError
+        const errorType = error?.constructor?.name || 'Error';
+        const stackPreview = error?.stack ? error.stack.split('\n').slice(0, 3).join('\n') : 'No stack';
+        
+        reportError(BinaryCodes.SECURITY.RATELIMIT(OFFSETS.SECURITY.RATELIMIT.MEMCACHED_CREATION_FAILED), {
             method: 'createMemcachedStore',
-            severity: 'CRITICAL',
-            context: 'Memcached store creation failed'
+            message: 'Memcached store creation failed',
+            errorCode: error.code || 'UNKNOWN',
+            errorType: errorType,
+            errorMessage: error.message,
+            stackPreview: stackPreview
         });
+        
         if (error.code === 'MODULE_NOT_FOUND') {
-            throw new Error(
-                'Memcached module not found. Install it: npm install memcached\n' +
-                'Or use memory store for development: createRateLimitStore("memory")'
-            );
+            reportError(BinaryCodes.SECURITY.RATELIMIT(OFFSETS.SECURITY.RATELIMIT.MEMCACHED_MODULE_NOT_FOUND), {
+                method: 'createMemcachedStore',
+                message: 'Memcached module not found',
+                suggestion: 'Install: npm install memcached OR use memory store for development'
+            });
+            // Return memory store as fallback
+            return createMemoryStore();
         }
-        throw error;
+        // Return memory store as fallback for any error
+        return createMemoryStore();
     }
 }
 

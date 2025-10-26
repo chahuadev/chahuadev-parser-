@@ -30,7 +30,7 @@ class BinaryScout {
             const error = new Error('BinaryScout requires valid tokens array');
             error.name = 'ValidationError';
             error.isOperational = true;
-            reportError(BinaryCodes.VALIDATOR.VALIDATION(5001), {
+            reportError(BinaryCodes.VALIDATOR.VALIDATION(1019), {
                 method: 'constructor',
                 message: 'BinaryScout requires valid tokens array',
                 error: error,
@@ -44,7 +44,7 @@ class BinaryScout {
             const error = new Error('BinaryScout requires valid grammarIndex');
             error.name = 'ValidationError';
             error.isOperational = true;
-            reportError(BinaryCodes.VALIDATOR.VALIDATION(5002), {
+            reportError(BinaryCodes.VALIDATOR.VALIDATION(1026), {
                 method: 'constructor',
                 message: 'BinaryScout requires valid grammarIndex',
                 error: error
@@ -72,7 +72,7 @@ class BinaryScout {
         } catch (error) {
             // FIX: Binary Error Pattern
             error.isOperational = true;
-            reportError(BinaryCodes.SYSTEM.CONFIGURATION(5003), {
+            reportError(BinaryCodes.SYSTEM.CONFIGURATION(1009), {
                 method: 'constructor',
                 message: 'Failed to initialize binary cache',
                 error: error,
@@ -120,7 +120,7 @@ class BinaryScout {
         } catch (error) {
             // FIX: Binary Error Pattern
             error.isOperational = true;
-            reportError(BinaryCodes.PARSER.SYNTAX(5004), {
+            reportError(BinaryCodes.PARSER.SYNTAX(1030), {
                 method: 'scanStructure',
                 message: 'Structure scan failed',
                 error: error,

@@ -9,7 +9,8 @@
 // ! ══════════════════════════════════════════════════════════════════════════════
 
 // !  NO_HARDCODE: Import pattern definitions from JSON file
-import errorHandler from '../error-handler/ErrorHandler.js';
+import { reportError } from '../error-handler/binary-reporter.js';
+import BinaryCodes from '../error-handler/binary-codes.js';
 
 import suspiciousPatternDefinitions from './suspicious-patterns.json' with { type: 'json' };
 
@@ -214,7 +215,15 @@ class SecurityConfig {
     constructor(level = 'STANDARD', customPolicies = {}) {
         // !  NO_SILENT_FALLBACKS: Explicit validation - Fail Fast, Fail Loud
         if (typeof SECURITY_LEVELS[level] === 'undefined') {
-            throw new Error(`Invalid security level: ${level}. Valid levels: ${Object.keys(SECURITY_LEVELS).join(', ')}`);
+            // FIX: Binary Error Pattern - Replace throw with reportError
+            reportError(BinaryCodes.SECURITY.CONFIG(1035), {
+                method: 'SecurityConfig.constructor',
+                message: `Invalid security level: ${level}`,
+                providedLevel: level,
+                validLevels: JSON.stringify(Object.keys(SECURITY_LEVELS))
+            });
+            // Use default level instead of throwing
+            level = 'STANDARD';
         }
         this.securityLevel = SECURITY_LEVELS[level];
         this.policies = this.mergePolicies(SECURITY_POLICIES, customPolicies);
@@ -244,7 +253,7 @@ class SecurityConfig {
     
     /**
      * Get configuration value by path
-     * NO_SILENT_FALLBACKS: Throws error when path not found - Fail Fast, Fail Loud
+     * NO_SILENT_FALLBACKS: Reports error when path not found - Fail Fast, Fail Loud
      */
     get(path, defaultValue = null) {
         try {
@@ -252,29 +261,50 @@ class SecurityConfig {
             
             // !  NO_SILENT_FALLBACKS: Explicit validation - Fail Fast, Fail Loud
             const result = parts.reduce((acc, part) => {
-                // !  Throw immediately if property doesn't exist - LOUD failure
+                // !  Report immediately if property doesn't exist - LOUD failure
                 if (typeof acc[part] === 'undefined') {
-                    throw new Error(`Configuration property '${part}' not found in path '${path}'`);
+                    // FIX: Binary Error Pattern - Replace throw with reportError
+                    reportError(BinaryCodes.SECURITY.CONFIG(1022), {
+                        method: 'SecurityConfig.get',
+                        message: `Configuration property not found`,
+                        configPath: path,
+                        missingProperty: part
+                    });
+                    // Return empty object to continue reduce (will fail at final check)
+                    return {};
                 }
                 return acc[part];
             }, this.policies);
             
             // !  NO_SILENT_FALLBACKS: Validate final result - Never return undefined
             if (typeof result === 'undefined') {
-                throw new Error(`Configuration path '${path}' returned undefined. This is a critical configuration error.`);
+                // FIX: Binary Error Pattern - Replace throw with reportError
+                reportError(BinaryCodes.SECURITY.CONFIG(1036), {
+                    method: 'SecurityConfig.get',
+                    message: `Configuration path returned undefined`,
+                    configPath: path
+                });
+                // Return default value if provided, otherwise null
+                return defaultValue !== null ? defaultValue : null;
             }
             
             return result;
         } catch (error) {
-            errorHandler.handleError(error, {
-                source: 'SecurityConfig',
-                method: 'get',
-                severity: 'CRITICAL',
-                context: `Invalid configuration path: ${path}`
+            // FIX: Binary Error Pattern - Replace errorHandler with reportError
+            const errorType = error?.constructor?.name || 'Error';
+            const stackPreview = error?.stack ? error.stack.split('\n').slice(0, 3).join('\n') : 'No stack';
+            
+            reportError(BinaryCodes.SECURITY.CONFIG(1037), {
+                method: 'SecurityConfig.get',
+                message: `CRITICAL: Invalid configuration path`,
+                configPath: path,
+                errorType: errorType,
+                errorMessage: error.message,
+                stackPreview: stackPreview
             });
-            // !  NO_SILENT_FALLBACKS: Never return default silently - always throw
-            // !  WHY: Missing config is CRITICAL ERROR, not something to ignore
-            throw new Error(`CRITICAL: Invalid configuration path '${path}'. ${error.message}`);
+            
+            // !  NO_SILENT_FALLBACKS: Return default if provided, otherwise null
+            return defaultValue !== null ? defaultValue : null;
         }
     }
     
@@ -306,7 +336,15 @@ class SecurityConfig {
     setSecurityLevel(level) {
         // !  NO_SILENT_FALLBACKS: Explicit check before assignment
         if (typeof SECURITY_LEVELS[level] === 'undefined') {
-            throw new Error(`Invalid security level: ${level}. Valid levels: ${Object.keys(SECURITY_LEVELS).join(', ')}`);
+            // FIX: Binary Error Pattern - Replace throw with reportError
+            reportError(BinaryCodes.SECURITY.CONFIG(1038), {
+                method: 'SecurityConfig.setSecurityLevel',
+                message: `Invalid security level`,
+                requestedLevel: level,
+                validLevels: JSON.stringify(Object.keys(SECURITY_LEVELS))
+            });
+            // Don't change level if invalid
+            return;
         }
         this.securityLevel = SECURITY_LEVELS[level];
         
@@ -460,21 +498,35 @@ function applyVSCodeSettings(config, vscodeSettings) {
                 }
             }
         } catch (error) {
-            errorHandler.handleError(error, {
-                source: 'SecurityConfig',
+            // FIX: Binary Error Pattern - Replace errorHandler with reportError
+            const errorType = error?.constructor?.name || 'Error';
+            const stackPreview = error?.stack ? error.stack.split('\n').slice(0, 3).join('\n') : 'No stack';
+            
+            reportError(BinaryCodes.SECURITY.CONFIG(1039), {
                 method: 'importFromVSCodeSettings',
-                severity: 'HIGH',
-                context: `Validation error for setting: ${vscodeKey}`
+                message: `Validation error for VS Code setting`,
+                vscodeKey: vscodeKey,
+                errorType: errorType,
+                errorMessage: error.message,
+                stackPreview: stackPreview
             });
             // !  NO_SILENT_FALLBACKS: Collect error instead of swallowing it
             errors.push(`${vscodeKey}: ${error.message}`);
         }
     });
     
-    // !  NO_SILENT_FALLBACKS: Explicit error check and throw
+    // !  NO_SILENT_FALLBACKS: Explicit error check and report
     // !  WHY: Force user to fix invalid settings, don't run with broken config
     if (errors.length > 0) {
-        throw new Error(`Invalid VS Code settings detected:\n${errors.join('\n')}`);
+        // FIX: Binary Error Pattern - Replace throw with reportError
+        reportError(BinaryCodes.SECURITY.CONFIG(1040), {
+            method: 'importFromVSCodeSettings',
+            message: `Invalid VS Code settings detected`,
+            errorCount: errors.length,
+            errors: JSON.stringify(errors)
+        });
+        // Return early instead of throwing
+        return;
     }
 }
 

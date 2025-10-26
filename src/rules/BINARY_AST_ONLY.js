@@ -15,6 +15,7 @@
 
 import { RULE_IDS, resolveRuleSlug } from '../constants/rule-constants.js';
 import { RULE_SEVERITY_FLAGS } from '../constants/severity-constants.js';
+import { patternBasedCheck } from './rule-checker.js';
 
 const RULE_ID = RULE_IDS.BINARY_AST_ONLY;
 const RULE_SLUG = resolveRuleSlug(RULE_ID);
@@ -82,6 +83,11 @@ const ABSOLUTE_RULES = {
         fix: {
             en: 'Refactor modules to consume binary AST helpers (`decodeNodeTable`, `iterateBinaryAst`) and remove direct AST object access.',
             th: 'ปรับโมดูลให้ใช้ตัวช่วย Binary AST (`decodeNodeTable`, `iterateBinaryAst`) และเลิกเข้าถึง AST object โดยตรง'
+        },
+        
+        // ! CHECK FUNCTION: Use shared pattern-based checker
+        check(ast, code, fileName) {
+            return patternBasedCheck(this, ast, code, fileName);
         }
     }
 };

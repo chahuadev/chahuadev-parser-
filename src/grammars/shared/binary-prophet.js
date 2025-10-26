@@ -39,7 +39,7 @@ class BinaryProphet {
             // FIX: Binary Error Pattern
             const error = new Error('BinaryProphet requires a GrammarIndex instance');
             error.isOperational = false;
-            reportError(BinaryCodes.SYSTEM.CONFIGURATION(6001), {
+            reportError(BinaryCodes.SYSTEM.CONFIGURATION(1014), {
                 method: 'constructor',
                 message: 'BinaryProphet requires a GrammarIndex instance',
                 error: error
@@ -93,7 +93,7 @@ class BinaryProphet {
         const successfulUniverses = hypotheses.filter(hypothesis => hypothesis.success);
         if (successfulUniverses.length === 0) {
             // FIX: Binary Error Pattern
-            reportError(BinaryCodes.PARSER.VALIDATION(6002), {
+            reportError(BinaryCodes.PARSER.VALIDATION(1025), {
                 method: 'speculateObjectProperty',
                 message: 'Prophet speculation unable to resolve ambiguity',
                 context: {
@@ -156,7 +156,7 @@ class BinaryProphet {
         } catch (error) {
             // FIX: Binary Error Pattern
             error.isOperational = true;
-            reportError(BinaryCodes.PARSER.VALIDATION(6003), {
+            reportError(BinaryCodes.PARSER.VALIDATION(1029), {
                 method: 'simulateTraditionalMethod',
                 message: 'Traditional method simulation failed',
                 error: error,

@@ -16,12 +16,14 @@ import { ABSOLUTE_RULES, ValidationEngine } from './src/rules/validator.js';
 import { SecurityManager } from './src/security/security-manager.js';
 import { coerceRuleId, resolveRuleSlug } from './src/constants/rule-constants.js';
 import { RULE_SEVERITY_FLAGS, coerceRuleSeverity, resolveRuleSeveritySlug } from './src/constants/severity-constants.js';
-import { handleSystemError, handleValidationError, handleIOError, reportError } from './src/error-handler/binary-reporter.js';
+import { report } from './src/error-handler/universal-reporter.js';
 import BinaryCodes from './src/error-handler/binary-codes.js';
 import { ErrorCollector } from './src/error-handler/error-collector.js';
 
 import fs from 'fs';
-import path from 'path';// Load CLI configuration from JSON 
+import path from 'path';
+
+// Load CLI configuration from JSON 
 const cliConfig = JSON.parse(
     fs.readFileSync(new URL('./cli-config.json', import.meta.url), 'utf8')
 );
@@ -79,8 +81,13 @@ class ChahuadevCLI {
             console.log(cliConfig.messages.cliInitialized);
             return true;
         } catch (error) {
-            // FIX: Binary Error Pattern
-            handleSystemError('CONFIGURATION', 1001, error);
+            // ! ══════════════════════════════════════════════════════════════
+            // ! FIX: Universal Reporter - Auto-capture context + serialize
+            // ! ══════════════════════════════════════════════════════════════
+            report(BinaryCodes.SYSTEM.CONFIGURATION(15001), { error }, {
+                collect: true,
+                collector: this.errorCollector
+            });
             return false;
         }
     }
@@ -128,15 +135,11 @@ ${cliConfig.helpText.footer}`);
             }
             
             if (!fs.existsSync(filePath)) {
-                // ! ERROR COLLECTOR: เก็บ error แต่ไม่ throw (ทำงานต่อไป)
-                this.errorCollector.collect(
-                    BinaryCodes.IO.RESOURCE_NOT_FOUND(2001),
-                    { 
-                        method: 'scanFile',
-                        message: `File not found: ${filePath}`,
-                        fileName: filePath
-                    }
-                );
+                // ! FIX: Universal Reporter - Auto-capture + collect
+                report(BinaryCodes.IO.RESOURCE_NOT_FOUND(15002), { filePath }, {
+                    collect: true,
+                    collector: this.errorCollector
+                });
                 return { fileName: filePath, violations: [], success: false, error: 'FILE_NOT_FOUND' };
             }
 
@@ -151,24 +154,12 @@ ${cliConfig.helpText.footer}`);
 
             return results;
         } catch (error) {
-            // ! ERROR COLLECTOR: เก็บ error แทน throw
-            this.errorCollector.collect(
-                BinaryCodes.VALIDATOR.LOGIC(3001),
-                {
-                    method: 'scanFile',
-                    message: `Failed to scan file: ${error.message}`,
-                    fileName: filePath,
-                    error: error
-                }
-            );
-            
-            // ! NO_SILENT_FALLBACKS: Return error result แทน throw
-            return { 
-                fileName: filePath, 
-                violations: [], 
-                success: false, 
-                error: error.message 
-            };
+            // ! FIX: Universal Reporter - Auto-capture + collect
+            report(BinaryCodes.VALIDATOR.LOGIC(15003), { error, filePath }, {
+                collect: true,
+                collector: this.errorCollector
+            });
+            return { fileName: filePath, violations: [], success: false, error: error.message || String(error) };
         }
     }
 
@@ -197,7 +188,7 @@ ${cliConfig.helpText.footer}`);
             
             if (!options.quiet && options.verbose) {
                 console.log(`\n${cliConfig.messages.scanningFiles} (${files.length} files)`);
-                console.log(`📊 Error Collector: Streaming mode enabled (non-throwing)`);
+                console.log(`Error Collector: Streaming mode enabled (non-throwing)`);
             }
             
             const results = [];
@@ -207,32 +198,19 @@ ${cliConfig.helpText.footer}`);
                     const result = await this.scanFile(file, options);
                     results.push({ file, ...result });
                 } catch (fileError) {
-                    // ! ERROR COLLECTOR: เก็บ error แต่ทำงานต่อ
-                    this.errorCollector.collect(
-                        BinaryCodes.VALIDATOR.LOGIC(4001),
-                        {
-                            method: 'scanPattern',
-                            message: `Critical error scanning file: ${fileError.message}`,
-                            fileName: file,
-                            error: fileError
-                        }
-                    );
-                    
-                    // เพิ่ม error result แต่ไม่หยุด
-                    results.push({ 
-                        file, 
-                        fileName: file,
-                        violations: [], 
-                        success: false, 
-                        error: fileError.message 
+                    // ! FIX: Universal Reporter - Auto-capture + collect
+                    report(BinaryCodes.VALIDATOR.LOGIC(15004), { error: fileError, file }, {
+                        collect: true,
+                        collector: this.errorCollector
                     });
+                    results.push({ file, fileName: file, violations: [], success: false, error: fileError.message || String(fileError) });
                 }
             }
 
             // ! SUMMARY: Show error collector stats
             if (!options.quiet && options.verbose) {
                 const report = this.errorCollector.generateReport();
-                console.log(`\n📊 Error Collection Summary:`);
+                console.log(`\n Error Collection Summary:`);
                 console.log(`   Total Errors: ${report.summary.totalErrors}`);
                 console.log(`   Total Warnings: ${report.summary.totalWarnings}`);
                 console.log(`   Duration: ${report.summary.duration}`);
@@ -241,18 +219,11 @@ ${cliConfig.helpText.footer}`);
 
             return results;
         } catch (error) {
-            // ! ERROR COLLECTOR: เก็บ critical error
-            this.errorCollector.collect(
-                BinaryCodes.SYSTEM.RUNTIME(5001),
-                {
-                    method: 'scanPattern',
-                    message: `Pattern scan failed: ${error.message}`,
-                    pattern,
-                    error: error
-                }
-            );
-            
-            // Return empty results แทน throw
+            // ! FIX: Universal Reporter - Auto-capture + collect
+            report(BinaryCodes.SYSTEM.RUNTIME(15005), { error, pattern }, {
+                collect: true,
+                collector: this.errorCollector
+            });
             return [];
         } finally {
             this.currentScanOptions = null;
@@ -385,18 +356,13 @@ ${cliConfig.helpText.footer}`);
             try {
                 entries = fs.readdirSync(resolvedDir, { withFileTypes: true });
             } catch (error) {
-                // ! ERROR COLLECTOR: เก็บ error แต่ทำงานต่อ
-                this.errorCollector.warn(
-                    BinaryCodes.IO.RESOURCE_UNAVAILABLE(6001),
-                    {
-                        method: 'findFilesRecursive',
-                        message: `Cannot read directory: ${resolvedDir}`,
-                        directory: resolvedDir,
-                        error: error
-                    }
-                );
+                // ! FIX: Universal Reporter - Auto-capture + warn (collect)
+                report(BinaryCodes.IO.RESOURCE_UNAVAILABLE(15006), { error, directory: resolvedDir }, {
+                    collect: true,
+                    collector: this.errorCollector
+                });
                 errorCount++;
-                return; // หยุดการทำงานใน path นี้ แต่ไม่หยุดทั้งโปรแกรม
+                return;
             }
 
             for (const entry of entries) {
@@ -413,16 +379,11 @@ ${cliConfig.helpText.footer}`);
                         }
                     }
                 } catch (itemError) {
-                    // ! ERROR COLLECTOR: เก็บ error แต่ทำงานต่อ
-                    this.errorCollector.warn(
-                        BinaryCodes.IO.RESOURCE_UNAVAILABLE(7001),
-                        {
-                            method: 'findFilesRecursive',
-                            message: `Cannot access: ${fullPath}`,
-                            filePath: fullPath,
-                            error: itemError
-                        }
-                    );
+                    // ! FIX: Universal Reporter - Auto-capture + warn (collect)
+                    report(BinaryCodes.IO.RESOURCE_UNAVAILABLE(15007), { error: itemError, filePath: fullPath }, {
+                        collect: true,
+                        collector: this.errorCollector
+                    });
                     errorCount++;
                 }
             }
@@ -447,15 +408,11 @@ ${cliConfig.helpText.footer}`);
                 }
             }
         } else {
-            // ! ERROR COLLECTOR: เก็บ error แต่ไม่ throw
-            this.errorCollector.warn(
-                BinaryCodes.IO.RESOURCE_NOT_FOUND(8001),
-                {
-                    method: 'findFilesRecursive',
-                    message: `Path not found: ${pattern}`,
-                    pattern
-                }
-            );
+            // ! FIX: Universal Reporter - Auto-capture + warn (collect)
+            report(BinaryCodes.IO.RESOURCE_NOT_FOUND(15008), { pattern }, {
+                collect: true,
+                collector: this.errorCollector
+            });
             return files;
         }
 
@@ -488,7 +445,7 @@ ${cliConfig.helpText.footer}`);
         } else {
             if (!options.quiet) {
                 console.log('\n' + '='.repeat(70));
-                console.log('📊 SCAN SUMMARY');
+                console.log(' SCAN SUMMARY');
                 console.log('='.repeat(70));
                 console.log(`Files Scanned:     ${this.stats.processedFiles}/${this.stats.totalFiles}`);
                 console.log(`Violations Found:  ${this.stats.totalViolations}`);
@@ -498,11 +455,11 @@ ${cliConfig.helpText.footer}`);
                 console.log('='.repeat(70));
                 
                 if (hasViolations || hasCollectedErrors) {
-                    console.log('\n❌ Validation FAILED');
+                    console.log('\n Validation FAILED');
                     console.log('   Check logs/errors/*.log for detailed error information');
                     
                     if (hasCollectedErrors) {
-                        console.log(`\n🔍 Top Errors by File:`);
+                        console.log(`\n Top Errors by File:`);
                         const byFile = errorReport.byFile;
                         const topFiles = Object.entries(byFile)
                             .sort((a, b) => b[1].length - a[1].length)
@@ -513,7 +470,7 @@ ${cliConfig.helpText.footer}`);
                         });
                     }
                 } else {
-                    console.log('\n✅ Validation PASSED - No violations found');
+                    console.log('\n Validation PASSED - No violations found');
                 }
             }
         }
@@ -588,8 +545,8 @@ async function main() {
         return exitCode;
         
     } catch (error) {
-        // FIX: Binary Error Pattern
-        handleSystemError('RUNTIME', 9001, error);
+        // ! FIX: Universal Reporter - Auto-capture (no collect needed - main error)
+        report(BinaryCodes.SYSTEM.RUNTIME(15009), { error, args, patterns });
         return 1;
     }
 }
@@ -606,8 +563,8 @@ if (import.meta.url === `file:///${process.argv[1].replace(/\\/g, '/')}` ||
     main().then(exitCode => {
         return flushAndExit(exitCode ?? 0);
     }).catch(async error => {
-        // FIX: Binary Error Pattern
-        handleSystemError('RUNTIME', 9999, error);
+        // ! FIX: Universal Reporter - Auto-capture (critical unhandled rejection)
+        report(BinaryCodes.SYSTEM.RUNTIME(15010), { error });
         await flushAndExit(1);
     });
 }

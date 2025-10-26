@@ -15,6 +15,7 @@
 // ! ======================================================================
 import { RULE_IDS, resolveRuleSlug } from '../constants/rule-constants.js';
 import { RULE_SEVERITY_FLAGS } from '../constants/severity-constants.js';
+import { patternBasedCheck } from './rule-checker.js';
 
 const RULE_ID = RULE_IDS.NO_MOCKING;
 const RULE_SLUG = resolveRuleSlug(RULE_ID);
@@ -1028,6 +1029,11 @@ const ABSOLUTE_RULES = {
         fix: {
             en: 'Remove mocking and use Dependency Injection: Pass dependencies as function parameters.',
             th: 'ลบ mock ออกและใช้ Dependency Injection: ส่ง dependencies เป็น parameter ของฟังก์ชัน'
+        },
+        
+        // ! CHECK FUNCTION: Use shared pattern-based checker
+        check(ast, code, fileName) {
+            return patternBasedCheck(this, ast, code, fileName);
         }
     }
 };

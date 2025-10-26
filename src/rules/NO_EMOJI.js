@@ -15,6 +15,7 @@
 // ! ======================================================================
 import { RULE_IDS, resolveRuleSlug } from '../constants/rule-constants.js';
 import { RULE_SEVERITY_FLAGS } from '../constants/severity-constants.js';
+import { patternBasedCheck } from './rule-checker.js';
 
 const RULE_ID = RULE_IDS.NO_EMOJI;
 const RULE_SLUG = resolveRuleSlug(RULE_ID);
@@ -418,8 +419,10 @@ const ABSOLUTE_RULES = {
             { regex: /[\u{1FB00}-\u{1FBFF}]/gu, name: 'Symbols Extended-B (U+1FB00-U+1FBFF) - Unicode 15+', severity: RULE_SEVERITY_ERROR },
 
             // ═══════════════════════════════════════════════════════════════════
-            // EXTENDED SYMBOL RANGES - จับสัญลักษณ์พิเศษทั้งหมด
+            // EXTENDED SYMBOL RANGES - จับสัญลักษณ์พิเศษทั้งหมด (ยกเว้น Box Drawing)
             // ═══════════════════════════════════════════════════════════════════
+            // ! FIXED: Exclude Box Drawing (U+2500-U+257F) and Block Elements (U+2580-U+259F)
+            // ! These are legitimate ASCII art characters, NOT emoji
             { regex: /[\u{2600}-\u{26FF}]/gu, name: 'Miscellaneous Symbols (U+2600-U+26FF) - sun, star, weather', severity: RULE_SEVERITY_ERROR },
             { regex: /[\u{2700}-\u{27BF}]/gu, name: 'Dingbats (U+2700-U+27BF) - scissors, checkmarks, arrows', severity: RULE_SEVERITY_ERROR },
             { regex: /[\u{1F1E0}-\u{1F1FF}]/gu, name: 'Regional Indicator (U+1F1E0-U+1F1FF) - flag letters', severity: RULE_SEVERITY_ERROR },
@@ -482,41 +485,12 @@ const ABSOLUTE_RULES = {
             { regex: /\\u1F[0-9A-Fa-f]{2}[0-9A-Fa-f]/g, name: 'Unicode escape for emoji (\\u1F...)', severity: RULE_SEVERITY_ERROR },
             { regex: /\\x{1F[0-9A-Fa-f]+}/g, name: 'Hex escape for emoji (\\x{1F...})', severity: RULE_SEVERITY_ERROR },
 
-            // ═══════════════════════════════════════════════════════════════════
-            // COMMON EMOJI IN STRING LITERALS - จับ emoji ที่มักใช้ใน string
-            // ═══════════════════════════════════════════════════════════════════
-            { regex: /["'].*[\u{1F600}-\u{1F64F}].*["']/gu, name: 'String containing face emoji', severity: RULE_SEVERITY_ERROR },
-            { regex: /["'].*[\u{2764}\u{1F49C}\u{1F49B}\u{1F49A}\u{1F499}\u{1F9E1}].*["']/gu, name: 'String containing heart emoji', severity: RULE_SEVERITY_ERROR },
-            { regex: /["'].*[\u{1F44D}\u{1F44E}\u{1F44F}\u{1F590}].*["']/gu, name: 'String containing hand gesture emoji', severity: RULE_SEVERITY_ERROR },
-            { regex: /["'].*[\u{1F525}\u{1F4A5}\u{2728}\u{1F31F}].*["']/gu, name: 'String containing fire/sparkle emoji', severity: RULE_SEVERITY_ERROR },
+            // ! REMOVED: String/Comment context patterns - ซ้ำซ้อนและช้า (ใช้ general patterns ด้านล่างแทน)
+            // ! REMOVED: Variable/Function name patterns - AST-based rules จับได้อยู่แล้ว
+            // ! REMOVED: Miscellaneous Symbols and Arrows (U+2B00-U+2BFF) - ใช้ในโค้ดได้
 
-            // ═══════════════════════════════════════════════════════════════════
-            // COMMENT EMOJI - จับ emoji ใน comments
-            // ═══════════════════════════════════════════════════════════════════
-            { regex: /\/\/.*[\u{1F600}-\u{1F64F}]/gu, name: 'Single-line comment containing emoji', severity: RULE_SEVERITY_ERROR },
-            { regex: /\/\*[\s\S]*[\u{1F600}-\u{1F64F}][\s\S]*\*\//gu, name: 'Multi-line comment containing emoji', severity: RULE_SEVERITY_ERROR },
-            { regex: /#.*[\u{1F600}-\u{1F64F}]/gu, name: 'Hash comment containing emoji (Python, Shell)', severity: RULE_SEVERITY_ERROR },
-
-            // ═══════════════════════════════════════════════════════════════════
-            // VARIABLE NAMES WITH EMOJI - จับชื่อตัวแปรที่มี emoji
-            // ═══════════════════════════════════════════════════════════════════
-            { regex: /(?:const|let|var)\s+\w*[\u{1F600}-\u{1F64F}]\w*/gu, name: 'Variable name containing emoji', severity: RULE_SEVERITY_ERROR },
-            { regex: /function\s+\w*[\u{1F600}-\u{1F64F}]\w*/gu, name: 'Function name containing emoji', severity: RULE_SEVERITY_ERROR },
-            { regex: /class\s+\w*[\u{1F600}-\u{1F64F}]\w*/gu, name: 'Class name containing emoji', severity: RULE_SEVERITY_ERROR },
-            { regex: /[\u{1F100}-\u{1F1FF}]/gu, name: 'Enclosed Alphanumeric Supplement', severity: RULE_SEVERITY_ERROR },
-            { regex: /[\u{2B00}-\u{2BFF}]/gu, name: 'Miscellaneous Symbols and Arrows', severity: RULE_SEVERITY_ERROR },
-
-            // ═══════════════════════════════════════════════════════════════════
-            // MATHEMATICAL & TECHNICAL SYMBOLS - จับสัญลักษณ์ทางคณิตศาสตร์
-            // ═══════════════════════════════════════════════════════════════════
-            { regex: /[\u{2190}-\u{21FF}]/gu, name: 'Arrows (U+2190-U+21FF) - directional symbols', severity: RULE_SEVERITY_ERROR },
-            { regex: /[\u{2200}-\u{22FF}]/gu, name: 'Mathematical Operators (U+2200-U+22FF)', severity: RULE_SEVERITY_ERROR },
-            { regex: /[\u{2300}-\u{23FF}]/gu, name: 'Miscellaneous Technical (U+2300-U+23FF)', severity: RULE_SEVERITY_ERROR },
-            { regex: /[\u{2460}-\u{24FF}]/gu, name: 'Enclosed Alphanumerics (U+2460-U+24FF)', severity: RULE_SEVERITY_ERROR },
-            { regex: /[\u{25A0}-\u{25FF}]/gu, name: 'Geometric Shapes (U+25A0-U+25FF)', severity: RULE_SEVERITY_ERROR },
-            { regex: /[\u{2900}-\u{297F}]/gu, name: 'Supplemental Arrows-A', severity: RULE_SEVERITY_ERROR },
-            { regex: /[\u{2980}-\u{29FF}]/gu, name: 'Miscellaneous Mathematical Symbols-A', severity: RULE_SEVERITY_ERROR },
-            { regex: /[\u{2A00}-\u{2AFF}]/gu, name: 'Supplemental Mathematical Operators', severity: RULE_SEVERITY_ERROR },
+            // ! REMOVED: Mathematical & Technical symbols - ใช้ในโค้ดได้ (arrows, math operators, geometric shapes)
+            // ! Lines 514-521: Arrows (U+2190-U+21FF), Math (U+2200-U+22FF), Technical (U+2300-U+23FF), etc.
 
             // ═══════════════════════════════════════════════════════════════════
             // ASIAN & SPECIAL SYMBOLS - จับสัญลักษณ์เอเชียและพิเศษ
@@ -529,28 +503,20 @@ const ABSOLUTE_RULES = {
             { regex: /[\u{1F0CF}]/gu, name: 'Playing card (U+1F0CF)', severity: RULE_SEVERITY_ERROR },
 
             // ═══════════════════════════════════════════════════════════════════
-            // EMOJI MODIFIERS & COMPONENTS - จับส่วนประกอบอิโมจิ
+            // EMOJI MODIFIERS & COMPONENTS - เก็บเฉพาะ skin tone modifiers
             // ═══════════════════════════════════════════════════════════════════
             { regex: /[\u{1F3FB}-\u{1F3FF}]/gu, name: 'Skin tone modifiers (U+1F3FB-U+1F3FF) - light to dark', severity: RULE_SEVERITY_ERROR },
-            { regex: /[\u{FE00}-\u{FE0F}]/gu, name: 'Variation Selectors (U+FE00-U+FE0F) - emoji vs text', severity: RULE_SEVERITY_ERROR },
-            { regex: /[\u{200D}]/gu, name: 'Zero Width Joiner (U+200D ZWJ) - combines emoji', severity: RULE_SEVERITY_ERROR },
-            { regex: /[\u{20E3}]/gu, name: 'Combining Enclosing Keycap (U+20E3)', severity: RULE_SEVERITY_ERROR },
-            { regex: /[\u{E0020}-\u{E007F}]/gu, name: 'Tag characters (U+E0020-U+E007F) - for flag emoji', severity: RULE_SEVERITY_ERROR },
+
+            // ! REMOVED: Variation Selectors (U+FE00-U+FE0F) - control characters, ใช้ในโค้ดได้
+            // ! REMOVED: Zero Width Joiner (U+200D) - combining character, ใช้ในโค้ดได้
+            // ! REMOVED: Keycap (U+20E3) - combining character
+            // ! REMOVED: Tag characters (U+E0020-U+E007F) - control characters
+
+            // ! REMOVED: Complex ZWJ sequences - ซับซ้อนเกินไป, false positives สูง
+            // ! Lines 546-563: Man technologist, Woman office worker, etc.
 
             // ═══════════════════════════════════════════════════════════════════
-            // COMPLEX ZWJ SEQUENCES - จับอิโมจิซับซ้อนที่รวมกัน
-            // ═══════════════════════════════════════════════════════════════════
-            { regex: /\u{1F468}\u{200D}\u{1F4BB}/gu, name: 'Man technologist ZWJ sequence', severity: RULE_SEVERITY_ERROR },
-            { regex: /\u{1F469}\u{200D}\u{1F4BC}/gu, name: 'Woman office worker ZWJ sequence', severity: RULE_SEVERITY_ERROR },
-            { regex: /\u{1F468}\u{200D}\u{1F680}/gu, name: 'Man astronaut ZWJ sequence', severity: RULE_SEVERITY_ERROR },
-            { regex: /\u{1F469}\u{200D}\u{1F680}/gu, name: 'Woman astronaut ZWJ sequence', severity: RULE_SEVERITY_ERROR },
-            { regex: /\u{1F468}\u{200D}\u{1F692}/gu, name: 'Man firefighter ZWJ sequence', severity: RULE_SEVERITY_ERROR },
-            { regex: /\u{1F469}\u{200D}\u{1F692}/gu, name: 'Woman firefighter ZWJ sequence', severity: RULE_SEVERITY_ERROR },
-            { regex: /\u{1F3F3}\u{FE0F}\u{200D}\u{1F308}/gu, name: 'Rainbow flag ZWJ sequence', severity: RULE_SEVERITY_ERROR },
-            { regex: /\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}\u{200D}\u{1F466}/gu, name: 'Family ZWJ sequence', severity: RULE_SEVERITY_ERROR },
-
-            // ═══════════════════════════════════════════════════════════════════
-            // HEART VARIATIONS - จับหัวใจทุกสี (มักใช้ใน comment)
+            // HEART VARIATIONS - จับหัวใจทุกสี (emoji จริงๆ)
             // ═══════════════════════════════════════════════════════════════════
             { regex: /\u{2764}\u{FE0F}/gu, name: 'Red heart with variation (U+2764 U+FE0F)', severity: RULE_SEVERITY_ERROR },
             { regex: /\u{2764}/gu, name: 'Red heart (U+2764)', severity: RULE_SEVERITY_ERROR },
@@ -563,18 +529,9 @@ const ABSOLUTE_RULES = {
             { regex: /\u{1F90D}/gu, name: 'White heart (U+1F90D)', severity: RULE_SEVERITY_ERROR },
             { regex: /\u{1F90E}/gu, name: 'Brown heart (U+1F90E)', severity: RULE_SEVERITY_ERROR },
 
-            // ═══════════════════════════════════════════════════════════════════
-            // HTML ENTITIES - จับอิโมจิในรูปแบบ HTML
-            // ═══════════════════════════════════════════════════════════════════
-            { regex: /&#x1F[0-9A-Fa-f]{3,4};/g, name: 'Hex HTML emoji entity ()', severity: RULE_SEVERITY_ERROR },
-            { regex: /&#1[0-9]{4,6};/g, name: 'Decimal HTML emoji entity ()', severity: RULE_SEVERITY_ERROR },
-            { regex: /&(?:hearts?|spades?|clubs?|diams?|star|check|cross|times);/gi, name: 'Named HTML symbol entities', severity: RULE_SEVERITY_ERROR },
+            // ! REMOVED: HTML entities - ไม่ใช้ใน source code (จับใน template strings ได้อยู่แล้ว)
 
-            // ═══════════════════════════════════════════════════════════════════
-            // CATCH-ALL COMPREHENSIVE PATTERNS - จับทุกอย่างที่เหลือ
-            // ═══════════════════════════════════════════════════════════════════
-            { regex: /[\u{1F000}-\u{1FFFF}]/gu, name: 'Complete emoji plane (U+1F000-U+1FFFF)', severity: RULE_SEVERITY_ERROR },
-            { regex: /[\u{2600}-\u{27FF}]/gu, name: 'Extended symbol coverage (U+2600-U+27FF)', severity: RULE_SEVERITY_ERROR },
+            // ! REMOVED: Catch-all patterns - ซ้ำซ้อนกับ specific patterns ด้านล่าง
 
             // ═══════════════════════════════════════════════════════════════════
             // SPECIFIC COMMON EMOJI - จับอิโมจิที่ใช้บ่อยโดยเฉพาะ
@@ -834,6 +791,11 @@ const ABSOLUTE_RULES = {
         fix: {
             en: 'Replace emoji with descriptive text. Examples: U+2705 checkmark -> "SUCCESS", U+274C cross -> "FAILED", U+1F680 rocket -> "DEPLOY", U+1F41B bug -> "BUG", U+1F4DD memo -> "NOTE", U+26A0 warning -> "WARNING"',
             th: 'แทนที่อิโมจิด้วยข้อความอธิบาย ตัวอย่าง: U+2705 เครื่องหมายถูก -> "SUCCESS", U+274C กากบาท -> "FAILED", U+1F680 จรวด -> "DEPLOY", U+1F41B แมลง -> "BUG", U+1F4DD บันทึก -> "NOTE", U+26A0 คำเตือน -> "WARNING"'
+        },
+        
+        // ! CHECK FUNCTION: Use shared pattern-based checker
+        check(ast, code, fileName) {
+            return patternBasedCheck(this, ast, code, fileName);
         }
     }
 };

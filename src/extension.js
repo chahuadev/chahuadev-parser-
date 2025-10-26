@@ -92,7 +92,7 @@ function activate(context) {
                 severity: 'CRITICAL',
                 context: 'Failed to initialize validation engine'
             });
-            throw new Error(`Failed to initialize validation engine: ${error.message}`);
+            // ไม่ throw - ให้ extension ทำงานต่อแม้ parser ไม่สำเร็จ
         });
         
         // ! Create diagnostic collection for subtle blue notifications
@@ -170,7 +170,14 @@ function activate(context) {
         try {
             const results = await scanDocument(activeEditor.document);
             if (!results || !results.violations) {
-                throw new Error('Scan results are invalid or missing');
+                errorHandler.handleError(new Error('Scan results are invalid or missing'), {
+                    source: 'Extension',
+                    method: 'scanActiveFile',
+                    severity: 'MEDIUM'
+                });
+                // ไม่ throw - แสดง message แล้ว return
+                showSubtleNotification(extensionConfig.messages.fileClean);
+                return;
             }
             
             const violationCount = results.violations.length;
@@ -228,7 +235,13 @@ function activate(context) {
                     const results = await scanDocument(document);
                     
                     if (!results || !results.violations) {
-                        throw new Error(`Invalid scan results for file: ${fileName}`);
+                        errorHandler.handleError(new Error(`Invalid scan results for file: ${fileName}`), {
+                            source: 'Extension',
+                            method: 'scanWorkspace',
+                            severity: 'MEDIUM'
+                        });
+                        // ไม่ throw - skip file นี้และทำงานต่อ
+                        continue;
                     }
                     
                     totalViolations += results.violations.length;
@@ -310,7 +323,14 @@ async function scanDocument(document) {
         const diagnostics = results.violations.map(violation => {
             // ! Explicit validation instead of silent fallback
             if (!violation.location) {
-                throw new Error('Violation missing required location information');
+                errorHandler.handleError(new Error('Violation missing required location information'), {
+                    source: 'Extension',
+                    method: 'scanDocument',
+                    severity: 'MEDIUM',
+                    context: { violation }
+                });
+                // ไม่ throw - skip violation นี้โดยใช้ default location
+                return null;
             }
             
             const line = Math.max(0, (violation.location.line ?? 1) - 1);
@@ -352,7 +372,7 @@ async function scanDocument(document) {
             diagnostic.tags = getViolationTags(violation);
             
             return diagnostic;
-        });
+        }).filter(d => d !== null); // กรอง null ออก (violations ที่ไม่มี location)
         
         // ! Apply subtle blue styling by using Information severity for most issues
         const subtleDiagnostics = diagnostics.map(d => {
@@ -473,7 +493,13 @@ async function secureDocumentScan(document) {
         const readResult = await securityMiddleware.secureReadDocument(document);
         
         if (!readResult.success) {
-            throw new Error('Document security validation failed');
+            errorHandler.handleError(new Error('Document security validation failed'), {
+                source: 'Extension',
+                method: 'secureDocumentScan',
+                severity: 'HIGH'
+            });
+            // ไม่ throw - return empty result แทน
+            return { violations: [], securityIssues: [] };
         }
         
         // ! Perform content security scan

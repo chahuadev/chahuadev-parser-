@@ -84,7 +84,7 @@ class EnhancedBinaryParser extends PureBinaryParser {
                     // ! Scout ต้องรายงานข้อผิดพลาดแต่อย่าหยุดระบบ
                     // FIX: Binary Error Pattern
                     scoutError.isOperational = true;
-                    reportError(BinaryCodes.PARSER.VALIDATION(4002), {
+                    reportError(BinaryCodes.PARSER.VALIDATION(1018), {
                         method: 'parse',
                         message: 'Binary Scout failed, continuing without structure map',
                         error: scoutError,
@@ -110,7 +110,7 @@ class EnhancedBinaryParser extends PureBinaryParser {
         } catch (error) {
             // FIX: Binary Error Pattern
             error.isOperational = true;
-            reportError(BinaryCodes.PARSER.SYNTAX(4003), {
+            reportError(BinaryCodes.PARSER.SYNTAX(1033), {
                 method: 'parse',
                 message: 'Enhanced parser failed',
                 error: error,

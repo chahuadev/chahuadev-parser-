@@ -15,6 +15,7 @@
 // ! ======================================================================
 import { RULE_IDS, resolveRuleSlug } from '../constants/rule-constants.js';
 import { RULE_SEVERITY_FLAGS } from '../constants/severity-constants.js';
+import { patternBasedCheck } from './rule-checker.js';
 
 const RULE_ID = RULE_IDS.NO_CONSOLE;
 const RULE_SLUG = resolveRuleSlug(RULE_ID);
@@ -73,7 +74,12 @@ const ABSOLUTE_RULES = {
         },
         fix: {
             en: 'Replace console.* with errorHandler.handleError / handleDebug. Always supply severity from constants.js (SEVERITY_LEVELS) and pass structured context objects.',
-            th: 'แทนที่ console.* ด้วย errorHandler.handleError หรือ handleDebug ใส่ระดับความรุนแรงจาก constants.js (SEVERITY_LEVELS) และส่ง context เป็นวัตถุที่มีโครงสร้าง'
+            th: 'แทนที่ console.* ด้วย errorHandler.handleError หรือ handleDebug ใส่ระดับความรุนแรงจาม constants.js (SEVERITY_LEVELS) และส่ง context เป็นวัตถุที่มีโครงสร้าง'
+        },
+        
+        // ! CHECK FUNCTION: Use shared pattern-based checker
+        check(ast, code, fileName) {
+            return patternBasedCheck(this, ast, code, fileName);
         }
     }
 };

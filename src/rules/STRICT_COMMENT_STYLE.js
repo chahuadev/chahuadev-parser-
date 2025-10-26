@@ -8,6 +8,7 @@
 
 import { RULE_IDS, resolveRuleSlug } from '../constants/rule-constants.js';
 import { RULE_SEVERITY_FLAGS } from '../constants/severity-constants.js';
+import { patternBasedCheck } from './rule-checker.js';
 
 const RULE_ID = RULE_IDS.STRICT_COMMENT_STYLE;
 const RULE_SLUG = resolveRuleSlug(RULE_ID);
@@ -73,6 +74,11 @@ const ABSOLUTE_RULES = {
         fix: {
             en: 'Rewrite comments using the approved "// !" signature or remove unsupported block comments entirely.',
             th: 'แก้ไขคอมเมนต์ให้ขึ้นต้นด้วย "// !" หรือถอด block comment ที่ไม่ผ่านมาตรฐานออก'
+        },
+        
+        // ! CHECK FUNCTION: Use shared pattern-based checker
+        check(ast, code, fileName) {
+            return patternBasedCheck(this, ast, code, fileName);
         }
     }
 };
