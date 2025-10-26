@@ -31,7 +31,7 @@ function migrateFile(filePath, dryRun) {
     const fullPath = path.resolve(PROJECT_ROOT, filePath);
     
     if (!fs.existsSync(fullPath)) {
-        console.log(`⏭️  Skip: ${filePath} (not found)`);
+        console.log(`[SKIP] ${filePath} (not found)`);
         return { changed: false };
     }
     
@@ -46,7 +46,7 @@ function migrateFile(filePath, dryRun) {
     if (content.includes(oldImport)) {
         content = content.replace(oldImport, newImport);
         changes++;
-        console.log(`   ${dryRun ? '📝' : '✏️ '} Updated import`);
+        console.log(`   [${dryRun ? 'PREVIEW' : 'UPDATED'}] Import statement`);
     }
     
     // Handle different import paths
@@ -56,7 +56,7 @@ function migrateFile(filePath, dryRun) {
     if (content.includes(oldImport2)) {
         content = content.replace(oldImport2, newImport2);
         changes++;
-        console.log(`   ${dryRun ? '📝' : '✏️ '} Updated import (root level)`);
+        console.log(`   [${dryRun ? 'PREVIEW' : 'UPDATED'}] Import statement (root level)`);
     }
     
     // Step 2: Replace reportError() calls
@@ -67,7 +67,7 @@ function migrateFile(filePath, dryRun) {
     if (matches.length > 0) {
         content = content.replace(pattern, 'report($1, {');
         changes += matches.length;
-        console.log(`   ${dryRun ? '📝' : '✏️ '} Replaced ${matches.length} reportError() calls`);
+        console.log(`   [${dryRun ? 'PREVIEW' : 'UPDATED'}] Replaced ${matches.length} reportError() calls`);
     }
     
     if (changes > 0) {
@@ -79,7 +79,7 @@ function migrateFile(filePath, dryRun) {
             const originalLines = originalContent.split('\n');
             for (let i = 0; i < lines.length; i++) {
                 if (lines[i] !== originalLines[i]) {
-                    console.log(`   📄 Line ${i + 1}:`);
+                    console.log(`   [LINE ${i + 1}]`);
                     console.log(`      - ${originalLines[i].trim()}`);
                     console.log(`      + ${lines[i].trim()}`);
                     break;
@@ -92,7 +92,7 @@ function migrateFile(filePath, dryRun) {
     return { changed: false };
 }
 
-console.log(dryRun ? '🔍 DRY RUN - No files will be modified' : '🔄 Migrating to Universal Reporter...');
+console.log(dryRun ? '[DRY RUN] No files will be modified' : '[MIGRATION] Starting Universal Reporter migration...');
 console.log('═'.repeat(70));
 console.log();
 
@@ -100,29 +100,29 @@ let totalFiles = 0;
 let totalChanges = 0;
 
 for (const file of FILES_TO_MIGRATE) {
-    console.log(`📝 ${file}`);
+    console.log(`[FILE] ${file}`);
     const result = migrateFile(file, dryRun);
     
     if (result.changed) {
         totalFiles++;
         totalChanges += result.changes;
-        console.log(`   ${dryRun ? '📊' : '✅'} ${result.changes} changes detected\n`);
+        console.log(`   [${dryRun ? 'SUMMARY' : 'DONE'}] ${result.changes} changes detected\n`);
     } else {
-        console.log(`   ⏭️  No changes needed\n`);
+        console.log(`   [SKIP] No changes needed\n`);
     }
 }
 
 console.log('═'.repeat(70));
-console.log(`${dryRun ? '📊 SUMMARY (DRY RUN)' : '✅ Migration Complete!'}`);
+console.log(`${dryRun ? '[SUMMARY] DRY RUN COMPLETE' : '[SUCCESS] Migration Complete!'}`);
 console.log(`   Files to Update: ${totalFiles}`);
 console.log(`   Total Changes: ${totalChanges}`);
 console.log('═'.repeat(70));
 
 if (dryRun) {
-    console.log('\n💡 To apply changes, run with --apply flag:');
+    console.log('\n[INFO] To apply changes, run with --apply flag:');
     console.log('   node src/error-handler/migrate-to-universal.js --apply');
 } else {
-    console.log('\n💡 Next steps:');
+    console.log('\n[INFO] Next steps:');
     console.log('   1. Run: node src/error-handler/offset-scanner.js scan');
     console.log('   2. Test the application');
 }

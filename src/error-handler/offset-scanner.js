@@ -55,7 +55,7 @@ class OffsetScanner {
      * Scan entire project
      */
     async scan() {
-        console.log('🔍 Scanning for offset usage...\n');
+        console.log('[SCAN] Scanning for offset usage...\n');
         
         for (const target of SCAN_DIRS) {
             const targetPath = path.resolve(PROJECT_ROOT, target);
@@ -189,7 +189,7 @@ class OffsetScanner {
         for (const [offset, pairs] of offsetMap.entries()) {
             if (pairs.length > 1) {
                 this.stats.collisions++;
-                console.warn(`⚠️  Collision detected at offset ${offset}: ${pairs.join(', ')}`);
+                console.warn(`[WARNING] Collision detected at offset ${offset}: ${pairs.join(', ')}`);
             }
         }
     }
@@ -199,13 +199,13 @@ class OffsetScanner {
      */
     printSummary() {
         console.log('\n' + '═'.repeat(70));
-        console.log('📊 OFFSET SCAN SUMMARY');
+        console.log('[SUMMARY] OFFSET SCAN SUMMARY');
         console.log('═'.repeat(70));
         console.log(`Files Scanned:     ${this.stats.filesScanned}`);
         console.log(`Offsets Found:     ${this.stats.offsetsFound}`);
         console.log(`Unique Domains:    ${this.stats.domains.size} (${Array.from(this.stats.domains).join(', ')})`);
         console.log(`Unique Categories: ${this.stats.categories.size}`);
-        console.log(`Collisions:        ${this.stats.collisions} ${this.stats.collisions > 0 ? '⚠️' : '✅'}`);
+        console.log(`Collisions:        ${this.stats.collisions} ${this.stats.collisions > 0 ? '[WARNING]' : '[OK]'}`);
         console.log('═'.repeat(70));
     }
 
@@ -259,7 +259,7 @@ class OffsetScanner {
     saveRegistry(registry) {
         const outputPath = path.resolve(__dirname, 'offset-registry.json');
         fs.writeFileSync(outputPath, JSON.stringify(registry, null, 2), 'utf8');
-        console.log(`\n✅ Registry saved: ${path.relative(PROJECT_ROOT, outputPath)}`);
+        console.log(`\n[SUCCESS] Registry saved: ${path.relative(PROJECT_ROOT, outputPath)}`);
         return outputPath;
     }
 
@@ -274,7 +274,7 @@ class OffsetScanner {
         md += '## Statistics\n\n';
         md += `- Files Scanned: ${registry.stats.filesScanned}\n`;
         md += `- Offsets Found: ${registry.stats.offsetsFound}\n`;
-        md += `- Collisions: ${registry.stats.collisions} ${registry.stats.collisions > 0 ? '⚠️' : '✅'}\n`;
+        md += `- Collisions: ${registry.stats.collisions} ${registry.stats.collisions > 0 ? '[WARNING]' : '[OK]'}\n`;
         md += `- Domains: ${registry.stats.domains.join(', ')}\n\n`;
         
         md += '## Offset Usage\n\n';
@@ -310,7 +310,7 @@ class OffsetScanner {
         }
         
         fs.writeFileSync(outputPath, markdown, 'utf8');
-        console.log(`✅ Markdown saved: ${path.relative(PROJECT_ROOT, outputPath)}`);
+        console.log(`[SUCCESS] Markdown saved: ${path.relative(PROJECT_ROOT, outputPath)}`);
         return outputPath;
     }
 }
@@ -378,7 +378,7 @@ async function main() {
         const registry = JSON.parse(fs.readFileSync(registryPath, 'utf8'));
         const available = findAvailableOffsets(registry, domain, category, 10);
         
-        console.log(`\n🔍 Available offsets for ${domain}.${category}:\n`);
+        console.log(`\n[INFO] Available offsets for ${domain}.${category}:\n`);
         console.log(available.join(', '));
         
     } else {

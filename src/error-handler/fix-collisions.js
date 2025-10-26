@@ -19,7 +19,7 @@ const PROJECT_ROOT = path.resolve(__dirname, '../..');
 
 const registryPath = path.resolve(__dirname, 'offset-registry.json');
 if (!fs.existsSync(registryPath)) {
-    console.error('❌ Registry not found. Run "node offset-scanner.js scan" first.');
+    console.error('[ERROR] Registry not found. Run "node offset-scanner.js scan" first.');
     process.exit(1);
 }
 
@@ -144,7 +144,7 @@ function generateFixPlan(collisions) {
         // Strategy: Keep the first group (usually the "real" one), reassign others
         const [keepGroup, ...reassignGroups] = groups;
         
-        console.log(`\n⚠️  Collision at offset ${offset}:`);
+        console.log(`\n[WARNING] Collision at offset ${offset}:`);
         console.log(`   Keep: ${keepGroup.groupKey} (${keepGroup.files.join(', ')})`);
         
         for (const group of reassignGroups) {
@@ -154,7 +154,7 @@ function generateFixPlan(collisions) {
             const available = findAvailable(group.domain, group.category, 1000); // Get many candidates
             
             if (available.length === 0) {
-                console.error(`   ❌ No available offsets for ${groupKey}!`);
+                console.error(`   [ERROR] No available offsets for ${groupKey}!`);
                 continue;
             }
             
@@ -169,7 +169,7 @@ function generateFixPlan(collisions) {
             }
             
             if (!newOffset) {
-                console.error(`   ❌ Ran out of available offsets for ${groupKey}!`);
+                console.error(`   [ERROR] Ran out of available offsets for ${groupKey}!`);
                 continue;
             }
             
@@ -198,7 +198,7 @@ function generateFixPlan(collisions) {
 
 function applyFixes(plan, dryRun = true) {
     console.log(`\n${'═'.repeat(70)}`);
-    console.log(dryRun ? '🔍 DRY RUN - No files will be modified' : '✏️  APPLYING FIXES');
+    console.log(dryRun ? '[DRY RUN] No files will be modified' : '[APPLY] Applying fixes...');
     console.log('═'.repeat(70));
     
     const fixes = [];
@@ -210,7 +210,7 @@ function applyFixes(plan, dryRun = true) {
             const filePath = path.resolve(PROJECT_ROOT, relativeFile);
             
             if (!fs.existsSync(filePath)) {
-                console.error(`   ❌ File not found: ${relativeFile}`);
+                console.error(`   [ERROR] File not found: ${relativeFile}`);
                 continue;
             }
             
@@ -226,7 +226,7 @@ function applyFixes(plan, dryRun = true) {
             const count = matches ? matches.length : 0;
             
             if (count === 0) {
-                console.log(`   ⚠️  No matches in ${relativeFile}`);
+                console.log(`   [WARNING] No matches in ${relativeFile}`);
                 continue;
             }
             
@@ -236,7 +236,7 @@ function applyFixes(plan, dryRun = true) {
                 fs.writeFileSync(filePath, content, 'utf8');
             }
             
-            console.log(`   ${dryRun ? '📝' : '✅'} ${relativeFile}: ${oldOffset} → ${newOffset} (${count} occurrences)`);
+            console.log(`   ${dryRun ? '[PREVIEW]' : '[DONE]'} ${relativeFile}: ${oldOffset} → ${newOffset} (${count} occurrences)`);
             
             fixes.push({
                 file: relativeFile,
@@ -260,12 +260,12 @@ async function main() {
     const command = args[0];
     const applyFlag = args.includes('--apply');
     
-    console.log('🔍 Analyzing collisions...\n');
+    console.log('[ANALYZE] Analyzing collisions...\n');
     
     const collisions = analyzeCollisions();
     
     if (collisions.length === 0) {
-        console.log('✅ No collisions found! Registry is clean.');
+        console.log('[SUCCESS] No collisions found! Registry is clean.');
         return;
     }
     
@@ -275,7 +275,7 @@ async function main() {
     const plan = generateFixPlan(collisions);
     
     if (plan.length === 0) {
-        console.log('\n❌ Could not generate fix plan.');
+        console.log('\n[ERROR] Could not generate fix plan.');
         return;
     }
     
@@ -285,7 +285,7 @@ async function main() {
     
     // Summary
     console.log(`\n${'═'.repeat(70)}`);
-    console.log('📊 SUMMARY');
+    console.log('[SUMMARY] Collision Fix Summary');
     console.log('═'.repeat(70));
     console.log(`Collisions Found:  ${collisions.length}`);
     console.log(`Fixes Generated:   ${plan.length}`);
@@ -294,10 +294,10 @@ async function main() {
     console.log('═'.repeat(70));
     
     if (dryRun) {
-        console.log('\n💡 To apply fixes, run with --apply flag:');
+        console.log('\n[INFO] To apply fixes, run with --apply flag:');
         console.log('   node src/error-handler/fix-collisions.js --apply');
     } else {
-        console.log('\n✅ Fixes applied! Run scanner again to verify:');
+        console.log('\n[SUCCESS] Fixes applied! Run scanner again to verify:');
         console.log('   node src/error-handler/offset-scanner.js scan');
     }
 }

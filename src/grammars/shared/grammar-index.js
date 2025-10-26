@@ -678,7 +678,7 @@ export class GrammarIndex {
         }
         
         // ! NO_HARDCODE: ลบ fallback ที่ใช้ punct.charCodeAt(0) ออก
-        // ! REMOVED HARDCODE: const punctBinary = data.binary || punct.charCodeAt(0); ❌
+        // ! REMOVED HARDCODE: const punctBinary = data.binary || punct.charCodeAt(0); [VIOLATION]
         // ! Grammar data ต้องมี binary value อย่างชัดเจน ไม่ fallback charCodeAt
         
         // ! NO_SILENT_FALLBACKS: แจ้งเตือนเมื่อไม่พบ แต่ไม่ throw (เพราะอาจเป็น token type อื่น)

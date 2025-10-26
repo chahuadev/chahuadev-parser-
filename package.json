@@ -1,20 +1,24 @@
 {
   "name": "chahuadev-sentinel",
   "displayName": "Chahuadev Sentinel",
-  "description": "Code quality checker for Chahua Development standards - VS Code Extension and CLI Tool",
-  "version": "1.0.0",
+  "description": "Revolutionary code quality analyzer with Universal Error Reporting, 64-bit Binary Error System, and auto-context capture",
+  "version": "2.0.0-beta",
   "author": "Chahua Development Co., Ltd.",
   "license": "MIT",
   "type": "module",
   "keywords": [
     "linter",
     "code-quality",
+    "binary-error-system",
+    "universal-error-reporting",
+    "auto-context-capture",
     "chahua",
     "validation",
     "typescript",
     "javascript",
     "vscode-extension",
-    "cli-tool"
+    "cli-tool",
+    "security"
   ],
   "engines": {
     "vscode": "^1.74.0",
