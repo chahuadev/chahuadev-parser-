@@ -25,13 +25,12 @@
  * const securityManager = new SecurityManager({ rateLimitStore: store });
  */
 
-import { reportError } from '../error-handler/binary-reporter.js';
+import { report } from '../error-handler/universal-reporter.js';
 import BinaryCodes from '../error-handler/binary-codes.js';
-import { OFFSETS } from '../error-handler/offset-registry.js';
 
 function emitRateLimitNotice(message, method, severity, context) {
-    // FIX: Binary Error Pattern - Use reportError instead of Error + errorHandler
-    reportError(BinaryCodes.SECURITY.RATELIMIT(OFFSETS.SECURITY.RATELIMIT.MEMORY_STORE_NOTICE), {
+    // FIX: Binary Error Pattern - Use reportError with proper offset
+    report(BinaryCodes.SECURITY.RUNTIME(10001), {
         method: `RateLimitStoreFactory.${method}`,
         message: message,
         severity: severity,
@@ -61,7 +60,7 @@ function createRateLimitStore(type = 'memory', config = {}) {
         
         default:
             // FIX: Binary Error Pattern - Replace throw with reportError
-            reportError(BinaryCodes.SECURITY.RATELIMIT(OFFSETS.SECURITY.RATELIMIT.UNKNOWN_STORE_TYPE), {
+            report(BinaryCodes.SECURITY.RATELIMIT(OFFSETS.SECURITY.RATELIMIT.UNKNOWN_STORE_TYPE), {
                 method: 'createRateLimitStore',
                 message: `Unknown rate limit store type`,
                 requestedType: type,
@@ -106,7 +105,7 @@ function createRedisStore(config) {
         
            // FIX: Binary Error Pattern - Replace throw with reportError
            client.connect().catch(err => {
-           reportError(BinaryCodes.SECURITY.RATELIMIT(OFFSETS.SECURITY.RATELIMIT.REDIS_CONNECTION_FAILED), { // <--- ใช้ Offset ใหม่
+           report(BinaryCodes.SECURITY.RATELIMIT(OFFSETS.SECURITY.RATELIMIT.REDIS_CONNECTION_FAILED), { // <--- ใช้ Offset ใหม่
                  method: 'createRedisStore.connect',
                  message: `Failed to connect to Redis server: ${err.message}`,
                  errorType: err.constructor?.name,
@@ -154,7 +153,7 @@ function createRedisStore(config) {
         const errorType = error?.constructor?.name || 'Error';
         const stackPreview = error?.stack ? error.stack.split('\n').slice(0, 3).join('\n') : 'No stack';
         
-        reportError(BinaryCodes.SECURITY.RATELIMIT(OFFSETS.SECURITY.RATELIMIT.REDIS_CREATION_FAILED), {
+        report(BinaryCodes.SECURITY.RATELIMIT(OFFSETS.SECURITY.RATELIMIT.REDIS_CREATION_FAILED), {
             method: 'createRedisStore',
             message: 'Redis store creation failed',
             errorCode: error.code || 'UNKNOWN',
@@ -164,7 +163,7 @@ function createRedisStore(config) {
         });
         
         if (error.code === 'MODULE_NOT_FOUND') {
-            reportError(BinaryCodes.SECURITY.RATELIMIT(OFFSETS.SECURITY.RATELIMIT.REDIS_MODULE_NOT_FOUND), {
+            report(BinaryCodes.SECURITY.RATELIMIT(OFFSETS.SECURITY.RATELIMIT.REDIS_MODULE_NOT_FOUND), {
                 method: 'createRedisStore',
                 message: 'Redis module not found',
                 suggestion: 'Install: npm install redis OR use memory store for development'
@@ -247,7 +246,7 @@ function createMemcachedStore(config) {
         const errorType = error?.constructor?.name || 'Error';
         const stackPreview = error?.stack ? error.stack.split('\n').slice(0, 3).join('\n') : 'No stack';
         
-        reportError(BinaryCodes.SECURITY.RATELIMIT(OFFSETS.SECURITY.RATELIMIT.MEMCACHED_CREATION_FAILED), {
+        report(BinaryCodes.SECURITY.RATELIMIT(OFFSETS.SECURITY.RATELIMIT.MEMCACHED_CREATION_FAILED), {
             method: 'createMemcachedStore',
             message: 'Memcached store creation failed',
             errorCode: error.code || 'UNKNOWN',
@@ -257,7 +256,7 @@ function createMemcachedStore(config) {
         });
         
         if (error.code === 'MODULE_NOT_FOUND') {
-            reportError(BinaryCodes.SECURITY.RATELIMIT(OFFSETS.SECURITY.RATELIMIT.MEMCACHED_MODULE_NOT_FOUND), {
+            report(BinaryCodes.SECURITY.RATELIMIT(OFFSETS.SECURITY.RATELIMIT.MEMCACHED_MODULE_NOT_FOUND), {
                 method: 'createMemcachedStore',
                 message: 'Memcached module not found',
                 suggestion: 'Install: npm install memcached OR use memory store for development'

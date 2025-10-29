@@ -6,7 +6,9 @@
 // !  Contact: chahuadev@gmail.com
 // ! ══════════════════════════════════════════════════════════════════════════════
 
-import errorHandler from '../../error-handler/ErrorHandler.js';
+// FIX: Updated import - ErrorHandler.js ไม่มีแล้ว ใช้ binary-reporter แทน
+import { report } from '../../error-handler/universal-reporter.js';
+import BinaryCodes from '../../error-handler/binary-codes.js';
 
 // ! ══════════════════════════════════════════════════════════════════════════════
 // !  BINARY-FIRST CONSTANTS - Central Repository (NO_HARDCODE Enforcement)
@@ -505,11 +507,12 @@ export function isRuleEnabled(mask, rule) {
 export function getSeverityCode(severityName) {
     const severity = SEVERITY_LEVELS[severityName];
     if (!severity) {
-        errorHandler.handleError(new Error(`Unknown severity: ${severityName}`), {
+        // FIX: Use Binary Reporter instead of errorHandler
+        report(BinaryCodes.PARSER.VALIDATION(20001), {
+            error: new Error(`Unknown severity: ${severityName}`),
             source: 'constants.js',
             method: 'getSeverityCode',
-            severity: 'WARNING',
-            context: { severityName }
+            severityName
         });
         return SEVERITY_LEVELS.INFO.code;
     }
@@ -527,11 +530,12 @@ export function getRuleIdByCode(code) {
             return rule.id;
         }
     }
-    errorHandler.handleError(new Error(`Unknown rule code: ${code}`), {
+    // FIX: Use Binary Reporter instead of errorHandler
+    report(BinaryCodes.PARSER.VALIDATION(20002), {
+        error: new Error(`Unknown rule code: ${code}`),
         source: 'constants.js',
         method: 'getRuleIdByCode',
-        severity: 'WARNING',
-        context: { code }
+        code
     });
     return 'UNKNOWN_RULE';
 }

@@ -1,0 +1,65 @@
+[
+  {
+    "path": "src\\extension.js",
+    "fullPath": "D:\\Chahuadev\\Chahuadev-Sentinel\\src\\extension.js",
+    "reportErrorCount": 1,
+    "hasUniversalImport": false,
+    "hasBinaryCodesImport": true
+  },
+  {
+    "path": "src\\grammars\\index.js",
+    "fullPath": "D:\\Chahuadev\\Chahuadev-Sentinel\\src\\grammars\\index.js",
+    "reportErrorCount": 1,
+    "hasUniversalImport": false,
+    "hasBinaryCodesImport": true
+  },
+  {
+    "path": "src\\grammars\\shared\\constants.js",
+    "fullPath": "D:\\Chahuadev\\Chahuadev-Sentinel\\src\\grammars\\shared\\constants.js",
+    "reportErrorCount": 2,
+    "hasUniversalImport": false,
+    "hasBinaryCodesImport": true
+  },
+  {
+    "path": "src\\grammars\\shared\\grammar-index.js",
+    "fullPath": "D:\\Chahuadev\\Chahuadev-Sentinel\\src\\grammars\\shared\\grammar-index.js",
+    "reportErrorCount": 4,
+    "hasUniversalImport": false,
+    "hasBinaryCodesImport": true
+  },
+  {
+    "path": "src\\rules\\NO_SILENT_FALLBACKS.js",
+    "fullPath": "D:\\Chahuadev\\Chahuadev-Sentinel\\src\\rules\\NO_SILENT_FALLBACKS.js",
+    "reportErrorCount": 2,
+    "hasUniversalImport": false,
+    "hasBinaryCodesImport": false
+  },
+  {
+    "path": "src\\rules\\validator.js",
+    "fullPath": "D:\\Chahuadev\\Chahuadev-Sentinel\\src\\rules\\validator.js",
+    "reportErrorCount": 8,
+    "hasUniversalImport": false,
+    "hasBinaryCodesImport": true
+  },
+  {
+    "path": "src\\security\\rate-limit-store-factory.js",
+    "fullPath": "D:\\Chahuadev\\Chahuadev-Sentinel\\src\\security\\rate-limit-store-factory.js",
+    "reportErrorCount": 7,
+    "hasUniversalImport": false,
+    "hasBinaryCodesImport": true
+  },
+  {
+    "path": "src\\security\\security-config.js",
+    "fullPath": "D:\\Chahuadev\\Chahuadev-Sentinel\\src\\security\\security-config.js",
+    "reportErrorCount": 7,
+    "hasUniversalImport": false,
+    "hasBinaryCodesImport": true
+  },
+  {
+    "path": "src\\security\\security-middleware.js",
+    "fullPath": "D:\\Chahuadev\\Chahuadev-Sentinel\\src\\security\\security-middleware.js",
+    "reportErrorCount": 7,
+    "hasUniversalImport": false,
+    "hasBinaryCodesImport": true
+  }
+]

@@ -22,7 +22,7 @@
 // ! ระบบนี้ถูกออกแบบและนำไปปฏิบัติ (implement) ตามหลักการนี้อย่างเคร่งครัด
 // ! ══════════════════════════════════════════════════════════════════════════════
 
-import { reportError } from '../../error-handler/binary-reporter.js';
+import { report } from '../../error-handler/universal-reporter.js';
 import BinaryCodes from '../../error-handler/binary-codes.js';
 
 // ! Binary constants from tokenizer-binary-config.json
@@ -82,7 +82,7 @@ export class PureBinaryParser {
         
         // ! NO_THROW: Report error to Binary Error System with proper Binary Code
         // ! PARSER.SYNTAX errors are CRITICAL by default
-        reportError(BinaryCodes.PARSER.SYNTAX(this.current || 0), {
+        report(BinaryCodes.PARSER.SYNTAX(this.current || 0), {
             method: context.method || 'parse',
             message: message,
             position: this.current,

@@ -37,7 +37,7 @@ function checkSilentCatchBlocks(ast, code, fileName) {
         if (node.type === 'CallExpression') {
             const callee = node.callee;
             
-            // logger.error(), errorHandler.log(), reportError()
+            // logger.error(), errorHandler.log(), report()
             if (callee?.type === 'MemberExpression') {
                 const obj = callee.object?.name;
                 const prop = callee.property?.name;
@@ -47,7 +47,7 @@ function checkSilentCatchBlocks(ast, code, fileName) {
                 }
             }
             
-            // reportError(), logError()
+            // report(), logError()
             if (callee?.type === 'Identifier') {
                 const name = callee.name;
                 if (name === 'reportError' || name === 'logError' || name === 'handleError') {

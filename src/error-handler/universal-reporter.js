@@ -10,6 +10,74 @@ import { captureContext, captureContextWithSkip } from './context-capture.js';
 import { serialize } from './data-serializer.js';
 import { reportError } from './binary-reporter.js';
 import { ErrorCollector } from './error-collector.js';
+import BinaryCodes from './binary-codes.js';
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// GLOBAL ERROR COLLECTOR REGISTRY - Centralized Collector Management
+// ═══════════════════════════════════════════════════════════════════════════════
+// ! NO_INTERNAL_CACHING: Store collectors externally (injected by caller)
+// ! แต่ provide default global collector สำหรับ convenience
+
+let _globalDefaultCollector = null;
+const _contextCollectors = new Map(); // Map<contextName, ErrorCollector>
+let _isReportingError = false; // Prevent infinite recursion flag
+
+/**
+ * Set global default error collector
+ * @param {ErrorCollector} collector - Error collector instance
+ */
+export function setGlobalCollector(collector) {
+    _globalDefaultCollector = collector;
+}
+
+/**
+ * Get global default error collector (auto-create if not exists)
+ * @returns {ErrorCollector} Default collector
+ */
+export function getGlobalCollector() {
+    if (!_globalDefaultCollector) {
+        // Auto-create default collector with streaming mode
+        _globalDefaultCollector = new ErrorCollector({
+            streamMode: true,
+            throwOnCritical: false,
+            maxErrors: 10000
+        });
+    }
+    return _globalDefaultCollector;
+}
+
+/**
+ * Register context-specific error collector
+ * @param {string} contextName - Context name (e.g., 'cli', 'extension', 'validation')
+ * @param {ErrorCollector} collector - Error collector instance
+ */
+export function registerCollector(contextName, collector) {
+    _contextCollectors.set(contextName, collector);
+}
+
+/**
+ * Get collector by context name (fallback to global)
+ * @param {string} contextName - Context name
+ * @returns {ErrorCollector} Collector instance
+ */
+export function getCollector(contextName = null) {
+    if (contextName && _contextCollectors.has(contextName)) {
+        return _contextCollectors.get(contextName);
+    }
+    return getGlobalCollector();
+}
+
+/**
+ * Clear all collectors
+ */
+export function clearAllCollectors() {
+    if (_globalDefaultCollector) {
+        _globalDefaultCollector.clear();
+    }
+    for (const collector of _contextCollectors.values()) {
+        collector.clear();
+    }
+}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Core API: report()
@@ -26,35 +94,29 @@ import { ErrorCollector } from './error-collector.js';
  * @returns {object} { success, context, binaryCode }
  * 
  * @example
- * // Minimal usage (auto-capture everything)
+ * // Minimal usage - Auto-collect to global collector
  * report(BinaryCodes.SECURITY.PERMISSION(5001));
  * 
  * @example
- * // With error object (auto-serialize)
+ * // With error object - Auto-collect
  * try {
  *     dangerousOperation();
  * } catch (error) {
  *     report(BinaryCodes.SECURITY.PERMISSION(5001), { error });
+ *     // ✅ Auto-collected! No need for { collect: true, collector: xxx }
  * }
  * 
  * @example
- * // With custom data (auto-serialize complex types)
- * report(BinaryCodes.SECURITY.VALIDATION(8001), {
- *     userId: 123,
- *     input: userInput,
- *     buffer: someBuffer,     // Buffer auto-handled
- *     date: new Date(),        // Date auto-handled
- *     bigint: 9007199254740991n // BigInt auto-handled
+ * // Disable auto-collection
+ * report(BinaryCodes.SECURITY.VALIDATION(8001), { userId: 123 }, {
+ *     collect: false  // Explicitly disable collection
  * });
  * 
  * @example
- * // With options
- * report(BinaryCodes.SECURITY.PERMISSION(5001), { error }, {
- *     collect: true,           // Add to errorCollector for batch processing
- *     throw: true,             // Throw error after reporting
- *     skipFrames: 0,           // Skip additional stack frames
- *     includeStack: true,      // Include error stack traces
- *     maxDepth: 10            // Max serialization depth
+ * // Use context-specific collector
+ * registerCollector('cli', myCLICollector);
+ * report(BinaryCodes.VALIDATOR.LOGIC(15003), { error, filePath }, {
+ *     context: 'cli'  // Use 'cli' collector instead of global
  * });
  */
 export function report(binaryCode, context = {}, options = {}) {
@@ -94,13 +156,48 @@ export function report(binaryCode, context = {}, options = {}) {
         reportError(binaryCode, serialized);
         
         // ═══════════════════════════════════════════════════════════════
-        // Step 5: Optional features
+        // Step 5: AUTO-INJECT Error Collector (NEW!)
         // ═══════════════════════════════════════════════════════════════
         
-        // Option: Collect for batch processing
-        if (options.collect && options.collector) {
-            options.collector.collect(binaryCode, serialized);
+        // Auto-collection: Default to TRUE unless explicitly disabled
+        const shouldCollect = options.collect !== false;
+        
+        if (shouldCollect) {
+            // Use provided collector OR auto-inject from registry
+            const collector = options.collector 
+                || (options.context ? getCollector(options.context) : getGlobalCollector());
+            
+            // Collect error with non-throwing mode
+            if (collector) {
+                try {
+                    collector.collect(binaryCode, serialized, {
+                        nonThrowing: true // Prevent infinite loop
+                    });
+                } catch (collectError) {
+                    // FIX: Universal Reporter - Use Binary System instead of console.error
+                    // ! Prevent infinite recursion with flag
+                    if (!_isReportingError) {
+                        _isReportingError = true;
+                        try {
+                            reportError(
+                                BinaryCodes.SYSTEM.RUNTIME(90001), 
+                                { 
+                                    error: collectError, 
+                                    phase: 'collection',
+                                    originalBinaryCode: String(binaryCode)
+                                }
+                            );
+                        } finally {
+                            _isReportingError = false;
+                        }
+                    }
+                }
+            }
         }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // Step 6: Optional throw
+        // ═══════════════════════════════════════════════════════════════
         
         // Option: Throw error after reporting
         if (options.throw) {
@@ -120,17 +217,39 @@ export function report(binaryCode, context = {}, options = {}) {
         };
         
     } catch (reportingError) {
-        // Fallback: If reporting fails, still try to log the error
-        console.error('[universal-reporter] Reporting failed:', reportingError);
-        
-        // Try minimal report (no context capture, no serialization)
-        try {
-            reportError(binaryCode, {
-                _reportingError: reportingError.message,
-                _originalContext: String(context)
-            });
-        } catch (fallbackError) {
-            console.error('[universal-reporter] Fallback failed:', fallbackError);
+        // FIX: Universal Reporter - Use Binary System instead of console.error
+        // ! Prevent infinite recursion with flag
+        if (!_isReportingError) {
+            _isReportingError = true;
+            try {
+                // Try minimal report (no context capture, no serialization)
+                reportError(
+                    BinaryCodes.SYSTEM.RUNTIME(90002),
+                    {
+                        error: reportingError,
+                        phase: 'reporting',
+                        originalBinaryCode: String(binaryCode),
+                        originalContext: String(context).substring(0, 200) // Limit to prevent circular
+                    }
+                );
+            } catch (fallbackError) {
+                // FIX: Last resort - use Binary System for fallback error
+                try {
+                    reportError(
+                        BinaryCodes.SYSTEM.RUNTIME(90003),
+                        {
+                            error: fallbackError,
+                            phase: 'fallback',
+                            originalBinaryCode: String(binaryCode)
+                        }
+                    );
+                } catch (finalError) {
+                    // Absolute last resort - cannot report at all
+                    // Write to emergency log (handled by binary-log-stream)
+                }
+            } finally {
+                _isReportingError = false;
+            }
         }
         
         // Re-throw if requested
@@ -408,5 +527,12 @@ export default {
     tryReportAsync,
     
     // Legacy
-    reportErrorCompat
+    reportErrorCompat,
+    
+    // Global Collector Management (NEW!)
+    setGlobalCollector,
+    getGlobalCollector,
+    registerCollector,
+    getCollector,
+    clearAllCollectors
 };

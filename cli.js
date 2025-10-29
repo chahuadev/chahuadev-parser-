@@ -16,7 +16,7 @@ import { ABSOLUTE_RULES, ValidationEngine } from './src/rules/validator.js';
 import { SecurityManager } from './src/security/security-manager.js';
 import { coerceRuleId, resolveRuleSlug } from './src/constants/rule-constants.js';
 import { RULE_SEVERITY_FLAGS, coerceRuleSeverity, resolveRuleSeveritySlug } from './src/constants/severity-constants.js';
-import { report } from './src/error-handler/universal-reporter.js';
+import { report, setGlobalCollector } from './src/error-handler/universal-reporter.js';
 import BinaryCodes from './src/error-handler/binary-codes.js';
 import { ErrorCollector } from './src/error-handler/error-collector.js';
 
@@ -45,6 +45,10 @@ class ChahuadevCLI {
             throwOnCritical: false,  // ไม่ throw แม้เจอ critical error (เก็บต่อไป)
             maxErrors: 10000         // จำกัด 10k errors เพื่อป้องกัน infinite loop
         });
+        
+        // ! REGISTER GLOBAL COLLECTOR: ลงทะเบียนเป็น global collector
+        // ! ตอนนี้ report() จะ auto-inject collector นี้ให้อัตโนมัติ
+        setGlobalCollector(this.errorCollector);
     }
 
     async initialize() {
@@ -81,13 +85,8 @@ class ChahuadevCLI {
             console.log(cliConfig.messages.cliInitialized);
             return true;
         } catch (error) {
-            // ! ══════════════════════════════════════════════════════════════
-            // ! FIX: Universal Reporter - Auto-capture context + serialize
-            // ! ══════════════════════════════════════════════════════════════
-            report(BinaryCodes.SYSTEM.CONFIGURATION(15001), { error }, {
-                collect: true,
-                collector: this.errorCollector
-            });
+            // FIX: Universal Reporter - Auto-collect
+            report(BinaryCodes.SYSTEM.CONFIGURATION(15001), { error });
             return false;
         }
     }
@@ -135,11 +134,8 @@ ${cliConfig.helpText.footer}`);
             }
             
             if (!fs.existsSync(filePath)) {
-                // ! FIX: Universal Reporter - Auto-capture + collect
-                report(BinaryCodes.IO.RESOURCE_NOT_FOUND(15002), { filePath }, {
-                    collect: true,
-                    collector: this.errorCollector
-                });
+                // FIX: Universal Reporter - Auto-collect
+                report(BinaryCodes.IO.RESOURCE_NOT_FOUND(15002), { filePath });
                 return { fileName: filePath, violations: [], success: false, error: 'FILE_NOT_FOUND' };
             }
 
@@ -154,11 +150,8 @@ ${cliConfig.helpText.footer}`);
 
             return results;
         } catch (error) {
-            // ! FIX: Universal Reporter - Auto-capture + collect
-            report(BinaryCodes.VALIDATOR.LOGIC(15003), { error, filePath }, {
-                collect: true,
-                collector: this.errorCollector
-            });
+            // FIX: Universal Reporter - Auto-collect
+            report(BinaryCodes.VALIDATOR.LOGIC(15003), { error, filePath });
             return { fileName: filePath, violations: [], success: false, error: error.message || String(error) };
         }
     }
@@ -198,11 +191,8 @@ ${cliConfig.helpText.footer}`);
                     const result = await this.scanFile(file, options);
                     results.push({ file, ...result });
                 } catch (fileError) {
-                    // ! FIX: Universal Reporter - Auto-capture + collect
-                    report(BinaryCodes.VALIDATOR.LOGIC(15004), { error: fileError, file }, {
-                        collect: true,
-                        collector: this.errorCollector
-                    });
+                    // FIX: Universal Reporter - Auto-collect
+                    report(BinaryCodes.VALIDATOR.LOGIC(15004), { error: fileError, file });
                     results.push({ file, fileName: file, violations: [], success: false, error: fileError.message || String(fileError) });
                 }
             }
@@ -219,11 +209,8 @@ ${cliConfig.helpText.footer}`);
 
             return results;
         } catch (error) {
-            // ! FIX: Universal Reporter - Auto-capture + collect
-            report(BinaryCodes.SYSTEM.RUNTIME(15005), { error, pattern }, {
-                collect: true,
-                collector: this.errorCollector
-            });
+            // FIX: Universal Reporter - Auto-collect
+            report(BinaryCodes.SYSTEM.RUNTIME(15005), { error, pattern });
             return [];
         } finally {
             this.currentScanOptions = null;
@@ -356,11 +343,8 @@ ${cliConfig.helpText.footer}`);
             try {
                 entries = fs.readdirSync(resolvedDir, { withFileTypes: true });
             } catch (error) {
-                // ! FIX: Universal Reporter - Auto-capture + warn (collect)
-                report(BinaryCodes.IO.RESOURCE_UNAVAILABLE(15006), { error, directory: resolvedDir }, {
-                    collect: true,
-                    collector: this.errorCollector
-                });
+                // FIX: Universal Reporter - Auto-collect
+                report(BinaryCodes.IO.RESOURCE_UNAVAILABLE(15006), { error, directory: resolvedDir });
                 errorCount++;
                 return;
             }
@@ -379,11 +363,8 @@ ${cliConfig.helpText.footer}`);
                         }
                     }
                 } catch (itemError) {
-                    // ! FIX: Universal Reporter - Auto-capture + warn (collect)
-                    report(BinaryCodes.IO.RESOURCE_UNAVAILABLE(15007), { error: itemError, filePath: fullPath }, {
-                        collect: true,
-                        collector: this.errorCollector
-                    });
+                    // FIX: Universal Reporter - Auto-collect
+                    report(BinaryCodes.IO.RESOURCE_UNAVAILABLE(15007), { error: itemError, filePath: fullPath });
                     errorCount++;
                 }
             }
@@ -408,11 +389,8 @@ ${cliConfig.helpText.footer}`);
                 }
             }
         } else {
-            // ! FIX: Universal Reporter - Auto-capture + warn (collect)
-            report(BinaryCodes.IO.RESOURCE_NOT_FOUND(15008), { pattern }, {
-                collect: true,
-                collector: this.errorCollector
-            });
+            // FIX: Universal Reporter - Auto-collect
+            report(BinaryCodes.IO.RESOURCE_NOT_FOUND(15008), { pattern });
             return files;
         }
 
@@ -545,7 +523,7 @@ async function main() {
         return exitCode;
         
     } catch (error) {
-        // ! FIX: Universal Reporter - Auto-capture (no collect needed - main error)
+        // FIX: Universal Reporter - Auto-collect
         report(BinaryCodes.SYSTEM.RUNTIME(15009), { error, args, patterns });
         return 1;
     }
@@ -563,7 +541,7 @@ if (import.meta.url === `file:///${process.argv[1].replace(/\\/g, '/')}` ||
     main().then(exitCode => {
         return flushAndExit(exitCode ?? 0);
     }).catch(async error => {
-        // ! FIX: Universal Reporter - Auto-capture (critical unhandled rejection)
+        // FIX: Universal Reporter - Auto-collect
         report(BinaryCodes.SYSTEM.RUNTIME(15010), { error });
         await flushAndExit(1);
     });

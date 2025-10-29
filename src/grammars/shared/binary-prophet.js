@@ -11,7 +11,7 @@
 // ! Binary Prophet - Speculative engine that resolves Pure Binary ambiguities without backtracking
 // ! ══════════════════════════════════════════════════════════════════════════════
 import { performance } from 'node:perf_hooks';
-import { reportError } from '../../error-handler/binary-reporter.js';
+import { report } from '../../error-handler/universal-reporter.js';
 import BinaryCodes from '../../error-handler/binary-codes.js';
 import PureBinaryParser from './pure-binary-parser.js';
 
@@ -39,7 +39,7 @@ class BinaryProphet {
             // FIX: Binary Error Pattern
             const error = new Error('BinaryProphet requires a GrammarIndex instance');
             error.isOperational = false;
-            reportError(BinaryCodes.SYSTEM.CONFIGURATION(1014), {
+            report(BinaryCodes.SYSTEM.CONFIGURATION(1014), {
                 method: 'constructor',
                 message: 'BinaryProphet requires a GrammarIndex instance',
                 error: error
@@ -93,7 +93,7 @@ class BinaryProphet {
         const successfulUniverses = hypotheses.filter(hypothesis => hypothesis.success);
         if (successfulUniverses.length === 0) {
             // FIX: Binary Error Pattern
-            reportError(BinaryCodes.PARSER.VALIDATION(1025), {
+            report(BinaryCodes.PARSER.VALIDATION(1025), {
                 method: 'speculateObjectProperty',
                 message: 'Prophet speculation unable to resolve ambiguity',
                 context: {
@@ -156,7 +156,7 @@ class BinaryProphet {
         } catch (error) {
             // FIX: Binary Error Pattern
             error.isOperational = true;
-            reportError(BinaryCodes.PARSER.VALIDATION(1029), {
+            report(BinaryCodes.PARSER.VALIDATION(1029), {
                 method: 'simulateTraditionalMethod',
                 message: 'Traditional method simulation failed',
                 error: error,
@@ -215,7 +215,7 @@ class BinaryProphet {
         } catch (error) {
             // FIX: Binary Error Pattern
             error.isOperational = true;
-            reportError(BinaryCodes.PARSER.VALIDATION(6004), {
+            report(BinaryCodes.PARSER.VALIDATION(6004), {
                 method: 'simulateArrowFunction',
                 message: 'Arrow function simulation failed',
                 error: error,

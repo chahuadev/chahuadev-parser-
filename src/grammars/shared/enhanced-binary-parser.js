@@ -12,7 +12,7 @@
  * - All errors sent to ErrorHandler
  */
 
-import { reportError } from '../../error-handler/binary-reporter.js';
+import { report } from '../../error-handler/universal-reporter.js';
 import BinaryCodes from '../../error-handler/binary-codes.js';
 import { BinaryScout } from './binary-scout.js';
 import PureBinaryParser from './pure-binary-parser.js';
@@ -84,7 +84,7 @@ class EnhancedBinaryParser extends PureBinaryParser {
                     // ! Scout ต้องรายงานข้อผิดพลาดแต่อย่าหยุดระบบ
                     // FIX: Binary Error Pattern
                     scoutError.isOperational = true;
-                    reportError(BinaryCodes.PARSER.VALIDATION(1018), {
+                    report(BinaryCodes.PARSER.VALIDATION(1018), {
                         method: 'parse',
                         message: 'Binary Scout failed, continuing without structure map',
                         error: scoutError,
@@ -110,7 +110,7 @@ class EnhancedBinaryParser extends PureBinaryParser {
         } catch (error) {
             // FIX: Binary Error Pattern
             error.isOperational = true;
-            reportError(BinaryCodes.PARSER.SYNTAX(1033), {
+            report(BinaryCodes.PARSER.SYNTAX(1033), {
                 method: 'parse',
                 message: 'Enhanced parser failed',
                 error: error,
@@ -146,7 +146,7 @@ class EnhancedBinaryParser extends PureBinaryParser {
         } catch (error) {
             // FIX: Binary Error Pattern
             error.isOperational = true;
-            reportError(BinaryCodes.PARSER.SYNTAX(4004), {
+            report(BinaryCodes.PARSER.SYNTAX(4004), {
                 method: 'parseFunctionDeclaration',
                 message: 'Function declaration parsing failed',
                 error: error,
@@ -185,7 +185,7 @@ class EnhancedBinaryParser extends PureBinaryParser {
         } catch (error) {
             // FIX: Binary Error Pattern
             error.isOperational = true;
-            reportError(BinaryCodes.PARSER.VALIDATION(4005), {
+            report(BinaryCodes.PARSER.VALIDATION(4005), {
                 method: 'quantumJump',
                 message: 'Quantum jump failed',
                 error: error,

@@ -12,7 +12,7 @@
  * - All errors sent to ErrorHandler
  */
 
-import { reportError } from '../../error-handler/binary-reporter.js';
+import { report } from '../../error-handler/universal-reporter.js';
 import BinaryCodes from '../../error-handler/binary-codes.js';
 
 /**
@@ -30,7 +30,7 @@ class BinaryScout {
             const error = new Error('BinaryScout requires valid tokens array');
             error.name = 'ValidationError';
             error.isOperational = true;
-            reportError(BinaryCodes.VALIDATOR.VALIDATION(1019), {
+            report(BinaryCodes.VALIDATOR.VALIDATION(1019), {
                 method: 'constructor',
                 message: 'BinaryScout requires valid tokens array',
                 error: error,
@@ -44,7 +44,7 @@ class BinaryScout {
             const error = new Error('BinaryScout requires valid grammarIndex');
             error.name = 'ValidationError';
             error.isOperational = true;
-            reportError(BinaryCodes.VALIDATOR.VALIDATION(1026), {
+            report(BinaryCodes.VALIDATOR.VALIDATION(1026), {
                 method: 'constructor',
                 message: 'BinaryScout requires valid grammarIndex',
                 error: error
@@ -72,7 +72,7 @@ class BinaryScout {
         } catch (error) {
             // FIX: Binary Error Pattern
             error.isOperational = true;
-            reportError(BinaryCodes.SYSTEM.CONFIGURATION(1009), {
+            report(BinaryCodes.SYSTEM.CONFIGURATION(1009), {
                 method: 'constructor',
                 message: 'Failed to initialize binary cache',
                 error: error,
@@ -120,7 +120,7 @@ class BinaryScout {
         } catch (error) {
             // FIX: Binary Error Pattern
             error.isOperational = true;
-            reportError(BinaryCodes.PARSER.SYNTAX(1030), {
+            report(BinaryCodes.PARSER.SYNTAX(1030), {
                 method: 'scanStructure',
                 message: 'Structure scan failed',
                 error: error,
@@ -165,7 +165,7 @@ class BinaryScout {
         } catch (error) {
             // FIX: Binary Error Pattern
             error.isOperational = true;
-            reportError(BinaryCodes.PARSER.VALIDATION(5005), {
+            report(BinaryCodes.PARSER.VALIDATION(5005), {
                 method: 'scanFunction',
                 message: 'Function scan failed',
                 error: error,
@@ -210,7 +210,7 @@ class BinaryScout {
         } catch (error) {
             // FIX: Binary Error Pattern
             error.isOperational = true;
-            reportError(BinaryCodes.PARSER.VALIDATION(5006), {
+            report(BinaryCodes.PARSER.VALIDATION(5006), {
                 method: 'scanClass',
                 message: 'Class scan failed',
                 error: error,
@@ -253,7 +253,7 @@ class BinaryScout {
         } catch (error) {
             // FIX: Binary Error Pattern
             error.isOperational = true;
-            reportError(BinaryCodes.PARSER.VALIDATION(5007), {
+            report(BinaryCodes.PARSER.VALIDATION(5007), {
                 method: 'scanBlock',
                 message: 'Block scan failed',
                 error: error,
@@ -311,7 +311,7 @@ class BinaryScout {
         } catch (error) {
             // FIX: Binary Error Pattern
             error.isOperational = true;
-            reportError(BinaryCodes.PARSER.VALIDATION(5008), {
+            report(BinaryCodes.PARSER.VALIDATION(5008), {
                 method: 'scanTryCatch',
                 message: 'Try-catch scan failed',
                 error: error,
@@ -352,7 +352,7 @@ class BinaryScout {
         const error = new Error('No matching closing brace found');
         error.name = 'ParserError';
         error.isOperational = true;
-        reportError(BinaryCodes.PARSER.SYNTAX(5009), {
+        report(BinaryCodes.PARSER.SYNTAX(5009), {
             method: 'findMatchingBrace',
             message: 'No matching closing brace found',
             error: error,
@@ -456,7 +456,7 @@ class BinaryScout {
         } catch (error) {
             // FIX: Binary Error Pattern
             error.isOperational = true;
-            reportError(BinaryCodes.PARSER.VALIDATION(5010), {
+            report(BinaryCodes.PARSER.VALIDATION(5010), {
                 method: 'scanClassMethods',
                 message: 'Class methods scan failed',
                 error: error,

@@ -30,7 +30,7 @@
 // ! ══════════════════════════════════════════════════════════════════════════════
 
 // FIX: Migration to Binary Error System - Phase 5 Complete
-import { reportError } from '../error-handler/binary-reporter.js';
+import { report } from '../error-handler/universal-reporter.js';
 import BinaryCodes from '../error-handler/binary-codes.js';
 import { createErrorCollector } from '../error-handler/error-collector.js';
 import {
@@ -136,7 +136,7 @@ function normalizeRuleDefinition(key, definition) {
     const resolvedId = determineRuleId(key, definition);
     if (!resolvedId) {
         // FIX: Binary Error Pattern - Flat context structure
-        reportError(BinaryCodes.VALIDATOR.VALIDATION(7001), {
+        report(BinaryCodes.VALIDATOR.VALIDATION(7001), {
             method: 'normalizeRuleDefinition',
             message: `Unable to resolve binary rule identifier for key ${String(key)}`,
             key: String(key),
@@ -234,7 +234,7 @@ export class ValidationEngine {
             return true;
         } catch (error) {
             // FIX: Binary Error Pattern - Flat context structure
-            reportError(BinaryCodes.PARSER.SYNTAX(1020), {
+            report(BinaryCodes.PARSER.SYNTAX(1020), {
                 method: 'initializeParserStudy',
                 message: error?.message || 'Parser initialization failed',
                 errorType: error?.constructor?.name,
@@ -247,7 +247,7 @@ export class ValidationEngine {
     async validateCode(code, fileName = 'unknown') {
         if (!this.parser) {
             // FIX: Binary Error Pattern - Flat context structure
-            reportError(BinaryCodes.SYSTEM.CONFIGURATION(7002), {
+            report(BinaryCodes.SYSTEM.CONFIGURATION(7002), {
                 method: 'validateCode',
                 message: 'ValidationEngine not initialized. Call initializeParserStudy() first.',
                 fileName: fileName
@@ -266,7 +266,7 @@ export class ValidationEngine {
                 ast = this.parser.parse(tokens);
             } catch (parseError) {
                 // FIX: Binary Error Pattern - Flat context structure
-                reportError(BinaryCodes.PARSER.SYNTAX(1032), {
+                report(BinaryCodes.PARSER.SYNTAX(1032), {
                     method: 'validateCode',
                     message: parseError?.message || 'Parser failed - syntax error in source code',
                     fileName: fileName,
@@ -280,7 +280,7 @@ export class ValidationEngine {
             // ! ตรวจสอบ AST validity
             if (!ast || typeof ast !== 'object') {
                 // FIX: Binary Error Pattern - Flat context structure
-                reportError(BinaryCodes.PARSER.SYNTAX(2005), {
+                report(BinaryCodes.PARSER.SYNTAX(2005), {
                     method: 'validateCode',
                     message: 'Parser returned invalid AST (null/undefined/non-object)',
                     fileName: fileName,
@@ -297,7 +297,7 @@ export class ValidationEngine {
             // ! NO_SILENT_FALLBACKS: ห้ามใช้ || [] ซ่อน parser failure
             if (!Array.isArray(violations)) {
                 // FIX: Binary Error Pattern - Flat context structure
-                reportError(BinaryCodes.VALIDATOR.LOGIC(1027), {
+                report(BinaryCodes.VALIDATOR.LOGIC(1027), {
                     method: 'validateCode',
                     message: 'detectViolations() returned non-array value - parse failure hidden by silent fallback',
                     fileName: fileName,
@@ -331,7 +331,7 @@ export class ValidationEngine {
             }
             
             // FIX: Binary Error Pattern - Flat context structure
-            reportError(BinaryCodes.VALIDATOR.LOGIC(1021), {
+            report(BinaryCodes.VALIDATOR.LOGIC(1021), {
                 method: 'validateCode',
                 message: error?.message || 'Unexpected error during validation',
                 fileName: fileName,
@@ -418,7 +418,7 @@ export class ValidationEngine {
             .map(rule => rule.slug || rule.id)
             .join(', ');
             
-        reportError(BinaryCodes.VALIDATOR.VALIDATION(7003), {
+        report(BinaryCodes.VALIDATOR.VALIDATION(7003), {
             method: 'getRule',
             message: `Rule '${ruleId}' not found. Available: ${availableRules}`,
             requestedRuleId: String(ruleId),

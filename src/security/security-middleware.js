@@ -9,11 +9,9 @@
 // ! ======================================================================
 
 // Note: vscode module handling for both extension and test environments
-import { emitSecurityNotice as emitSecurityPayload } from '../error-handler/error-emitter.js';
-import { SECURITY_ERROR_CODES } from '../error-handler/error-catalog.js';
-import { reportError } from '../error-handler/binary-reporter.js';
+// FIX: Updated imports - use correct error-handler files
+import { report } from '../error-handler/universal-reporter.js';
 import BinaryCodes from '../error-handler/binary-codes.js';
-import { OFFSETS } from '../error-handler/offset-registry.js';
 let vscode;
 
 // Initialize vscode module
@@ -30,7 +28,7 @@ async function initializeVSCode() {
             vscode = vscodeModule;
         } else {
             // FIX: Binary Error Pattern - Flat context structure
-            reportError(BinaryCodes.SYSTEM.CONFIGURATION(OFFSETS.SECURITY.CONFIGURATION.VSCODE_MODULE_INIT_FAILED), {
+            report(BinaryCodes.SYSTEM.CONFIGURATION(OFFSETS.SECURITY.CONFIGURATION.VSCODE_MODULE_INIT_FAILED), {
                 method: 'initializeVSCode',
                 message: 'VS Code module loaded but is empty',
                 moduleKeys: JSON.stringify(Object.keys(vscodeModule || {}))
@@ -165,7 +163,7 @@ class SecurityMiddleware {
         try {
             if (!document || !document.uri) {
                 // FIX: Binary Error Pattern - Flat context structure
-                reportError(BinaryCodes.SYSTEM.RUNTIME(OFFSETS.SYSTEM.RUNTIME.DOCUMENT_OBJECT_INVALID), {
+                report(BinaryCodes.SYSTEM.RUNTIME(OFFSETS.SYSTEM.RUNTIME.DOCUMENT_OBJECT_INVALID), {
                     method: 'secureReadDocument',
                     message: 'Invalid document object',
                     hasDocument: !!document,
@@ -188,7 +186,7 @@ class SecurityMiddleware {
             // ตรวจสอบ content size
             if (content && content.length > MAX_DOCUMENT_SIZE) {
                 // FIX: Binary Error Pattern - Flat context structure
-                reportError(BinaryCodes.SECURITY.VALIDATION(OFFSETS.SECURITY.VALIDATION.DOCUMENT_SIZE_EXCEEDED), {
+                report(BinaryCodes.SECURITY.VALIDATION(OFFSETS.SECURITY.VALIDATION.DOCUMENT_SIZE_EXCEEDED), {
                     method: 'secureReadDocument',
                     message: `Document content exceeds maximum size (${MAX_DOCUMENT_SIZE} bytes)`,
                     contentLength: content.length,
@@ -220,7 +218,7 @@ class SecurityMiddleware {
             const validOperations = ['READ', 'WRITE', 'DELETE', 'SCAN'];
             if (!validOperations.includes(operation)) {
                 // FIX: Binary Error Pattern - Flat context structure
-                reportError(BinaryCodes.SECURITY.VALIDATION(OFFSETS.SECURITY.VALIDATION.WORKSPACE_OPERATION_INVALID), {
+                report(BinaryCodes.SECURITY.VALIDATION(OFFSETS.SECURITY.VALIDATION.WORKSPACE_OPERATION_INVALID), {
                     method: 'secureWorkspaceOperation',
                     message: `Invalid operation: ${operation}`,
                     operation: operation,
@@ -245,7 +243,7 @@ class SecurityMiddleware {
                     return await this.secureFileScan(validatedPath);
                 default:
                     // FIX: Binary Error Pattern - Flat context structure
-                    reportError(BinaryCodes.SECURITY.VALIDATION(OFFSETS.SECURITY.VALIDATION.WORKSPACE_OPERATION_NOT_IMPLEMENTED), {
+                    report(BinaryCodes.SECURITY.VALIDATION(OFFSETS.SECURITY.VALIDATION.WORKSPACE_OPERATION_NOT_IMPLEMENTED), {
                         method: 'secureWorkspaceOperation',
                         message: `Operation ${operation} not implemented`,
                         operation: operation
@@ -269,7 +267,7 @@ class SecurityMiddleware {
             // Validate inputs
             if (!pattern || !text) {
                 // FIX: Binary Error Pattern - Flat context structure
-                reportError(BinaryCodes.SECURITY.VALIDATION(OFFSETS.SECURITY.VALIDATION.PATTERN_MATCH_INPUT_INVALID), {
+                report(BinaryCodes.SECURITY.VALIDATION(OFFSETS.SECURITY.VALIDATION.PATTERN_MATCH_INPUT_INVALID), {
                     method: 'securePatternMatch',
                     message: 'Invalid pattern or text for regex execution',
                     hasPattern: !!pattern,
@@ -293,7 +291,7 @@ class SecurityMiddleware {
                 patternString = pattern;
             } else {
                 // FIX: Binary Error Pattern - Flat context structure
-                reportError(BinaryCodes.SECURITY.VALIDATION(OFFSETS.SECURITY.VALIDATION.PATTERN_MATCH_TYPE_INVALID), {
+                report(BinaryCodes.SECURITY.VALIDATION(OFFSETS.SECURITY.VALIDATION.PATTERN_MATCH_TYPE_INVALID), {
                     method: 'securePatternMatch',
                     message: 'Pattern must be RegExp or string',
                     patternType: typeof pattern

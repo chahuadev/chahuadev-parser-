@@ -5,7 +5,7 @@
 // !  License: MIT
 // !  Contact: chahuadev@gmail.com
 // ! ══════════════════════════════════════════════════════════════════════════════
-import { reportError } from './error-handler/binary-reporter.js';
+import { report } from './error-handler/universal-reporter.js';
 import BinaryCodes from './error-handler/binary-codes.js';
 import * as vscode from 'vscode';
 import { ABSOLUTE_RULES, ValidationEngine } from './rules/validator.js';
@@ -36,7 +36,7 @@ function emitExtensionLog(message, method, severity = 'INFO', context = {}) {
     notice.isOperational = true;
 
     // FIX: Binary Error Pattern
-    reportError(BinaryCodes.SYSTEM.RUNTIME(5000), {
+    report(BinaryCodes.SYSTEM.RUNTIME(5000), {
         method,
         message: normalizedMessage,
         error: notice,

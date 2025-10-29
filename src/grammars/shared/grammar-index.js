@@ -1,4 +1,4 @@
-﻿// ! ══════════════════════════════════════════════════════════════════════════════
+// ! ══════════════════════════════════════════════════════════════════════════════
 // !  บริษัท ชาหัว ดีเวลลอปเมนต์ จำกัด (Chahua Development Co., Ltd.)
 // !  Repository: https://github.com/chahuadev-com/Chahuadev-Sentinel.git
 // !  Version: 2.0.0
@@ -25,7 +25,7 @@
 // ! ══════════════════════════════════════════════════════════════════════════════
 import { fileURLToPath, pathToFileURL } from 'url';
 import { dirname, join } from 'path';
-import { reportError } from '../../error-handler/binary-reporter.js';
+import { report } from '../../error-handler/universal-reporter.js';
 import BinaryCodes from '../../error-handler/binary-codes.js';
 import { tokenizerBinaryConfig } from './tokenizer-binary-config.js';
 
@@ -46,7 +46,7 @@ function emitGrammarIndexEvent(message, method, severity = 'INFO', context = {})
     }
 
     // FIX: Binary Error Pattern
-    reportError(
+    report(
         BinaryCodes.PARSER.SYNTAX(10002),
         { 
             method,
@@ -108,7 +108,7 @@ export class GrammarIndex {
         } catch (error) {
             // ! NO_SILENT_FALLBACKS: ห้ามใช้ empty map - ต้อง FAIL
             // FIX: Binary Error Pattern
-            reportError(
+            report(
                 BinaryCodes.PARSER.CONFIGURATION(10003),
                 { 
                     error,
@@ -251,7 +251,7 @@ export class GrammarIndex {
         } catch (error) {
             // ! NO_SILENT_FALLBACKS: Grammar file not found = Programming error
             // FIX: Binary Error Pattern
-            reportError(
+            report(
                 BinaryCodes.PARSER.SYNTAX(10004),
                 { 
                     error,
@@ -652,7 +652,7 @@ export class GrammarIndex {
         
         // ! NO_SILENT_FALLBACKS: ถ้าไม่มีใน binary map = CRITICAL ERROR
         // FIX: Binary Error Pattern
-        reportError(
+        report(
             BinaryCodes.PARSER.VALIDATION(10005),
             { 
                 punctuation,

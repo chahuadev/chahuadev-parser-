@@ -9,7 +9,7 @@
 // ! ══════════════════════════════════════════════════════════════════════════════
 
 // !  NO_HARDCODE: Import pattern definitions from JSON file
-import { reportError } from '../error-handler/binary-reporter.js';
+import { report } from '../error-handler/universal-reporter.js';
 import BinaryCodes from '../error-handler/binary-codes.js';
 
 import suspiciousPatternDefinitions from './suspicious-patterns.json' with { type: 'json' };
@@ -216,7 +216,7 @@ class SecurityConfig {
         // !  NO_SILENT_FALLBACKS: Explicit validation - Fail Fast, Fail Loud
         if (typeof SECURITY_LEVELS[level] === 'undefined') {
             // FIX: Binary Error Pattern - Replace throw with reportError
-            reportError(BinaryCodes.SECURITY.CONFIG(1035), {
+            report(BinaryCodes.SECURITY.CONFIG(1035), {
                 method: 'SecurityConfig.constructor',
                 message: `Invalid security level: ${level}`,
                 providedLevel: level,
@@ -264,7 +264,7 @@ class SecurityConfig {
                 // !  Report immediately if property doesn't exist - LOUD failure
                 if (typeof acc[part] === 'undefined') {
                     // FIX: Binary Error Pattern - Replace throw with reportError
-                    reportError(BinaryCodes.SECURITY.CONFIG(1022), {
+                    report(BinaryCodes.SECURITY.CONFIG(1022), {
                         method: 'SecurityConfig.get',
                         message: `Configuration property not found`,
                         configPath: path,
@@ -279,7 +279,7 @@ class SecurityConfig {
             // !  NO_SILENT_FALLBACKS: Validate final result - Never return undefined
             if (typeof result === 'undefined') {
                 // FIX: Binary Error Pattern - Replace throw with reportError
-                reportError(BinaryCodes.SECURITY.CONFIG(1036), {
+                report(BinaryCodes.SECURITY.CONFIG(1036), {
                     method: 'SecurityConfig.get',
                     message: `Configuration path returned undefined`,
                     configPath: path
@@ -294,7 +294,7 @@ class SecurityConfig {
             const errorType = error?.constructor?.name || 'Error';
             const stackPreview = error?.stack ? error.stack.split('\n').slice(0, 3).join('\n') : 'No stack';
             
-            reportError(BinaryCodes.SECURITY.CONFIG(1037), {
+            report(BinaryCodes.SECURITY.CONFIG(1037), {
                 method: 'SecurityConfig.get',
                 message: `CRITICAL: Invalid configuration path`,
                 configPath: path,
@@ -337,7 +337,7 @@ class SecurityConfig {
         // !  NO_SILENT_FALLBACKS: Explicit check before assignment
         if (typeof SECURITY_LEVELS[level] === 'undefined') {
             // FIX: Binary Error Pattern - Replace throw with reportError
-            reportError(BinaryCodes.SECURITY.CONFIG(1038), {
+            report(BinaryCodes.SECURITY.CONFIG(1038), {
                 method: 'SecurityConfig.setSecurityLevel',
                 message: `Invalid security level`,
                 requestedLevel: level,
@@ -502,7 +502,7 @@ function applyVSCodeSettings(config, vscodeSettings) {
             const errorType = error?.constructor?.name || 'Error';
             const stackPreview = error?.stack ? error.stack.split('\n').slice(0, 3).join('\n') : 'No stack';
             
-            reportError(BinaryCodes.SECURITY.CONFIG(1039), {
+            report(BinaryCodes.SECURITY.CONFIG(1039), {
                 method: 'importFromVSCodeSettings',
                 message: `Validation error for VS Code setting`,
                 vscodeKey: vscodeKey,
@@ -519,7 +519,7 @@ function applyVSCodeSettings(config, vscodeSettings) {
     // !  WHY: Force user to fix invalid settings, don't run with broken config
     if (errors.length > 0) {
         // FIX: Binary Error Pattern - Replace throw with reportError
-        reportError(BinaryCodes.SECURITY.CONFIG(1040), {
+        report(BinaryCodes.SECURITY.CONFIG(1040), {
             method: 'importFromVSCodeSettings',
             message: `Invalid VS Code settings detected`,
             errorCount: errors.length,

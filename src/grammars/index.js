@@ -15,7 +15,7 @@ import { GrammarIndex } from './shared/grammar-index.js';
 import { PureBinaryParser } from './shared/pure-binary-parser.js';
 import EnhancedBinaryParser from './shared/enhanced-binary-parser.js';
 import { BinaryComputationTokenizer } from './shared/tokenizer-helper.js';
-import { reportError } from '../error-handler/binary-reporter.js';
+import { report } from '../error-handler/universal-reporter.js';
 import BinaryCodes from '../error-handler/binary-codes.js';
 import { ERROR_SEVERITY_FLAGS } from '../constants/severity-constants.js';
 import { fileURLToPath } from 'url';
@@ -98,7 +98,7 @@ export async function createParser(rules, options = {}) {
         }
     } catch (configError) {
         // FIX: Binary Error Pattern
-        reportError(
+        report(
             BinaryCodes.SYSTEM.CONFIGURATION(10001),
             { 
                 error: configError,

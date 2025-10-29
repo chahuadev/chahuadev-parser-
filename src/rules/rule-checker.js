@@ -6,6 +6,9 @@
 // !  Contact: chahuadev@gmail.com
 // ! ======================================================================
 
+import { report } from '../error-handler/universal-reporter.js';
+import BinaryCodes from '../error-handler/binary-codes.js';
+
 /**
  * Generic pattern-based rule checker
  * Shared implementation for all pattern-based rules
