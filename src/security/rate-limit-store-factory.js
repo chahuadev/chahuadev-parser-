@@ -61,8 +61,6 @@ function createRateLimitStore(type = 'memory', config = {}) {
         default:
             // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.SECURITY.VALIDATION(3015), {
-                method: 'createRateLimitStore',
-                message: `Unknown rate limit store type`,
                 requestedType: type,
                 supportedTypes: 'memory, redis, memcached'
             });
@@ -106,10 +104,9 @@ function createRedisStore(config) {
            // FIX: Universal Reporter - Auto-collect
            client.connect().catch(err => {
            report(BinaryCodes.IO.RESOURCE_UNAVAILABLE(3016), {
-                 method: 'createRedisStore.connect',
-                 message: `Failed to connect to Redis server: ${err.message}`,
                  errorType: err.constructor?.name,
-                 errorCode: err.code
+                 errorCode: err.code,
+                 errorMessage: err.message
         });
                 // ไม่ต้อง throw err; ปล่อยให้มันทำงานต่อ (เดี๋ยวจะ fallback ไป memory store เอง)
            });
@@ -154,8 +151,6 @@ function createRedisStore(config) {
         const stackPreview = error?.stack ? error.stack.split('\n').slice(0, 3).join('\n') : 'No stack';
         
         report(BinaryCodes.SYSTEM.CONFIGURATION(1041), {
-            method: 'createRedisStore',
-            message: 'Redis store creation failed',
             errorCode: error.code || 'UNKNOWN',
             errorType: errorType,
             errorMessage: error.message,
@@ -165,8 +160,6 @@ function createRedisStore(config) {
         if (error.code === 'MODULE_NOT_FOUND') {
             // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.SYSTEM.CONFIGURATION(1042), {
-                method: 'createRedisStore',
-                message: 'Redis module not found',
                 suggestion: 'Install: npm install redis OR use memory store for development'
             });
             // Return memory store as fallback
@@ -248,8 +241,6 @@ function createMemcachedStore(config) {
         const stackPreview = error?.stack ? error.stack.split('\n').slice(0, 3).join('\n') : 'No stack';
         
         report(BinaryCodes.SYSTEM.CONFIGURATION(1043), {
-            method: 'createMemcachedStore',
-            message: 'Memcached store creation failed',
             errorCode: error.code || 'UNKNOWN',
             errorType: errorType,
             errorMessage: error.message,
@@ -259,8 +250,6 @@ function createMemcachedStore(config) {
         if (error.code === 'MODULE_NOT_FOUND') {
             // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.SYSTEM.CONFIGURATION(1044), {
-                method: 'createMemcachedStore',
-                message: 'Memcached module not found',
                 suggestion: 'Install: npm install memcached OR use memory store for development'
             });
             // Return memory store as fallback

@@ -511,8 +511,7 @@ export function getSeverityCode(severityName) {
         report(BinaryCodes.PARSER.VALIDATION(20001), {
             error: new Error(`Unknown severity: ${severityName}`),
             source: 'constants.js',
-            method: 'getSeverityCode',
-            severityName
+            severityName: severityName
         });
         return SEVERITY_LEVELS.INFO.code;
     }
@@ -534,8 +533,7 @@ export function getRuleIdByCode(code) {
     report(BinaryCodes.PARSER.VALIDATION(20002), {
         error: new Error(`Unknown rule code: ${code}`),
         source: 'constants.js',
-        method: 'getRuleIdByCode',
-        code
+        code: code
     });
     return 'UNKNOWN_RULE';
 }

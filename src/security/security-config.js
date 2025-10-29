@@ -217,8 +217,6 @@ class SecurityConfig {
         if (typeof SECURITY_LEVELS[level] === 'undefined') {
             // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.SECURITY.CONFIG(1035), {
-                method: 'SecurityConfig.constructor',
-                message: `Invalid security level: ${level}`,
                 providedLevel: level,
                 validLevels: JSON.stringify(Object.keys(SECURITY_LEVELS))
             });
@@ -265,8 +263,6 @@ class SecurityConfig {
                 if (typeof acc[part] === 'undefined') {
                     // FIX: Universal Reporter - Auto-collect
                     report(BinaryCodes.SECURITY.CONFIG(1022), {
-                        method: 'SecurityConfig.get',
-                        message: `Configuration property not found`,
                         configPath: path,
                         missingProperty: part
                     });
@@ -280,8 +276,6 @@ class SecurityConfig {
             if (typeof result === 'undefined') {
                 // FIX: Universal Reporter - Auto-collect
                 report(BinaryCodes.SECURITY.CONFIG(1036), {
-                    method: 'SecurityConfig.get',
-                    message: `Configuration path returned undefined`,
                     configPath: path
                 });
                 // Return default value if provided, otherwise null
@@ -295,8 +289,6 @@ class SecurityConfig {
             const stackPreview = error?.stack ? error.stack.split('\n').slice(0, 3).join('\n') : 'No stack';
             
             report(BinaryCodes.SECURITY.CONFIG(1037), {
-                method: 'SecurityConfig.get',
-                message: `CRITICAL: Invalid configuration path`,
                 configPath: path,
                 errorType: errorType,
                 errorMessage: error.message,
@@ -338,8 +330,6 @@ class SecurityConfig {
         if (typeof SECURITY_LEVELS[level] === 'undefined') {
             // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.SECURITY.CONFIG(1038), {
-                method: 'SecurityConfig.setSecurityLevel',
-                message: `Invalid security level`,
                 requestedLevel: level,
                 validLevels: JSON.stringify(Object.keys(SECURITY_LEVELS))
             });
@@ -503,8 +493,6 @@ function applyVSCodeSettings(config, vscodeSettings) {
             const stackPreview = error?.stack ? error.stack.split('\n').slice(0, 3).join('\n') : 'No stack';
             
             report(BinaryCodes.SECURITY.CONFIG(1039), {
-                method: 'importFromVSCodeSettings',
-                message: `Validation error for VS Code setting`,
                 vscodeKey: vscodeKey,
                 errorType: errorType,
                 errorMessage: error.message,
@@ -520,8 +508,6 @@ function applyVSCodeSettings(config, vscodeSettings) {
     if (errors.length > 0) {
         // FIX: Universal Reporter - Auto-collect
         report(BinaryCodes.SECURITY.CONFIG(1040), {
-            method: 'importFromVSCodeSettings',
-            message: `Invalid VS Code settings detected`,
             errorCount: errors.length,
             errors: JSON.stringify(errors)
         });

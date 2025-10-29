@@ -31,10 +31,8 @@ class BinaryScout {
             error.name = 'ValidationError';
             error.isOperational = true;
             report(BinaryCodes.VALIDATOR.VALIDATION(1019), {
-                method: 'constructor',
-                message: 'BinaryScout requires valid tokens array',
                 error: error,
-                context: { tokens: tokens }
+                tokens: tokens
             });
             throw error;
         }
@@ -45,8 +43,6 @@ class BinaryScout {
             error.name = 'ValidationError';
             error.isOperational = true;
             report(BinaryCodes.VALIDATOR.VALIDATION(1026), {
-                method: 'constructor',
-                message: 'BinaryScout requires valid grammarIndex',
                 error: error
             });
             throw error;
@@ -73,10 +69,8 @@ class BinaryScout {
             // FIX: Universal Reporter - Auto-collect
             error.isOperational = true;
             report(BinaryCodes.SYSTEM.CONFIGURATION(1009), {
-                method: 'constructor',
-                message: 'Failed to initialize binary cache',
                 error: error,
-                context: { step: 'binary_cache_initialization' }
+                step: 'binary_cache_initialization'
             });
             throw error;
         }
@@ -121,13 +115,9 @@ class BinaryScout {
             // FIX: Universal Reporter - Auto-collect
             error.isOperational = true;
             report(BinaryCodes.PARSER.SYNTAX(1030), {
-                method: 'scanStructure',
-                message: 'Structure scan failed',
                 error: error,
-                context: {
-                    tokensLength: this.tokens.length,
-                    structuresFound: this.structureMap.size
-                }
+                tokensLength: this.tokens.length,
+                structuresFound: this.structureMap.size
             });
             throw error;
         }
@@ -166,10 +156,8 @@ class BinaryScout {
             // FIX: Universal Reporter - Auto-collect
             error.isOperational = true;
             report(BinaryCodes.PARSER.VALIDATION(5005), {
-                method: 'scanFunction',
-                message: 'Function scan failed',
                 error: error,
-                context: { startPos }
+                startPos: startPos
             });
             return startPos; // Fallback: don't jump
         }
@@ -211,10 +199,8 @@ class BinaryScout {
             // FIX: Universal Reporter - Auto-collect
             error.isOperational = true;
             report(BinaryCodes.PARSER.VALIDATION(5006), {
-                method: 'scanClass',
-                message: 'Class scan failed',
                 error: error,
-                context: { startPos }
+                startPos: startPos
             });
             return startPos;
         }
@@ -254,10 +240,9 @@ class BinaryScout {
             // FIX: Universal Reporter - Auto-collect
             error.isOperational = true;
             report(BinaryCodes.PARSER.VALIDATION(5007), {
-                method: 'scanBlock',
-                message: 'Block scan failed',
                 error: error,
-                context: { startPos, typeLabel }
+                startPos: startPos,
+                typeLabel: typeLabel
             });
             return startPos;
         }
@@ -312,10 +297,8 @@ class BinaryScout {
             // FIX: Universal Reporter - Auto-collect
             error.isOperational = true;
             report(BinaryCodes.PARSER.VALIDATION(5008), {
-                method: 'scanTryCatch',
-                message: 'Try-catch scan failed',
                 error: error,
-                context: { startPos }
+                startPos: startPos
             });
             return startPos;
         }
@@ -353,10 +336,9 @@ class BinaryScout {
         error.name = 'ParserError';
         error.isOperational = true;
         report(BinaryCodes.PARSER.SYNTAX(5009), {
-            method: 'findMatchingBrace',
-            message: 'No matching closing brace found',
             error: error,
-            context: { startPos, tokensLength: this.tokens.length }
+            startPos: startPos,
+            tokensLength: this.tokens.length
         });
 
         return -1;
@@ -457,10 +439,9 @@ class BinaryScout {
             // FIX: Universal Reporter - Auto-collect
             error.isOperational = true;
             report(BinaryCodes.PARSER.VALIDATION(5010), {
-                method: 'scanClassMethods',
-                message: 'Class methods scan failed',
                 error: error,
-                context: { startPos, endPos }
+                startPos: startPos,
+                endPos: endPos
             });
         }
 

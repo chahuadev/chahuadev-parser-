@@ -137,8 +137,6 @@ function normalizeRuleDefinition(key, definition) {
     if (!resolvedId) {
         // FIX: Universal Reporter - Auto-collect
         report(BinaryCodes.VALIDATOR.VALIDATION(7001), {
-            method: 'normalizeRuleDefinition',
-            message: `Unable to resolve binary rule identifier for key ${String(key)}`,
             key: String(key),
             definitionType: typeof definition,
             hasId: definition?.id !== undefined,
@@ -235,9 +233,8 @@ export class ValidationEngine {
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.PARSER.SYNTAX(1020), {
-                method: 'initializeParserStudy',
-                message: error?.message || 'Parser initialization failed',
                 errorType: error?.constructor?.name,
+                errorMessage: error?.message || 'Parser initialization failed',
                 stackPreview: error?.stack?.split('\n').slice(0, 3).join('\n')
             });
             // ไม่ throw - ให้ระบบทำงานต่อ (parser จะเป็น null)
@@ -248,8 +245,6 @@ export class ValidationEngine {
         if (!this.parser) {
             // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.SYSTEM.CONFIGURATION(7002), {
-                method: 'validateCode',
-                message: 'ValidationEngine not initialized. Call initializeParserStudy() first.',
                 fileName: fileName
             });
             // ไม่ throw - return empty violations แทน
@@ -267,11 +262,10 @@ export class ValidationEngine {
             } catch (parseError) {
                 // FIX: Universal Reporter - Auto-collect
                 report(BinaryCodes.PARSER.SYNTAX(1032), {
-                    method: 'validateCode',
-                    message: parseError?.message || 'Parser failed - syntax error in source code',
                     fileName: fileName,
                     tokensCount: tokens.length,
-                    errorType: parseError?.constructor?.name
+                    errorType: parseError?.constructor?.name,
+                    errorMessage: parseError?.message || 'Parser failed - syntax error in source code'
                 });
                 // ไม่ throw - return empty violations แทน
                 return [];
@@ -281,8 +275,6 @@ export class ValidationEngine {
             if (!ast || typeof ast !== 'object') {
                 // FIX: Universal Reporter - Auto-collect
                 report(BinaryCodes.PARSER.SYNTAX(2005), {
-                    method: 'validateCode',
-                    message: 'Parser returned invalid AST (null/undefined/non-object)',
                     fileName: fileName,
                     astType: typeof ast,
                     astConstructor: ast?.constructor?.name
@@ -298,8 +290,6 @@ export class ValidationEngine {
             if (!Array.isArray(violations)) {
                 // FIX: Universal Reporter - Auto-collect
                 report(BinaryCodes.VALIDATOR.LOGIC(1027), {
-                    method: 'validateCode',
-                    message: 'detectViolations() returned non-array value - parse failure hidden by silent fallback',
                     fileName: fileName,
                     violationsType: typeof violations,
                     violationsConstructor: violations?.constructor?.name
@@ -332,10 +322,9 @@ export class ValidationEngine {
             
             // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.VALIDATOR.LOGIC(1021), {
-                method: 'validateCode',
-                message: error?.message || 'Unexpected error during validation',
                 fileName: fileName,
                 errorType: error?.constructor?.name,
+                errorMessage: error?.message || 'Unexpected error during validation',
                 stackPreview: error?.stack?.split('\n').slice(0, 3).join('\n')
             });
             // ไม่ throw - return empty violations แทน
@@ -369,10 +358,9 @@ export class ValidationEngine {
                             this.errorCollector.collect(
                                 BinaryCodes.VALIDATOR.VALIDATION(3000 + (rule.id || 0)),
                                 {
-                                    method: 'detectViolations',
                                     fileName,
                                     rule: rule.slug || rule.id,
-                                    message: violation.message,
+                                    violationMessage: violation.message,
                                     line: violation.line,
                                     column: violation.column,
                                     severity: violation.severity
@@ -387,11 +375,10 @@ export class ValidationEngine {
                 this.errorCollector.collect(
                     BinaryCodes.VALIDATOR.VALIDATION(3001),
                     {
-                        method: 'detectViolations',
                         rule: rule?.slug || rule?.id || '<unknown>',
                         fileName: fileName,
-                        message: ruleError?.message || 'Rule check failed',
                         errorType: ruleError?.constructor?.name,
+                        errorMessage: ruleError?.message || 'Rule check failed',
                         stackPreview: ruleError?.stack?.split('\n').slice(0, 3).join('\n')
                     },
                     { nonThrowing: true }
@@ -419,11 +406,10 @@ export class ValidationEngine {
             .join(', ');
             
         report(BinaryCodes.VALIDATOR.VALIDATION(7003), {
-            method: 'getRule',
-            message: `Rule '${ruleId}' not found. Available: ${availableRules}`,
             requestedRuleId: String(ruleId),
             resolvedId: String(resolvedId),
-            availableCount: Object.keys(this.rules).length
+            availableCount: Object.keys(this.rules).length,
+            availableRules: availableRules
         });
         // ไม่ throw - return null แทน
         return null;

@@ -85,13 +85,9 @@ class EnhancedBinaryParser extends PureBinaryParser {
                     // FIX: Universal Reporter - Auto-collect
                     scoutError.isOperational = true;
                     report(BinaryCodes.PARSER.VALIDATION(1018), {
-                        method: 'parse',
-                        message: 'Binary Scout failed, continuing without structure map',
                         error: scoutError,
-                        context: { 
-                            phase: 'scout_failed',
-                            fallback: 'continuing_without_structure_map'
-                        }
+                        phase: 'scout_failed',
+                        fallback: 'continuing_without_structure_map'
                     });
                     this.structureMap = new Map();
                 }
@@ -111,13 +107,9 @@ class EnhancedBinaryParser extends PureBinaryParser {
             // FIX: Universal Reporter - Auto-collect
             error.isOperational = true;
             report(BinaryCodes.PARSER.SYNTAX(1033), {
-                method: 'parse',
-                message: 'Enhanced parser failed',
                 error: error,
-                context: {
-                    tokensLength: tokens?.length || 0,
-                    stats: this.stats
-                }
+                tokensLength: tokens?.length || 0,
+                stats: this.stats
             });
             throw error;
         }
@@ -147,10 +139,9 @@ class EnhancedBinaryParser extends PureBinaryParser {
             // FIX: Universal Reporter - Auto-collect
             error.isOperational = true;
             report(BinaryCodes.PARSER.SYNTAX(4004), {
-                method: 'parseFunctionDeclaration',
-                message: 'Function declaration parsing failed',
                 error: error,
-                context: { start, currentPos: this.current }
+                start: start,
+                currentPos: this.current
             });
             throw error;
         }
@@ -186,10 +177,8 @@ class EnhancedBinaryParser extends PureBinaryParser {
             // FIX: Universal Reporter - Auto-collect
             error.isOperational = true;
             report(BinaryCodes.PARSER.VALIDATION(4005), {
-                method: 'quantumJump',
-                message: 'Quantum jump failed',
                 error: error,
-                context: { targetPos }
+                targetPos: targetPos
             });
         }
     }
@@ -220,7 +209,6 @@ class EnhancedBinaryParser extends PureBinaryParser {
             }
 
             throw this.createParserError('Prophet failed to resolve ambiguous object property', {
-                method: 'parseObjectPropertyValue',
                 propertyKey: meta?.propertyKey,
                 reason: prophecy?.reason || 'UNKNOWN'
             });

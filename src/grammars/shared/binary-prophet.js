@@ -38,11 +38,8 @@ class BinaryProphet {
         if (!grammarIndex) {
             // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.SYSTEM.CONFIGURATION(1014), {
-                method: 'constructor',
-                context: { 
-                    received: typeof grammarIndex,
-                    expected: 'GrammarIndex instance'
-                }
+                received: typeof grammarIndex,
+                expected: 'GrammarIndex instance'
             });
             // ไม่ throw - ให้ระบบทำงานต่อแม้ไม่มี grammarIndex
         }
@@ -94,12 +91,9 @@ class BinaryProphet {
         if (successfulUniverses.length === 0) {
             // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.PARSER.VALIDATION(1025), {
-                method: 'speculateObjectProperty',
-                context: {
-                    propertyKey: context.propertyKey,
-                    universesTested: hypotheses.length,
-                    durationMs: (performance.now() - startTime).toFixed(2)
-                }
+                propertyKey: context.propertyKey,
+                universesTested: hypotheses.length,
+                durationMs: (performance.now() - startTime).toFixed(2)
             });
             return null;
         }
@@ -155,11 +149,8 @@ class BinaryProphet {
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.PARSER.VALIDATION(1029), {
-                method: 'simulateTraditionalMethod',
-                context: {
-                    propertyKey: context?.propertyKey,
-                    errorName: error.name
-                }
+                propertyKey: context?.propertyKey,
+                errorName: error.name
             });
             return {
                 assumption: 'method',
@@ -212,11 +203,8 @@ class BinaryProphet {
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.PARSER.VALIDATION(6004), {
-                method: 'simulateArrowFunction',
-                context: {
-                    propertyKey: context?.propertyKey,
-                    errorName: error.name
-                }
+                propertyKey: context?.propertyKey,
+                errorName: error.name
             });
             return {
                 assumption: 'arrow',
