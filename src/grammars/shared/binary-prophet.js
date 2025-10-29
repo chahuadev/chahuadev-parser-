@@ -36,15 +36,15 @@ class SandboxBinaryParser extends PureBinaryParser {
 class BinaryProphet {
     constructor(grammarIndex, options = {}) {
         if (!grammarIndex) {
-            // FIX: Binary Error Pattern
-            const error = new Error('BinaryProphet requires a GrammarIndex instance');
-            error.isOperational = false;
+            // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.SYSTEM.CONFIGURATION(1014), {
                 method: 'constructor',
-                message: 'BinaryProphet requires a GrammarIndex instance',
-                error: error
+                context: { 
+                    received: typeof grammarIndex,
+                    expected: 'GrammarIndex instance'
+                }
             });
-            throw error;
+            // ไม่ throw - ให้ระบบทำงานต่อแม้ไม่มี grammarIndex
         }
 
         this.grammarIndex = grammarIndex;
@@ -92,10 +92,9 @@ class BinaryProphet {
 
         const successfulUniverses = hypotheses.filter(hypothesis => hypothesis.success);
         if (successfulUniverses.length === 0) {
-            // FIX: Binary Error Pattern
+            // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.PARSER.VALIDATION(1025), {
                 method: 'speculateObjectProperty',
-                message: 'Prophet speculation unable to resolve ambiguity',
                 context: {
                     propertyKey: context.propertyKey,
                     universesTested: hypotheses.length,
@@ -154,14 +153,12 @@ class BinaryProphet {
                 universesSimulated: 1
             };
         } catch (error) {
-            // FIX: Binary Error Pattern
-            error.isOperational = true;
+            // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.PARSER.VALIDATION(1029), {
                 method: 'simulateTraditionalMethod',
-                message: 'Traditional method simulation failed',
-                error: error,
                 context: {
-                    propertyKey: context?.propertyKey
+                    propertyKey: context?.propertyKey,
+                    errorName: error.name
                 }
             });
             return {
@@ -213,14 +210,12 @@ class BinaryProphet {
                 universesSimulated: 1
             };
         } catch (error) {
-            // FIX: Binary Error Pattern
-            error.isOperational = true;
+            // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.PARSER.VALIDATION(6004), {
                 method: 'simulateArrowFunction',
-                message: 'Arrow function simulation failed',
-                error: error,
                 context: {
-                    propertyKey: context?.propertyKey
+                    propertyKey: context?.propertyKey,
+                    errorName: error.name
                 }
             });
             return {

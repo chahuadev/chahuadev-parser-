@@ -388,7 +388,7 @@ function loadAutoUnicodeIdentifierRanges() {
 
     if (!fileContent) {
         if (UNICODE_AUTO_CONFIG.requireData === true) {
-            // FIX: Binary Error Pattern
+            // FIX: Universal Reporter - Auto-collect
             const warning = lastError || new Error('Unicode identifier auto-configuration data not available');
             warning.isOperational = true;
             report(BinaryCodes.PARSER.VALIDATION(4101), {
@@ -406,7 +406,7 @@ function loadAutoUnicodeIdentifierRanges() {
     try {
         parsed = JSON.parse(fileContent);
     } catch (parseError) {
-        // FIX: Binary Error Pattern
+        // FIX: Universal Reporter - Auto-collect
         parseError.isOperational = true;
         report(BinaryCodes.PARSER.SYNTAX(4102), {
             method: 'loadAutoUnicodeIdentifierRanges',
@@ -478,7 +478,7 @@ function loadAutoUnicodeIdentifierRanges() {
     }
 
     if (autoRanges.length === 0 && UNICODE_AUTO_CONFIG.requireData === true) {
-        // FIX: Binary Error Pattern
+        // FIX: Universal Reporter - Auto-collect
         const warning = new Error('Unicode auto identifier configuration produced no ranges');
         warning.isOperational = true;
         report(BinaryCodes.PARSER.VALIDATION(4103), {
@@ -674,7 +674,7 @@ class PureBinaryTokenizer {
             this.brain = grammarIndexOrLanguage;
             this.language = 'javascript'; // Default, could be extracted from brain if needed
         } else {
-            // FIX: Binary Error Pattern
+            // FIX: Universal Reporter - Auto-collect
             const error = new Error('PureBinaryTokenizer requires either a language string or GrammarIndex object');
             error.name = 'TokenizerError';
             error.isOperational = false; // Programming error
@@ -725,7 +725,7 @@ class PureBinaryTokenizer {
                     const requiredSections = ['keywords', 'operators', 'punctuation', 'literals', 'comments'];
                     for (const section of requiredSections) {
                         if (!this.grammarCache[section] || typeof this.grammarCache[section] !== 'object') {
-                            // FIX: Binary Error Pattern
+                            // FIX: Universal Reporter - Auto-collect
                             // BINARY ERROR EMISSION - แค่ส่งเลข!
                             report(BinaryCodes.SYSTEM.CONFIGURATION(4114), {
                                 method: 'assertGrammarBrainIntegrity',
@@ -817,7 +817,7 @@ class PureBinaryTokenizer {
             this.assertGrammarBrainIntegrity(this.grammarCache);
             this.assertFlattenedGrammarSections();
         } catch (error) {
-            // FIX: Binary Error Pattern
+            // FIX: Universal Reporter - Auto-collect
             error.isOperational = false; // Grammar loading error = Programming error
             report(BinaryCodes.SYSTEM.CONFIGURATION(4105), {
                 method: 'loadGrammar',
@@ -899,7 +899,7 @@ class PureBinaryTokenizer {
     }
 
     throwCriticalTokenizerFailure(errorCode, message, context = {}) {
-        // FIX: Binary Error Pattern - reportError แทน throw
+        // FIX: Universal Reporter - Auto-collect - reportError แทน throw
         const failure = new Error(message);
         failure.isOperational = false;
         report(BinaryCodes.SYSTEM.CONFIGURATION(4106), {
@@ -921,7 +921,7 @@ class PureBinaryTokenizer {
         // ! STRICT_MODE: ไม่ใช้ fallback เมื่อ section ไม่ถูกต้อง
         if (STRICT_MODE) {
             if (!section || typeof section !== 'object') {
-                // FIX: Binary Error Pattern
+                // FIX: Universal Reporter - Auto-collect
                 const error = new Error('Grammar section is null, undefined, or not an object');
                 error.isOperational = false;
                 report(BinaryCodes.SYSTEM.CONFIGURATION(4107), {
@@ -1008,7 +1008,7 @@ class PureBinaryTokenizer {
 
             // Security check: โหลดจาก config
             if (input.length > SECURITY_LIMITS.MAX_INPUT_LENGTH) {
-                // FIX: Binary Error Pattern
+                // FIX: Universal Reporter - Auto-collect
                 const error = new Error(`Input exceeds maximum length of ${SECURITY_LIMITS.MAX_INPUT_LENGTH} characters`);
                 error.name = 'SecurityError';
                 error.isOperational = true; // User input error
@@ -1177,7 +1177,7 @@ class PureBinaryTokenizer {
             return this.computeOperatorOrPunctuation();
         }
         
-        // FIX: Binary Error Pattern
+        // FIX: Universal Reporter - Auto-collect
         // NO_SILENT_FALLBACKS: ห้าม fallback - ต้อง throw error ทันที
         const error = new Error(
             `Unknown character at position ${this.position}: "${char}" (charCode: ${char.charCodeAt(0)})`
@@ -1249,7 +1249,7 @@ class PureBinaryTokenizer {
         
         // Security check: โหลดจาก config
         if (startPattern.length > SECURITY_LIMITS.MAX_PATTERN_LENGTH) {
-            // FIX: Binary Error Pattern
+            // FIX: Universal Reporter - Auto-collect
             const error = new Error(`Pattern exceeds maximum length of ${SECURITY_LIMITS.MAX_PATTERN_LENGTH}`);
             error.name = 'SecurityError';
             error.isOperational = false; // Grammar pattern error = Programming bug
@@ -1265,7 +1265,7 @@ class PureBinaryTokenizer {
         
         // ตรวจสอบว่าตรงกับ start pattern หรือไม่
         if (!this.matchPattern(start, startPattern)) {
-            // FIX: Binary Error Pattern
+            // FIX: Universal Reporter - Auto-collect
             const errorMsg = ERROR_MESSAGES.EXPECTED_PATTERN
                 .replace('{pattern}', startPattern)
                 .replace('{position}', start);
@@ -1318,7 +1318,7 @@ class PureBinaryTokenizer {
         while (end < this.inputLength) {
             // Security check: โหลดจาก config
             if ((end - start) > SECURITY_LIMITS.MAX_STRING_LENGTH) {
-                // FIX: Binary Error Pattern
+                // FIX: Universal Reporter - Auto-collect
                 const error = new Error(`String exceeds maximum length of ${SECURITY_LIMITS.MAX_STRING_LENGTH}`);
                 error.name = 'SecurityError';
                 error.isOperational = true; // User input error
@@ -1383,7 +1383,7 @@ class PureBinaryTokenizer {
         while (end < this.inputLength) {
             // Security check: โหลดจาก config
             if ((end - start) > SECURITY_LIMITS.MAX_TOKEN_LENGTH) {
-                // FIX: Binary Error Pattern
+                // FIX: Universal Reporter - Auto-collect
                 const error = new Error(`Token exceeds maximum length of ${SECURITY_LIMITS.MAX_TOKEN_LENGTH}`);
                 error.name = 'SecurityError';
                 error.isOperational = true; // User input error
@@ -1445,7 +1445,7 @@ class PureBinaryTokenizer {
         while (end < this.inputLength) {
             // Security check: โหลดจาก config
             if ((end - start) > SECURITY_LIMITS.MAX_NUMBER_LENGTH) {
-                // FIX: Binary Error Pattern
+                // FIX: Universal Reporter - Auto-collect
                 const error = new Error(`Number exceeds maximum length of ${SECURITY_LIMITS.MAX_NUMBER_LENGTH}`);
                 error.name = 'SecurityError';
                 error.isOperational = true; // User input error
@@ -1531,7 +1531,7 @@ class PureBinaryTokenizer {
                     ? (() => {
                         const binaryValue = PUNCTUATION_BINARY_MAP[punctMatch.value];
                         if (binaryValue === undefined || binaryValue === null) {
-                            // FIX: Binary Error Pattern
+                            // FIX: Universal Reporter - Auto-collect
                             // BINARY ERROR EMISSION - แค่ส่งเลข!
                             report(BinaryCodes.SYSTEM.CONFIGURATION(4115), {
                                 method: 'computeOperatorOrPunctuation',
@@ -1557,7 +1557,7 @@ class PureBinaryTokenizer {
         // ! STRICT_MODE: ต้อง throw เพื่อบังคับให้แก้ grammar
         const char = this.input[start];
         
-        // FIX: Binary Error Pattern
+        // FIX: Universal Reporter - Auto-collect
         // ตรวจสอบว่า character นี้น่าจะเป็น operator หรือ punctuation
         const isProbablyPunctuation = /^[\(\)\{\}\[\];,\.]$/.test(char);
         

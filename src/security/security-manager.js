@@ -113,49 +113,43 @@ class SecurityManager {
         // !          คุณต้อง inject มันเองเพื่อให้ชัดเจนว่านี่คือการตัดสินใจที่รู้สึกตัว
         // !
         if (!options.rateLimitStore) {
-            // FIX: Binary Error Pattern - New signature with context
-            reportError(BinaryCodes.SECURITY.CONFIGURATION(1015), {
-                method: 'SecurityManager.constructor',
-                message: 'Rate limit store is required - NO_INTERNAL_CACHING compliance',
-                severity: 'CRITICAL'
+            // FIX: Universal Reporter - Auto-collect
+            report(BinaryCodes.SECURITY.CONFIGURATION(1015), { 
+                storeProvided: false 
             });
             return;
         }
         
         // Validate injected store implements required interface
         if (typeof options.rateLimitStore.get !== 'function') {
-            // FIX: Binary Error Pattern - New signature with context
-            reportError(BinaryCodes.SECURITY.CONFIGURATION(1031), {
-                method: 'SecurityManager.constructor',
-                message: 'Rate limit store missing get() method',
-                hasGet: false
+            // FIX: Universal Reporter - Auto-collect
+            report(BinaryCodes.SECURITY.CONFIGURATION(1031), { 
+                hasGet: false,
+                storeType: typeof options.rateLimitStore
             });
             return;
         }
         if (typeof options.rateLimitStore.set !== 'function') {
-            // FIX: Binary Error Pattern - New signature with context
-            reportError(BinaryCodes.SECURITY.CONFIGURATION(1004), {
-                method: 'SecurityManager.constructor',
-                message: 'Rate limit store missing set() method',
-                hasSet: false
+            // FIX: Universal Reporter - Auto-collect
+            report(BinaryCodes.SECURITY.CONFIGURATION(1004), { 
+                hasSet: false,
+                storeType: typeof options.rateLimitStore
             });
             return;
         }
         if (typeof options.rateLimitStore.has !== 'function') {
-            // FIX: Binary Error Pattern - New signature with context
-            reportError(BinaryCodes.SECURITY.CONFIGURATION(1005), {
-                method: 'SecurityManager.constructor',
-                message: 'Rate limit store missing has() method',
-                hasHas: false
+            // FIX: Universal Reporter - Auto-collect
+            report(BinaryCodes.SECURITY.CONFIGURATION(1005), { 
+                hasHas: false,
+                storeType: typeof options.rateLimitStore
             });
             return;
         }
         if (typeof options.rateLimitStore.delete !== 'function') {
-            // FIX: Binary Error Pattern - New signature with context
-            reportError(BinaryCodes.SECURITY.CONFIGURATION(1006), {
-                method: 'SecurityManager.constructor',
-                message: 'Rate limit store missing delete() method',
-                hasDelete: false
+            // FIX: Universal Reporter - Auto-collect
+            report(BinaryCodes.SECURITY.CONFIGURATION(1006), { 
+                hasDelete: false,
+                storeType: typeof options.rateLimitStore
             });
             return;
         }
@@ -174,12 +168,10 @@ class SecurityManager {
         let securityLevel = 'FORTRESS';
         if (this.config.SECURITY_LEVEL) {
             if (typeof this.config.SECURITY_LEVEL !== 'string') {
-                // FIX: Binary Error Pattern - New signature with context
-                reportError(BinaryCodes.SECURITY.CONFIGURATION(1024), {
-                    method: 'SecurityManager.constructor',
-                    message: 'SECURITY_LEVEL must be string',
-                    actualType: typeof this.config.SECURITY_LEVEL,
-                    value: JSON.stringify(this.config.SECURITY_LEVEL)
+                // FIX: Universal Reporter - Auto-collect
+                report(BinaryCodes.SECURITY.CONFIGURATION(1024), { 
+                    actualType: typeof this.config.SECURITY_LEVEL, 
+                    value: JSON.stringify(this.config.SECURITY_LEVEL) 
                 });
                 return;
             }
@@ -237,12 +229,9 @@ class SecurityManager {
         for (const key in source) {
             // ! NO_SILENT_FALLBACKS: Explicit check for dangerous keys - FAIL LOUD
             if (DANGEROUS_KEYS.includes(key)) {
-                // FIX: Binary Error Pattern - New signature with context
-                reportError(BinaryCodes.SECURITY.VALIDATION(1002), {
-                    method: 'SecurityManager.deepMergeConfig',
-                    message: 'Prototype pollution attempt detected',
-                    dangerousKey: key,
-                    severity: 'CRITICAL'
+                // FIX: Universal Reporter - Auto-collect
+                report(BinaryCodes.SECURITY.VALIDATION(1002), { 
+                    dangerousKey: key 
                 });
                 return result;
             }
@@ -271,46 +260,38 @@ class SecurityManager {
     validatePath(inputPath, operation = 'READ') {
         // Input type validation
         if (!inputPath || typeof inputPath !== 'string') {
-            // FIX: Binary Error Pattern - New signature with context
-            reportError(BinaryCodes.SECURITY.VALIDATION(2001), {
-                method: 'SecurityManager.validatePath',
-                message: 'Invalid path input',
-                hasPath: !!inputPath,
-                pathType: typeof inputPath
+            // FIX: Universal Reporter - Auto-collect
+            report(BinaryCodes.SECURITY.VALIDATION(2001), { 
+                hasPath: !!inputPath, 
+                pathType: typeof inputPath 
             });
             return null;
         }
         
         // Length validation
         if (inputPath.length > this.config.MAX_PATH_LENGTH) {
-            // FIX: Binary Error Pattern - New signature with context
-            reportError(BinaryCodes.SECURITY.VALIDATION(2002), {
-                method: 'SecurityManager.validatePath',
-                message: 'Path length exceeds maximum',
-                pathLength: inputPath.length,
-                maxLength: this.config.MAX_PATH_LENGTH
+            // FIX: Universal Reporter - Auto-collect
+            report(BinaryCodes.SECURITY.VALIDATION(2002), { 
+                pathLength: inputPath.length, 
+                maxLength: this.config.MAX_PATH_LENGTH 
             });
             return null;
         }
         
         // Dangerous characters check
         if (this.config.DANGEROUS_CHARS_REGEX.test(inputPath)) {
-            // FIX: Binary Error Pattern - New signature with context
-            reportError(BinaryCodes.SECURITY.VALIDATION(2003), {
-                method: 'SecurityManager.validatePath',
-                message: 'Path contains dangerous characters',
-                path: inputPath
+            // FIX: Universal Reporter - Auto-collect
+            report(BinaryCodes.SECURITY.VALIDATION(2003), { 
+                path: inputPath 
             });
             return null;
         }
         
         // Path traversal protection
         if (this.config.PATH_TRAVERSAL_REGEX.test(inputPath)) {
-            // FIX: Binary Error Pattern - New signature with context
-            reportError(BinaryCodes.SECURITY.VALIDATION(2004), {
-                method: 'SecurityManager.validatePath',
-                message: 'Path traversal attempt detected',
-                path: inputPath
+            // FIX: Universal Reporter - Auto-collect
+            report(BinaryCodes.SECURITY.VALIDATION(2004), { 
+                path: inputPath 
             });
             return null;
         }
@@ -365,59 +346,34 @@ class SecurityManager {
         } catch (error) {
             // FIX: Binary Error Pattern - New signature with context
             if (error.code === 'ENOENT') {
-                reportError(BinaryCodes.IO.RESOURCE_NOT_FOUND(3002), {
-                    method: 'SecurityManager.validateFile',
-                    message: 'File not found',
-                    path: validatedPath,
-                    severity: 'WARNING'
-                });
+                // FIX: Universal Reporter - Auto-collect
+                report(BinaryCodes.IO.RESOURCE_NOT_FOUND(3002), { method: 'SecurityManager.validateFile', message: 'File not found', path: validatedPath, severity: 'WARNING' });
                 exists = false;
             } else {
-                reportError(BinaryCodes.IO.RESOURCE_UNAVAILABLE(3003), {
-                    method: 'SecurityManager.validateFile',
-                    message: 'File unavailable',
-                    path: validatedPath,
-                    errorCode: error.code,
-                    errorMessage: error.message
-                });
+                // FIX: Universal Reporter - Auto-collect
+                report(BinaryCodes.IO.RESOURCE_UNAVAILABLE(3003), { method: 'SecurityManager.validateFile', message: 'File unavailable', path: validatedPath, errorCode: error.code, errorMessage: error.message });
                 return null;
             }
         }
         
         if (!exists && operation === 'READ') {
-            // FIX: Binary Error Pattern - New signature with context
-            reportError(BinaryCodes.IO.RESOURCE_NOT_FOUND(3004), {
-                method: 'SecurityManager.validateFile',
-                message: 'File must exist for READ operation',
-                path: validatedPath,
-                operation: operation
-            });
+            // FIX: Universal Reporter - Auto-collect
+            report(BinaryCodes.IO.RESOURCE_NOT_FOUND(3004), { method: 'SecurityManager.validateFile', message: 'File must exist for READ operation', path: validatedPath, operation: operation });
             return null;
         }
         
         if (exists && stats) {
             // Symlink check
             if (stats.isSymbolicLink() && !this.config.ALLOW_SYMLINKS) {
-                // FIX: Binary Error Pattern - New signature with context
-                reportError(BinaryCodes.SECURITY.PERMISSION(3005), {
-                    method: 'SecurityManager.validateFile',
-                    message: 'Symlinks not allowed',
-                    path: validatedPath,
-                    allowSymlinks: this.config.ALLOW_SYMLINKS
-                });
+                // FIX: Universal Reporter - Auto-collect
+                report(BinaryCodes.SECURITY.PERMISSION(3005), { method: 'SecurityManager.validateFile', message: 'Symlinks not allowed', path: validatedPath, allowSymlinks: this.config.ALLOW_SYMLINKS });
                 return null;
             }
             
             // File size check
             if (stats.size > this.config.MAX_FILE_SIZE) {
-                // FIX: Binary Error Pattern - New signature with context
-                reportError(BinaryCodes.SECURITY.VALIDATION(3006), {
-                    method: 'SecurityManager.validateFile',
-                    message: 'File size exceeds maximum',
-                    path: validatedPath,
-                    fileSize: stats.size,
-                    maxSize: this.config.MAX_FILE_SIZE
-                });
+                // FIX: Universal Reporter - Auto-collect
+                report(BinaryCodes.SECURITY.VALIDATION(3006), { method: 'SecurityManager.validateFile', message: 'File size exceeds maximum', path: validatedPath, fileSize: stats.size, maxSize: this.config.MAX_FILE_SIZE });
                 return null;
             }
             
@@ -439,29 +395,16 @@ class SecurityManager {
             try {
                 return input.match(pattern);
             } catch (error) {
-                // FIX: Binary Error Pattern - New signature with context
-                reportError(BinaryCodes.SECURITY.VALIDATION(3007), {
-                    method: 'SecurityManager.safeRegexExecution',
-                    message: 'Regex execution failed (ReDoS protection disabled)',
-                    pattern: pattern.source,
-                    errorMessage: error.message,
-                    severity: 'WARNING',
-                    userContext: JSON.stringify(context)
-                });
+                // FIX: Universal Reporter - Auto-collect
+                report(BinaryCodes.SECURITY.VALIDATION(3007), { method: 'SecurityManager.safeRegexExecution', message: 'Regex execution failed (ReDoS protection disabled)', pattern: pattern.source, errorMessage: error.message, severity: 'WARNING', userContext: JSON.stringify(context) });
                 return null;
             }
         }
         
         return new Promise((resolve) => {
             const timeout = setTimeout(() => {
-                // FIX: Binary Error Pattern - New signature with context
-                reportError(BinaryCodes.SECURITY.VALIDATION(3008), {
-                    method: 'SecurityManager.safeRegexExecution',
-                    message: 'Regex execution timeout (ReDoS protection)',
-                    pattern: pattern.source,
-                    timeout: this.config.MAX_REGEX_EXECUTION_TIME,
-                    userContext: JSON.stringify(context)
-                });
+                // FIX: Universal Reporter - Auto-collect
+                report(BinaryCodes.SECURITY.VALIDATION(3008), { method: 'SecurityManager.safeRegexExecution', message: 'Regex execution timeout (ReDoS protection)', pattern: pattern.source, timeout: this.config.MAX_REGEX_EXECUTION_TIME, userContext: JSON.stringify(context) });
                 resolve(null);
             }, this.config.MAX_REGEX_EXECUTION_TIME);
             
@@ -471,14 +414,8 @@ class SecurityManager {
                 resolve(result);
             } catch (error) {
                 // FIX: Binary Error Pattern - New signature with context
-                reportError(BinaryCodes.SECURITY.VALIDATION(3009), {
-                    method: 'SecurityManager.safeRegexExecution',
-                    message: 'Regex execution error',
-                    pattern: pattern.source,
-                    errorMessage: error.message,
-                    severity: 'WARNING',
-                    userContext: JSON.stringify(context)
-                });
+                // FIX: Universal Reporter - Auto-collect
+                report(BinaryCodes.SECURITY.VALIDATION(3009), { method: 'SecurityManager.safeRegexExecution', message: 'Regex execution error', pattern: pattern.source, errorMessage: error.message, severity: 'WARNING', userContext: JSON.stringify(context) });
                 clearTimeout(timeout);
                 resolve(null);
             }
@@ -506,13 +443,8 @@ class SecurityManager {
             const storedCount = await Promise.resolve(this.requestCounts.get(key));
             if (typeof storedCount !== 'number') {
                 // FIX: Binary Error Pattern - New signature with context
-                reportError(BinaryCodes.SECURITY.VALIDATION(1000), {
-                    method: 'SecurityManager.checkRateLimit',
-                    message: 'Invalid count type in requestCounts store',
-                    key: key,
-                    actualType: typeof storedCount,
-                    severity: 'WARNING'
-                });
+                // FIX: Universal Reporter - Auto-collect
+                report(BinaryCodes.SECURITY.VALIDATION(1000), { method: 'SecurityManager.checkRateLimit', message: 'Invalid count type in requestCounts store', key: key, actualType: typeof storedCount, severity: 'WARNING' });
                 // Reset corrupted entry
                 count = 0;
             } else {
@@ -521,14 +453,8 @@ class SecurityManager {
         }
         
         if (count >= this.config.MAX_REQUESTS_PER_MINUTE) {
-            // FIX: Binary Error Pattern - New signature with context
-            reportError(BinaryCodes.SECURITY.VALIDATION(1001), {
-                method: 'SecurityManager.checkRateLimit',
-                message: 'Rate limit exceeded',
-                identifier: identifier,
-                currentCount: count,
-                limit: this.config.MAX_REQUESTS_PER_MINUTE
-            });
+            // FIX: Universal Reporter - Auto-collect
+            report(BinaryCodes.SECURITY.VALIDATION(1001), { method: 'SecurityManager.checkRateLimit', message: 'Rate limit exceeded', identifier: identifier, currentCount: count, limit: this.config.MAX_REQUESTS_PER_MINUTE });
             return false;
         }
         
@@ -541,11 +467,8 @@ class SecurityManager {
             // In-memory Map has .size property
             if (!this.config.MAX_RATE_LIMIT_KEYS) {
                 // FIX: Binary Error Pattern - New signature with context
-                reportError(BinaryCodes.SECURITY.CONFIGURATION(1007), {
-                    method: 'SecurityManager.checkRateLimit',
-                    message: 'MAX_RATE_LIMIT_KEYS not configured',
-                    configType: typeof this.config.MAX_RATE_LIMIT_KEYS
-                });
+                // FIX: Universal Reporter - Auto-collect
+                report(BinaryCodes.SECURITY.CONFIGURATION(1007), { method: 'SecurityManager.checkRateLimit', message: 'MAX_RATE_LIMIT_KEYS not configured', configType: typeof this.config.MAX_RATE_LIMIT_KEYS });
                 return false;
             }
             
@@ -558,16 +481,8 @@ class SecurityManager {
                     await Promise.resolve(this.requestCounts.delete(sortedKeys[i]));
                 }
                 
-                // FIX: Binary Error Pattern - New signature with context
-                reportError(BinaryCodes.SECURITY.VALIDATION(1003), {
-                    method: 'SecurityManager.checkRateLimit',
-                    message: 'LRU eviction triggered to prevent memory leak',
-                    severity: 'WARNING',
-                        entriesRemoved: entriesToRemove,
-                        currentSize: this.requestCounts.size,
-                        maxSize: this.config.MAX_RATE_LIMIT_KEYS
-                    }
-                );
+                // FIX: Universal Reporter - Auto-collect
+                report(BinaryCodes.SECURITY.VALIDATION(1003), { method: 'SecurityManager.checkRateLimit', message: 'LRU eviction triggered to prevent memory leak', severity: 'WARNING', entriesRemoved: entriesToRemove, currentSize: this.requestCounts.size, maxSize: this.config.MAX_RATE_LIMIT_KEYS });
             }
             
             // Cleanup old entries (keep last 5 minutes) - only for in-memory Map
@@ -602,12 +517,8 @@ class SecurityManager {
     checkForbiddenPaths(resolvedPath) {
         for (const forbiddenPattern of this.config.FORBIDDEN_PATHS) {
             if (forbiddenPattern.test(resolvedPath)) {
-                // FIX: Binary Error Pattern - New signature with context
-                reportError(BinaryCodes.SECURITY.PERMISSION(4001), {
-                    method: 'SecurityManager.checkForbiddenPaths',
-                    message: 'Access denied to forbidden path',
-                    resolvedPath: resolvedPath
-                });
+                // FIX: Universal Reporter - Auto-collect
+                report(BinaryCodes.SECURITY.PERMISSION(4001), { method: 'SecurityManager.checkForbiddenPaths', message: 'Access denied to forbidden path', resolvedPath: resolvedPath });
                 return false;
             }
         }
@@ -620,13 +531,8 @@ class SecurityManager {
     checkWorkingDirectoryBoundary(resolvedPath, operation) {
         // For write operations, ensure we stay within working directory
         if (operation === 'WRITE' && !resolvedPath.startsWith(this.workingDirectory)) {
-            // FIX: Binary Error Pattern - New signature with context
-            reportError(BinaryCodes.SECURITY.PERMISSION(4002), {
-                method: 'SecurityManager.checkWorkingDirectoryBoundary',
-                message: 'Write operation outside working directory',
-                resolvedPath: resolvedPath,
-                workingDirectory: this.workingDirectory
-            });
+            // FIX: Universal Reporter - Auto-collect
+            report(BinaryCodes.SECURITY.PERMISSION(4002), { method: 'SecurityManager.checkWorkingDirectoryBoundary', message: 'Write operation outside working directory', resolvedPath: resolvedPath, workingDirectory: this.workingDirectory });
             return false;
         }
         return true;
@@ -639,14 +545,8 @@ class SecurityManager {
         const ext = path.extname(filePath).toLowerCase();
         
         if (ext && !this.config.ALLOWED_EXTENSIONS.includes(ext)) {
-            // FIX: Binary Error Pattern - New signature with context
-            reportError(BinaryCodes.SECURITY.VALIDATION(4003), {
-                method: 'SecurityManager.validateFileExtension',
-                message: 'File extension not allowed',
-                filePath: filePath,
-                extension: ext,
-                allowedExtensions: JSON.stringify(this.config.ALLOWED_EXTENSIONS)
-            });
+            // FIX: Universal Reporter - Auto-collect
+            report(BinaryCodes.SECURITY.VALIDATION(4003), { method: 'SecurityManager.validateFileExtension', message: 'File extension not allowed', filePath: filePath, extension: ext, allowedExtensions: JSON.stringify(this.config.ALLOWED_EXTENSIONS) });
             return false;
         }
         return true;
@@ -666,46 +566,24 @@ class SecurityManager {
                     // File exists, check write permission
                     await fs.promises.access(filePath, fs.constants.W_OK);
                 } catch (error) {
-                    // FIX: Binary Error Pattern - New signature with context
-                    reportError(BinaryCodes.SECURITY.PERMISSION(6001), {
-                        method: 'SecurityManager.checkFilePermissions',
-                        message: 'File access check during WRITE validation',
-                        filePath: filePath,
-                        operation: operation,
-                        errorCode: error.code,
-                        errorMessage: error.message,
-                        severity: 'WARNING'
-                    });
+                    // FIX: Universal Reporter - Auto-collect
+                    report(BinaryCodes.SECURITY.PERMISSION(6001), { method: 'SecurityManager.checkFilePermissions', message: 'File access check during WRITE validation', filePath: filePath, operation: operation, errorCode: error.code, errorMessage: error.message, severity: 'WARNING' });
                     if (error.code === 'ENOENT') {
                         // File doesn't exist, check directory write permission
                         await fs.promises.access(path.dirname(filePath), fs.constants.W_OK);
                     } else {
-                        // FIX: Binary Error Pattern - New signature with context
-                        reportError(BinaryCodes.SECURITY.PERMISSION(6002), {
-                            method: 'SecurityManager.checkFilePermissions',
-                            message: 'Write permission denied',
-                            filePath: filePath,
-                            errorMessage: error.message
-                        });
+                        // FIX: Universal Reporter - Auto-collect
+                        report(BinaryCodes.SECURITY.PERMISSION(6002), { method: 'SecurityManager.checkFilePermissions', message: 'Write permission denied', filePath: filePath, errorMessage: error.message });
                         return false;
                     }
                 }
             }
             return true;
         } catch (error) {
-            // FIX: Binary Error Pattern - New signature with context
             const errorType = error?.constructor?.name || 'Error';
             const stackPreview = error?.stack ? error.stack.split('\n').slice(0, 3).join('\n') : 'No stack';
-            
-            reportError(BinaryCodes.SECURITY.PERMISSION(6003), {
-                method: 'SecurityManager.checkFilePermissions',
-                message: 'Permission denied',
-                filePath: filePath,
-                operation: operation,
-                errorType: errorType,
-                errorMessage: error.message,
-                stackPreview: stackPreview
-            });
+            // FIX: Universal Reporter - Auto-collect
+            report(BinaryCodes.SECURITY.PERMISSION(6003), { method: 'SecurityManager.checkFilePermissions', message: 'Permission denied', filePath: filePath, operation: operation, errorType: errorType, errorMessage: error.message, stackPreview: stackPreview });
             return false;
         }
     }
@@ -757,8 +635,8 @@ class SecurityManager {
             try {
                 const logEntry = JSON.stringify(event) + '\n';
                 fs.promises.appendFile(this.securityLogPath, logEntry).catch((writeError) => {
-                    // FIX: Binary Error Pattern - New signature with context
-                    reportError(BinaryCodes.IO.RESOURCE_UNAVAILABLE(1023), {
+                    // FIX: Universal Reporter - Auto-collect
+                    report(BinaryCodes.IO.RESOURCE_UNAVAILABLE(1023), {
                         method: 'SecurityManager.logSecurityEvent',
                         message: 'Failed to write security log (async)',
                         path: this.securityLogPath,
@@ -767,11 +645,11 @@ class SecurityManager {
                     });
                 });
             } catch (error) {
-                // FIX: Binary Error Pattern - New signature with context
+                // FIX: Universal Reporter - Auto-collect
                 const errorType = error?.constructor?.name || 'Error';
                 const stackPreview = error?.stack ? error.stack.split('\n').slice(0, 3).join('\n') : 'No stack';
                 
-                reportError(BinaryCodes.IO.RESOURCE_UNAVAILABLE(1028), {
+                report(BinaryCodes.IO.RESOURCE_UNAVAILABLE(1028), {
                     method: 'SecurityManager.logSecurityEvent',
                     message: 'Failed to write security log (sync)',
                     path: this.securityLogPath,
@@ -873,8 +751,8 @@ class SecurityManager {
                 lastViolation = violations[lastIndex];
             } else {
                 // Should never happen, but fail loud if it does
-                // FIX: Binary Error Pattern - New signature with context
-                reportError(BinaryCodes.SECURITY.VALIDATION(9001), {
+                // FIX: Universal Reporter - Auto-collect
+                report(BinaryCodes.SECURITY.VALIDATION(9001), {
                     method: 'SecurityManager.generateSecurityReport',
                     message: 'Data integrity issue - violations array has undefined entry',
                     lastIndex: lastIndex,

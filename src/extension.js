@@ -35,7 +35,7 @@ function emitExtensionLog(message, method, severity = 'INFO', context = {}) {
     notice.name = 'ExtensionNotice';
     notice.isOperational = true;
 
-    // FIX: Binary Error Pattern
+    // FIX: Universal Reporter - Auto-collect
     report(BinaryCodes.SYSTEM.RUNTIME(5000), {
         method,
         message: normalizedMessage,

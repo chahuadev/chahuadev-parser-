@@ -45,15 +45,8 @@ function emitGrammarIndexEvent(message, method, severity = 'INFO', context = {})
         return; // Skip low severity messages
     }
 
-    // FIX: Binary Error Pattern
-    report(
-        BinaryCodes.PARSER.SYNTAX(10002),
-        { 
-            method,
-            message: normalizedMessage,
-            ...context
-        }
-    );
+    // FIX: Universal Reporter - Auto-collect
+    report(BinaryCodes.PARSER.SYNTAX(10002), { method, message: normalizedMessage, ...context });
 }
 
 export class GrammarIndex {
@@ -107,14 +100,8 @@ export class GrammarIndex {
             // FIX: Telemetry removed
         } catch (error) {
             // ! NO_SILENT_FALLBACKS: ห้ามใช้ empty map - ต้อง FAIL
-            // FIX: Binary Error Pattern
-            report(
-                BinaryCodes.PARSER.CONFIGURATION(10003),
-                { 
-                    error,
-                    file: 'tokenizer-binary-config.js'
-                }
-            );
+            // FIX: Universal Reporter - Auto-collect
+            report(BinaryCodes.PARSER.CONFIGURATION(10003), { error, file: 'tokenizer-binary-config.js' });
             throw error;
         }
     }
@@ -250,14 +237,8 @@ export class GrammarIndex {
             return grammarData;
         } catch (error) {
             // ! NO_SILENT_FALLBACKS: Grammar file not found = Programming error
-            // FIX: Binary Error Pattern
-            report(
-                BinaryCodes.PARSER.SYNTAX(10004),
-                { 
-                    error,
-                    language
-                }
-            );
+            // FIX: Universal Reporter - Auto-collect
+            report(BinaryCodes.PARSER.SYNTAX(10004), { error, language });
             throw error; // Re-throw - this is programming bug
         }
     }
@@ -651,14 +632,8 @@ export class GrammarIndex {
         }
         
         // ! NO_SILENT_FALLBACKS: ถ้าไม่มีใน binary map = CRITICAL ERROR
-        // FIX: Binary Error Pattern
-        report(
-            BinaryCodes.PARSER.VALIDATION(10005),
-            { 
-                punctuation,
-                availablePunctuations: Object.keys(this.punctuationBinaryMap || {})
-            }
-        );
+        // FIX: Universal Reporter - Auto-collect
+        report(BinaryCodes.PARSER.VALIDATION(10005), { punctuation, availablePunctuations: Object.keys(this.punctuationBinaryMap || {}) });
         throw new Error(`Punctuation '${punctuation}' not found in binary map`); // FAIL fast
     }
 

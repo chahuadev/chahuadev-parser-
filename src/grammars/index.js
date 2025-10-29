@@ -98,13 +98,7 @@ export async function createParser(rules, options = {}) {
         }
     } catch (configError) {
         // FIX: Binary Error Pattern
-        report(
-            BinaryCodes.SYSTEM.CONFIGURATION(10001),
-            { 
-                error: configError,
-                configFile: 'shared/configs/quantum-architecture.js'
-            }
-        );
+        report(BinaryCodes.SYSTEM.CONFIGURATION(10001), { error: configError, configFile: 'shared/configs/quantum-architecture.js' });
         fileQuantumConfig = { ...DEFAULT_QUANTUM_CONFIG };
     }
 

@@ -135,7 +135,7 @@ function normalizeRuleDefinition(key, definition) {
 
     const resolvedId = determineRuleId(key, definition);
     if (!resolvedId) {
-        // FIX: Binary Error Pattern - Flat context structure
+        // FIX: Universal Reporter - Auto-collect
         report(BinaryCodes.VALIDATOR.VALIDATION(7001), {
             method: 'normalizeRuleDefinition',
             message: `Unable to resolve binary rule identifier for key ${String(key)}`,
@@ -233,7 +233,7 @@ export class ValidationEngine {
             this.parser = await createParser(ABSOLUTE_RULES);
             return true;
         } catch (error) {
-            // FIX: Binary Error Pattern - Flat context structure
+            // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.PARSER.SYNTAX(1020), {
                 method: 'initializeParserStudy',
                 message: error?.message || 'Parser initialization failed',
@@ -246,7 +246,7 @@ export class ValidationEngine {
 
     async validateCode(code, fileName = 'unknown') {
         if (!this.parser) {
-            // FIX: Binary Error Pattern - Flat context structure
+            // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.SYSTEM.CONFIGURATION(7002), {
                 method: 'validateCode',
                 message: 'ValidationEngine not initialized. Call initializeParserStudy() first.',
@@ -265,7 +265,7 @@ export class ValidationEngine {
             try {
                 ast = this.parser.parse(tokens);
             } catch (parseError) {
-                // FIX: Binary Error Pattern - Flat context structure
+                // FIX: Universal Reporter - Auto-collect
                 report(BinaryCodes.PARSER.SYNTAX(1032), {
                     method: 'validateCode',
                     message: parseError?.message || 'Parser failed - syntax error in source code',
@@ -279,7 +279,7 @@ export class ValidationEngine {
             
             // ! ตรวจสอบ AST validity
             if (!ast || typeof ast !== 'object') {
-                // FIX: Binary Error Pattern - Flat context structure
+                // FIX: Universal Reporter - Auto-collect
                 report(BinaryCodes.PARSER.SYNTAX(2005), {
                     method: 'validateCode',
                     message: 'Parser returned invalid AST (null/undefined/non-object)',
@@ -296,7 +296,7 @@ export class ValidationEngine {
             
             // ! NO_SILENT_FALLBACKS: ห้ามใช้ || [] ซ่อน parser failure
             if (!Array.isArray(violations)) {
-                // FIX: Binary Error Pattern - Flat context structure
+                // FIX: Universal Reporter - Auto-collect
                 report(BinaryCodes.VALIDATOR.LOGIC(1027), {
                     method: 'validateCode',
                     message: 'detectViolations() returned non-array value - parse failure hidden by silent fallback',
@@ -330,7 +330,7 @@ export class ValidationEngine {
                 return [];
             }
             
-            // FIX: Binary Error Pattern - Flat context structure
+            // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.VALIDATOR.LOGIC(1021), {
                 method: 'validateCode',
                 message: error?.message || 'Unexpected error during validation',
@@ -383,7 +383,7 @@ export class ValidationEngine {
                     }
                 }
             } catch (ruleError) {
-                // FIX: Binary Error Pattern - Flat context structure
+                // FIX: Universal Reporter - Auto-collect
                 this.errorCollector.collect(
                     BinaryCodes.VALIDATOR.VALIDATION(3001),
                     {
@@ -413,7 +413,7 @@ export class ValidationEngine {
             return this.rules[resolvedId];
         }
 
-        // FIX: Binary Error Pattern - Flat context structure
+        // FIX: Universal Reporter - Auto-collect
         const availableRules = Object.values(this.rules)
             .map(rule => rule.slug || rule.id)
             .join(', ');

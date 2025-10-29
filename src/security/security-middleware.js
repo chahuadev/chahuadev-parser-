@@ -27,8 +27,8 @@ async function initializeVSCode() {
         } else if (vscodeModule) {
             vscode = vscodeModule;
         } else {
-            // FIX: Binary Error Pattern - Flat context structure
-            report(BinaryCodes.SYSTEM.CONFIGURATION(OFFSETS.SECURITY.CONFIGURATION.VSCODE_MODULE_INIT_FAILED), {
+            // FIX: Universal Reporter - Auto-collect
+            report(BinaryCodes.SYSTEM.CONFIGURATION(1016), {
                 method: 'initializeVSCode',
                 message: 'VS Code module loaded but is empty',
                 moduleKeys: JSON.stringify(Object.keys(vscodeModule || {}))
@@ -162,8 +162,8 @@ class SecurityMiddleware {
     async secureReadDocument(document) {
         try {
             if (!document || !document.uri) {
-                // FIX: Binary Error Pattern - Flat context structure
-                report(BinaryCodes.SYSTEM.RUNTIME(OFFSETS.SYSTEM.RUNTIME.DOCUMENT_OBJECT_INVALID), {
+                // FIX: Universal Reporter - Auto-collect
+                report(BinaryCodes.SYSTEM.RUNTIME(5001), {
                     method: 'secureReadDocument',
                     message: 'Invalid document object',
                     hasDocument: !!document,
@@ -185,8 +185,8 @@ class SecurityMiddleware {
             
             // ตรวจสอบ content size
             if (content && content.length > MAX_DOCUMENT_SIZE) {
-                // FIX: Binary Error Pattern - Flat context structure
-                report(BinaryCodes.SECURITY.VALIDATION(OFFSETS.SECURITY.VALIDATION.DOCUMENT_SIZE_EXCEEDED), {
+                // FIX: Universal Reporter - Auto-collect
+                report(BinaryCodes.SECURITY.VALIDATION(2006), {
                     method: 'secureReadDocument',
                     message: `Document content exceeds maximum size (${MAX_DOCUMENT_SIZE} bytes)`,
                     contentLength: content.length,
@@ -217,8 +217,8 @@ class SecurityMiddleware {
             // Validate the operation
             const validOperations = ['READ', 'WRITE', 'DELETE', 'SCAN'];
             if (!validOperations.includes(operation)) {
-                // FIX: Binary Error Pattern - Flat context structure
-                report(BinaryCodes.SECURITY.VALIDATION(OFFSETS.SECURITY.VALIDATION.WORKSPACE_OPERATION_INVALID), {
+                // FIX: Universal Reporter - Auto-collect
+                report(BinaryCodes.SECURITY.VALIDATION(2007), {
                     method: 'secureWorkspaceOperation',
                     message: `Invalid operation: ${operation}`,
                     operation: operation,
@@ -242,8 +242,8 @@ class SecurityMiddleware {
                 case 'SCAN':
                     return await this.secureFileScan(validatedPath);
                 default:
-                    // FIX: Binary Error Pattern - Flat context structure
-                    report(BinaryCodes.SECURITY.VALIDATION(OFFSETS.SECURITY.VALIDATION.WORKSPACE_OPERATION_NOT_IMPLEMENTED), {
+                    // FIX: Universal Reporter - Auto-collect
+                    report(BinaryCodes.SECURITY.VALIDATION(2008), {
                         method: 'secureWorkspaceOperation',
                         message: `Operation ${operation} not implemented`,
                         operation: operation
@@ -266,8 +266,8 @@ class SecurityMiddleware {
         try {
             // Validate inputs
             if (!pattern || !text) {
-                // FIX: Binary Error Pattern - Flat context structure
-                report(BinaryCodes.SECURITY.VALIDATION(OFFSETS.SECURITY.VALIDATION.PATTERN_MATCH_INPUT_INVALID), {
+                // FIX: Universal Reporter - Auto-collect
+                report(BinaryCodes.SECURITY.VALIDATION(2009), {
                     method: 'securePatternMatch',
                     message: 'Invalid pattern or text for regex execution',
                     hasPattern: !!pattern,
@@ -290,8 +290,8 @@ class SecurityMiddleware {
             } else if (typeof pattern === 'string') {
                 patternString = pattern;
             } else {
-                // FIX: Binary Error Pattern - Flat context structure
-                report(BinaryCodes.SECURITY.VALIDATION(OFFSETS.SECURITY.VALIDATION.PATTERN_MATCH_TYPE_INVALID), {
+                // FIX: Universal Reporter - Auto-collect
+                report(BinaryCodes.SECURITY.VALIDATION(2010), {
                     method: 'securePatternMatch',
                     message: 'Pattern must be RegExp or string',
                     patternType: typeof pattern
@@ -422,11 +422,12 @@ class SecurityMiddleware {
             };
             
         } catch (error) {
-            errorHandler.handleError(error, {
-                source: 'SecurityMiddleware',
+            // FIX: Universal Reporter - Auto-collect
+            report(BinaryCodes.IO.RESOURCE_UNAVAILABLE(3010), {
                 method: 'secureFileRead',
-                severity: 'HIGH',
-                context: `File read failed for ${filePath}`
+                message: `File read failed for ${filePath}`,
+                filePath,
+                error
             });
             throw new SecurityError(`File read failed: ${error.message}`, filePath);
         }
@@ -461,11 +462,12 @@ class SecurityMiddleware {
             };
             
         } catch (error) {
-            errorHandler.handleError(error, {
-                source: 'SecurityMiddleware',
+            // FIX: Universal Reporter - Auto-collect
+            report(BinaryCodes.IO.RESOURCE_UNAVAILABLE(3011), {
                 method: 'secureFileWrite',
-                severity: 'HIGH',
-                context: `File write failed for ${filePath}`
+                message: `File write failed for ${filePath}`,
+                filePath,
+                error
             });
             throw new SecurityError(`File write failed: ${error.message}`, filePath);
         }
@@ -520,11 +522,13 @@ class SecurityMiddleware {
                         });
                     }
                 } catch (regexError) {
-                    errorHandler.handleError(regexError, {
-                        source: 'SecurityMiddleware',
+                    // FIX: Universal Reporter - Auto-collect
+                    report(BinaryCodes.PARSER.VALIDATION(5011), {
                         method: 'secureFileScan',
-                        severity: 'MEDIUM',
-                        context: `Regex execution error for pattern: ${patternConfig.name}`
+                        message: `Regex execution error for pattern: ${patternConfig.name}`,
+                        patternName: patternConfig.name,
+                        filePath,
+                        error: regexError
                     });
                     // Log regex execution error but continue scanning
                     this.securityManager.logSecurityEvent(
@@ -561,11 +565,12 @@ class SecurityMiddleware {
                     try {
                         JSON.parse(content);
                     } catch (jsonError) {
-                        errorHandler.handleError(jsonError, {
-                            source: 'SecurityMiddleware',
+                        // FIX: Universal Reporter - Auto-collect
+                        report(BinaryCodes.PARSER.SYNTAX(5012), {
                             method: 'secureFileScan',
-                            severity: 'MEDIUM',
-                            context: `JSON validation failed for ${filePath}`
+                            message: `JSON validation failed for ${filePath}`,
+                            filePath,
+                            error: jsonError
                         });
                         securityIssues.push({
                             issue: 'Invalid JSON format detected',
@@ -589,11 +594,12 @@ class SecurityMiddleware {
             };
             
         } catch (error) {
-            errorHandler.handleError(error, {
-                source: 'SecurityMiddleware',
+            // FIX: Universal Reporter - Auto-collect
+            report(BinaryCodes.SECURITY.VALIDATION(3012), {
                 method: 'secureFileScan',
-                severity: 'HIGH',
-                context: `File scan failed for ${filePath}`
+                message: `File scan failed for ${filePath}`,
+                filePath,
+                error
             });
             throw new SecurityError(`File scan failed: ${error.message}`, filePath);
         }
@@ -627,11 +633,11 @@ class SecurityMiddleware {
         let errorCode = 'UNKNOWN';
         if (error.errorCode) {
             if (typeof error.errorCode !== 'string') {
-                errorHandler.handleError(new Error('error.errorCode is not a string'), {
-                    source: 'SecurityMiddleware',
+                // FIX: Universal Reporter - Auto-collect
+                report(BinaryCodes.VALIDATOR.VALIDATION(7004), {
                     method: 'handleSecurityError',
-                    severity: 'CRITICAL',
-                    context: `Invalid errorCode type: ${typeof error.errorCode}`
+                    message: 'error.errorCode is not a string',
+                    errorCodeType: typeof error.errorCode
                 });
             } else {
                 errorCode = error.errorCode;
@@ -642,23 +648,24 @@ class SecurityMiddleware {
         let severity = 'HIGH';
         if (error.severity) {
             if (typeof error.severity !== 'string') {
-                errorHandler.handleError(new Error('error.severity is not a string'), {
-                    source: 'SecurityMiddleware',
+                // FIX: Universal Reporter - Auto-collect
+                report(BinaryCodes.VALIDATOR.VALIDATION(7005), {
                     method: 'handleSecurityError',
-                    severity: 'CRITICAL',
-                    context: `Invalid severity type: ${typeof error.severity}`
+                    message: 'error.severity is not a string',
+                    severityType: typeof error.severity
                 });
             } else {
                 severity = error.severity;
             }
         }
         
-        // Send to central errorHandler first
-        errorHandler.handleError(error, {
-            source: 'SecurityMiddleware',
+        // FIX: Universal Reporter - Auto-collect (central error reporting)
+        report(BinaryCodes.SECURITY.RUNTIME(3013), {
             method: operation,
-            severity: severity,
-            context: `Security error in operation: ${operation}`
+            message: `Security error in operation: ${operation}`,
+            error,
+            errorCode,
+            severity
         });
         
         // Log security event with sanitized message (message will be sanitized in logSecurityEvent)
@@ -714,12 +721,12 @@ class SecurityMiddleware {
             }
             
         } catch (notificationError) {
-            // Fallback to console logging if notification fails
-            errorHandler.handleError(notificationError, {
-                source: 'SecurityMiddleware',
-                method: 'alertCriticalError',
-                severity: 'CRITICAL',
-                context: `Security Alert: ${error.message}`
+            // FIX: Universal Reporter - Auto-collect
+            report(BinaryCodes.SYSTEM.RUNTIME(5002), {
+                method: 'showSecurityAlert',
+                message: `Security Alert failed: ${error.message}`,
+                error: notificationError,
+                originalError: error.message
             });
         }
     }
@@ -761,13 +768,12 @@ class SecurityMiddleware {
             }
             
         } catch (error) {
-            errorHandler.handleError(error, {
-                source: 'SecurityMiddleware',
+            // FIX: Universal Reporter - Auto-collect
+            report(BinaryCodes.SYSTEM.RUNTIME(5003), {
                 method: 'showSecurityReport',
-                severity: 'MEDIUM',
-                context: 'Failed to display security report'
+                message: 'Failed to display security report',
+                error
             });
-            // Error already handled by ErrorHandler
         }
     }
     

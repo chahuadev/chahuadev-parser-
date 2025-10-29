@@ -82,7 +82,7 @@ class EnhancedBinaryParser extends PureBinaryParser {
                     this.stats.scoutTime = performance.now() - scoutStartTime;
                 } catch (scoutError) {
                     // ! Scout ต้องรายงานข้อผิดพลาดแต่อย่าหยุดระบบ
-                    // FIX: Binary Error Pattern
+                    // FIX: Universal Reporter - Auto-collect
                     scoutError.isOperational = true;
                     report(BinaryCodes.PARSER.VALIDATION(1018), {
                         method: 'parse',
@@ -108,7 +108,7 @@ class EnhancedBinaryParser extends PureBinaryParser {
             return ast;
 
         } catch (error) {
-            // FIX: Binary Error Pattern
+            // FIX: Universal Reporter - Auto-collect
             error.isOperational = true;
             report(BinaryCodes.PARSER.SYNTAX(1033), {
                 method: 'parse',
@@ -144,7 +144,7 @@ class EnhancedBinaryParser extends PureBinaryParser {
             return super.parseFunctionDeclaration(start);
 
         } catch (error) {
-            // FIX: Binary Error Pattern
+            // FIX: Universal Reporter - Auto-collect
             error.isOperational = true;
             report(BinaryCodes.PARSER.SYNTAX(4004), {
                 method: 'parseFunctionDeclaration',
@@ -183,7 +183,7 @@ class EnhancedBinaryParser extends PureBinaryParser {
             this.stats.quantumJumps++;
 
         } catch (error) {
-            // FIX: Binary Error Pattern
+            // FIX: Universal Reporter - Auto-collect
             error.isOperational = true;
             report(BinaryCodes.PARSER.VALIDATION(4005), {
                 method: 'quantumJump',

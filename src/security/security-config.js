@@ -215,7 +215,7 @@ class SecurityConfig {
     constructor(level = 'STANDARD', customPolicies = {}) {
         // !  NO_SILENT_FALLBACKS: Explicit validation - Fail Fast, Fail Loud
         if (typeof SECURITY_LEVELS[level] === 'undefined') {
-            // FIX: Binary Error Pattern - Replace throw with reportError
+            // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.SECURITY.CONFIG(1035), {
                 method: 'SecurityConfig.constructor',
                 message: `Invalid security level: ${level}`,
@@ -263,7 +263,7 @@ class SecurityConfig {
             const result = parts.reduce((acc, part) => {
                 // !  Report immediately if property doesn't exist - LOUD failure
                 if (typeof acc[part] === 'undefined') {
-                    // FIX: Binary Error Pattern - Replace throw with reportError
+                    // FIX: Universal Reporter - Auto-collect
                     report(BinaryCodes.SECURITY.CONFIG(1022), {
                         method: 'SecurityConfig.get',
                         message: `Configuration property not found`,
@@ -278,7 +278,7 @@ class SecurityConfig {
             
             // !  NO_SILENT_FALLBACKS: Validate final result - Never return undefined
             if (typeof result === 'undefined') {
-                // FIX: Binary Error Pattern - Replace throw with reportError
+                // FIX: Universal Reporter - Auto-collect
                 report(BinaryCodes.SECURITY.CONFIG(1036), {
                     method: 'SecurityConfig.get',
                     message: `Configuration path returned undefined`,
@@ -290,7 +290,7 @@ class SecurityConfig {
             
             return result;
         } catch (error) {
-            // FIX: Binary Error Pattern - Replace errorHandler with reportError
+            // FIX: Universal Reporter - Auto-collect
             const errorType = error?.constructor?.name || 'Error';
             const stackPreview = error?.stack ? error.stack.split('\n').slice(0, 3).join('\n') : 'No stack';
             
@@ -336,7 +336,7 @@ class SecurityConfig {
     setSecurityLevel(level) {
         // !  NO_SILENT_FALLBACKS: Explicit check before assignment
         if (typeof SECURITY_LEVELS[level] === 'undefined') {
-            // FIX: Binary Error Pattern - Replace throw with reportError
+            // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.SECURITY.CONFIG(1038), {
                 method: 'SecurityConfig.setSecurityLevel',
                 message: `Invalid security level`,
@@ -498,7 +498,7 @@ function applyVSCodeSettings(config, vscodeSettings) {
                 }
             }
         } catch (error) {
-            // FIX: Binary Error Pattern - Replace errorHandler with reportError
+            // FIX: Universal Reporter - Auto-collect
             const errorType = error?.constructor?.name || 'Error';
             const stackPreview = error?.stack ? error.stack.split('\n').slice(0, 3).join('\n') : 'No stack';
             
@@ -518,7 +518,7 @@ function applyVSCodeSettings(config, vscodeSettings) {
     // !  NO_SILENT_FALLBACKS: Explicit error check and report
     // !  WHY: Force user to fix invalid settings, don't run with broken config
     if (errors.length > 0) {
-        // FIX: Binary Error Pattern - Replace throw with reportError
+        // FIX: Universal Reporter - Auto-collect
         report(BinaryCodes.SECURITY.CONFIG(1040), {
             method: 'importFromVSCodeSettings',
             message: `Invalid VS Code settings detected`,

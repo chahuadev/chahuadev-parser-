@@ -26,7 +26,7 @@ class BinaryScout {
      */
     constructor(tokens, grammarIndex) {
         if (!tokens || !Array.isArray(tokens)) {
-            // FIX: Binary Error Pattern
+            // FIX: Universal Reporter - Auto-collect
             const error = new Error('BinaryScout requires valid tokens array');
             error.name = 'ValidationError';
             error.isOperational = true;
@@ -40,7 +40,7 @@ class BinaryScout {
         }
 
         if (!grammarIndex) {
-            // FIX: Binary Error Pattern
+            // FIX: Universal Reporter - Auto-collect
             const error = new Error('BinaryScout requires valid grammarIndex');
             error.name = 'ValidationError';
             error.isOperational = true;
@@ -70,7 +70,7 @@ class BinaryScout {
                 RBRACE: grammarIndex.getPunctuationBinary('}'),
             };
         } catch (error) {
-            // FIX: Binary Error Pattern
+            // FIX: Universal Reporter - Auto-collect
             error.isOperational = true;
             report(BinaryCodes.SYSTEM.CONFIGURATION(1009), {
                 method: 'constructor',
@@ -118,7 +118,7 @@ class BinaryScout {
             return this.structureMap;
 
         } catch (error) {
-            // FIX: Binary Error Pattern
+            // FIX: Universal Reporter - Auto-collect
             error.isOperational = true;
             report(BinaryCodes.PARSER.SYNTAX(1030), {
                 method: 'scanStructure',
@@ -163,7 +163,7 @@ class BinaryScout {
             return endPos;
 
         } catch (error) {
-            // FIX: Binary Error Pattern
+            // FIX: Universal Reporter - Auto-collect
             error.isOperational = true;
             report(BinaryCodes.PARSER.VALIDATION(5005), {
                 method: 'scanFunction',
@@ -208,7 +208,7 @@ class BinaryScout {
             return endPos;
 
         } catch (error) {
-            // FIX: Binary Error Pattern
+            // FIX: Universal Reporter - Auto-collect
             error.isOperational = true;
             report(BinaryCodes.PARSER.VALIDATION(5006), {
                 method: 'scanClass',
@@ -251,7 +251,7 @@ class BinaryScout {
             return endPos;
 
         } catch (error) {
-            // FIX: Binary Error Pattern
+            // FIX: Universal Reporter - Auto-collect
             error.isOperational = true;
             report(BinaryCodes.PARSER.VALIDATION(5007), {
                 method: 'scanBlock',
@@ -309,7 +309,7 @@ class BinaryScout {
             return finalEndPos;
 
         } catch (error) {
-            // FIX: Binary Error Pattern
+            // FIX: Universal Reporter - Auto-collect
             error.isOperational = true;
             report(BinaryCodes.PARSER.VALIDATION(5008), {
                 method: 'scanTryCatch',
@@ -347,7 +347,7 @@ class BinaryScout {
             }
         }
 
-        // FIX: Binary Error Pattern
+        // FIX: Universal Reporter - Auto-collect
         // No matching brace found - send to Binary Error System
         const error = new Error('No matching closing brace found');
         error.name = 'ParserError';
@@ -454,7 +454,7 @@ class BinaryScout {
                 }
             }
         } catch (error) {
-            // FIX: Binary Error Pattern
+            // FIX: Universal Reporter - Auto-collect
             error.isOperational = true;
             report(BinaryCodes.PARSER.VALIDATION(5010), {
                 method: 'scanClassMethods',

@@ -45,6 +45,7 @@ export class ErrorCollector {
         };
 
         // ! STREAM MODE: Write to log immediately
+        // FIX: Binary Error Pattern - Collector uses binary-reporter directly to avoid circular deps
         if (this.streamMode) {
             reportError(binaryCode, context);
         }
@@ -94,6 +95,7 @@ export class ErrorCollector {
 
         this.warnings.push(warningEntry);
 
+        // FIX: Binary Error Pattern - Collector uses binary-reporter directly to avoid circular deps
         if (this.streamMode) {
             reportError(binaryCode, context);
         }
@@ -114,6 +116,7 @@ export class ErrorCollector {
 
         this.info.push(infoEntry);
 
+        // FIX: Binary Error Pattern - Collector uses binary-reporter directly to avoid circular deps
         if (this.streamMode) {
             reportError(binaryCode, context);
         }
