@@ -7,7 +7,7 @@
  * - ไม่ต้อง maintain tokenizer-binary-config.js อีกเลย
  * 
  * ARCHITECTURE:
- * Grammar File → Binary Generator → Runtime Binary Map
+ * Grammar File  Binary Generator  Runtime Binary Map
  * 
  * DETERMINISTIC ALGORITHM:
  * - Same grammar = Same binary (always)
@@ -78,38 +78,50 @@ export function generateBinaryMapFromGrammar(grammar) {
     // Clone grammar to preserve all metadata (__grammar_*, __section_*)
     const binaryMap = { ...grammar };
     
-    // Generate binary for keywords
+    // Generate binary for keywords (PRESERVE METADATA)
     if (binaryMap.keywords) {
         const keywordsWithBinary = {};
-        for (const keyword of Object.keys(binaryMap.keywords)) {
-            keywordsWithBinary[keyword] = generateBinary(keyword, 'keywords');
+        for (const [keyword, metadata] of Object.entries(binaryMap.keywords)) {
+            keywordsWithBinary[keyword] = {
+                ...metadata, // Keep all metadata (category, type, description, etc.)
+                binary: generateBinary(keyword, 'keywords') // Add binary value
+            };
         }
         binaryMap.keywords = keywordsWithBinary;
     }
     
-    // Generate binary for operators
+    // Generate binary for operators (PRESERVE METADATA)
     if (binaryMap.operators) {
         const operatorsWithBinary = {};
-        for (const operator of Object.keys(binaryMap.operators)) {
-            operatorsWithBinary[operator] = generateBinary(operator, 'operators');
+        for (const [operator, metadata] of Object.entries(binaryMap.operators)) {
+            operatorsWithBinary[operator] = {
+                ...metadata, // Keep all metadata
+                binary: generateBinary(operator, 'operators') // Add binary value
+            };
         }
         binaryMap.operators = operatorsWithBinary;
     }
     
-    // Generate binary for punctuation
+    // Generate binary for punctuation (PRESERVE METADATA)
     if (binaryMap.punctuation) {
         const punctuationWithBinary = {};
-        for (const punct of Object.keys(binaryMap.punctuation)) {
-            punctuationWithBinary[punct] = generateBinary(punct, 'punctuation');
+        for (const [punct, metadata] of Object.entries(binaryMap.punctuation)) {
+            punctuationWithBinary[punct] = {
+                ...metadata, // Keep all metadata
+                binary: generateBinary(punct, 'punctuation') // Add binary value
+            };
         }
         binaryMap.punctuation = punctuationWithBinary;
     }
     
-    // Generate binary for literals (if exists)
+    // Generate binary for literals (PRESERVE METADATA)
     if (binaryMap.literals) {
         const literalsWithBinary = {};
-        for (const literal of Object.keys(binaryMap.literals)) {
-            literalsWithBinary[literal] = generateBinary(literal, 'literals');
+        for (const [literal, metadata] of Object.entries(binaryMap.literals)) {
+            literalsWithBinary[literal] = {
+                ...metadata, // Keep all metadata
+                binary: generateBinary(literal, 'literals') // Add binary value
+            };
         }
         binaryMap.literals = literalsWithBinary;
     }

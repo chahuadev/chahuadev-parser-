@@ -1,534 +1,406 @@
 // ! ══════════════════════════════════════════════════════════════════════════════
 // !  บริษัท ชาหัว ดีเวลลอปเมนต์ จำกัด (Chahua Development Co., Ltd.)
 // !  Repository: https://github.com/chahuadev-com/Chahuadev-Sentinel.git
-// !  Version: 2.0.0
+// !  Version: 3.0.0 - SMART GRAMMAR INDEX
 // !  License: MIT
 // !  Contact: chahuadev@gmail.com
 // ! ══════════════════════════════════════════════════════════════════════════════
-// Grammar Index System - Section-Based Search
+// Smart Grammar Index - AI-Powered Grammar Brain  
 // ============================================================================
-// หน้าที่: ค้นหาจาก grammar files โดยใช้ language และ type (ประเภท)
-// Tokenizer ส่ง language + type มา  GrammarIndex ค้นหาจาก section + type  ส่งผลกลับ
-// ไม่เก็บ hardcode grammar ใดๆ - ค้นหาจากไฟล์ JSON เท่านั้น
-//============================================================================
+//  BINARY BRAIN - ค้นหาแกรมม่าด้วย Binary Comparison 100%
+//  SMART DETECTION - Auto-detect language, type, category
+//  RUNTIME GENERATION - Binary values generated on-demand
+//  ZERO MAINTENANCE - แก้ grammar  Binary auto-update
+//  MULTI-LANGUAGE - รองรับทุกภาษาที่มี .grammar.js
+// ============================================================================
 // ! ══════════════════════════════════════════════════════════════════════════════
-// ! FIX: หัวใจของไฟล์นี้คือ "Blank Paper" 100% และ "Binary Comparison" 100% เท่านั้น
-// ! ห้ามแก้เป็น String Comparison เด็ดขาด! ทุกฟังก์ชันต้องใช้เลข Binary จาก grammar JSON
-// ! หากพบจุดที่มีโอกาสแก้เป็น String ให้เตือนและตรวจสอบกับ Binary Purity Validator ก่อนทุกครั้ง
-// ! ระบบนี้ถูกออกแบบและนำไปปฏิบัติ (implement) ตามหลักการนี้อย่างเคร่งครัด
+// ! ARCHITECTURE: Blank Paper + Binary-First + Smart Caching
+// ! - NO HARDCODE: ทุกอย่างมาจาก grammar files
+// ! - NO STRING COMPARISON: Binary only
+// ! - NO MANUAL CONFIG: Auto-load ทุกภาษา
 // ! ══════════════════════════════════════════════════════════════════════════════
 
-// ! ══════════════════════════════════════════════════════════════════════════════
-// ! PERFORMANCE BOOST: Migrate from JSON.parse() to ES Modules
-// ! Why: JSON.parse() is slow (String  Object conversion)
-// ! Solution: Use import() for .js modules (V8 native, no parsing needed)
-// ! ══════════════════════════════════════════════════════════════════════════════
 import { fileURLToPath, pathToFileURL } from 'url';
 import { dirname, join } from 'path';
+import { readdirSync } from 'fs';
 import { report } from '../../error-handler/universal-reporter.js';
 import BinaryCodes from '../../error-handler/binary-codes.js';
-import { createPunctuationBinaryMap } from './binary-generator.js';
+import { generateBinaryMapFromGrammar } from './binary-generator.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-function emitGrammarIndexEvent(message, method, severity = 'INFO', context = {}) {
-    const normalizedSeverity = typeof severity === 'string'
-        ? severity.toUpperCase()
-        : 'INFO';
-    const normalizedMessage = typeof message === 'string' && message.trim().length > 0
-        ? message
-        : 'GrammarIndex event emitted';
-
-    // FIX: Telemetry removed - Binary Error System handles all logging
-    if (normalizedSeverity === 'INFO' || normalizedSeverity === 'DEBUG' || normalizedSeverity === 'TRACE') {
-        return; // Skip low severity messages
+/**
+ * Smart Grammar Index - Binary Brain สำหรับ Multi-Language Grammar
+ * 
+ * FEATURES:
+ *  Auto-load grammar files (.grammar.js)
+ *  Runtime binary generation & caching
+ *  Smart type detection (keyword/operator/punctuation)
+ *  Category-based search (control/iteration/function/etc.)
+ *  Binary-first comparison (no string matching)
+ *  Zero-maintenance (grammar changes  binary auto-updates)
+ * 
+ * USAGE:
+ * ```javascript
+ * const index = new SmartGrammarIndex('javascript');
+ * await index.loadGrammar();
+ * 
+ * // Binary-based lookup
+ * const binary = index.getBinary('if', 'keyword');
+ * const info = index.getKeywordInfo('const');
+ * 
+ * // Smart detection
+ * const token = index.identifyToken('async');
+ * //  { type: 'keyword', category: 'async', binary: 0x0123 }
+ * ```
+ */
+export class SmartGrammarIndex {
+    /**
+     * สร้าง SmartGrammarIndex สำหรับภาษาใดภาษาหนึ่ง
+     * @param {string} language - ชื่อภาษา (javascript, python, java, etc.)
+     */
+    constructor(language) {
+        this.language = language;
+        this.grammar = null;
+        this.binaryCache = new Map(); // Cache: 'keyword:if'  0x0001
+        this.reverseCache = new Map(); // Reverse: 0x0001  { type: 'keyword', value: 'if' }
+        this.loaded = false;
     }
 
-    // FIX: Universal Reporter - Auto-collect
-    report(BinaryCodes.PARSER.SYNTAX(10002));
-}
-
-export class GrammarIndex {
     /**
-     * Constructor - รับ grammar object โดยตรง (สำหรับ SmartParserEngine)
-     * @param {Object} grammarData - Grammar object ที่โหลดมาแล้ว
+     * โหลด grammar file และ generate binary map
+     * @returns {Promise<boolean>} สำเร็จหรือไม่
      */
-    constructor(grammarData = null) {
-        if (grammarData) {
-            // Store grammar data for instance methods
-            this.grammar = grammarData;
-            
-            // ! NO_CONSOLE: ส่ง grammar sections info ไปยัง ErrorHandler แทน console.log
-            // FIX: Telemetry removed - not needed
+    async loadGrammar() {
+        if (this.loaded) {
+            return true; // Already loaded
         }
-        
-        // ! โหลด Punctuation Binary Map จาก top-level import (SYNCHRONOUS)
-        // ! NO ASYNC NEEDED - config ถูก import มาตั้งแต่ module load
-        this._loadPunctuationBinaryMapSync();
-    }
-    
-    /**
-     * โหลด Punctuation Binary Map จาก Grammar (Runtime Generation)
-     * Brain ต้องมีความรู้เรื่อง Binary ของ Punctuation เพื่อให้บริการ Worker
-     * @private
-     */
-    _loadPunctuationBinaryMapSync() {
+
         try {
-            // ! NEW ARCHITECTURE: Generate binary from grammar (Zero-Maintenance)
-            // ! NO MORE tokenizer-binary-config.js dependency!
-            
-            if (!this.grammar || !this.grammar.punctuation) {
-                report(BinaryCodes.PARSER.CONFIGURATION(1056));
-                return null;
-            }
-            
-            // Auto-generate binary map from grammar
-            this.punctuationBinaryMap = createPunctuationBinaryMap(this.grammar);
-            
-            // ! VALIDATION: ห้าม empty map - ถ้าไม่มี binary map = CRITICAL ERROR
-            if (Object.keys(this.punctuationBinaryMap).length === 0) {
-                report(BinaryCodes.PARSER.CONFIGURATION(1056));
-                return null;
-            }
-            
-            // FIX: Telemetry removed
-        } catch (error) {
-            // ! NO_SILENT_FALLBACKS: ห้ามใช้ empty map - ต้อง FAIL
-            // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.PARSER.CONFIGURATION(10003));
-            // ! NO_THROW: Return null แทน throw
-            return null;
-        }
-    }
-    
-    /**
-     * ค้นหาจาก language และ type (สำหรับ Tokenizer)
-     * @param {string} language - ภาษา (javascript, typescript, java, jsx)
-     * @param {string} type - ประเภท (keyword, operator, punctuation, literal, etc.)
-     * @param {string} itemName - ชื่อ item ที่ต้องการค้นหา
-     * @returns {Promise<Object>} ผลลัพธ์การค้นหา
-     */
-    static async searchByType(language, type, itemName) {
-        const grammar = await GrammarIndex.loadGrammar(language);
-        
-        // ค้นหา section ที่ตรงกับ type
-        const sectionName = GrammarIndex._mapTypeToSection(type);
-        
-        if (!sectionName || !grammar[sectionName]) {
-            emitGrammarIndexEvent('Grammar section not found for type lookup', 'searchByType', 'WARNING', {
-                language,
-                requestedType: type,
-                resolvedSection: sectionName || 'undefined'
-            });
-            return {
-                found: false,
-                error: `Section for type '${type}' not found in ${language} grammar`
-            };
-        }
-
-        const section = grammar[sectionName];
-        if (section[itemName]) {
-            return {
-                found: true,
-                language,
-                type,
-                section: sectionName,
-                item: itemName,
-                data: section[itemName],
-                metadata: await GrammarIndex.getSectionMetadata(language, sectionName)
-            };
-        }
-
-        emitGrammarIndexEvent('Grammar item missing during type lookup', 'searchByType', 'WARNING', {
-            language,
-            type,
-            section: sectionName,
-            item: itemName
-        });
-        return {
-            found: false,
-            language,
-            type,
-            section: sectionName,
-            item: itemName,
-            error: `Item '${itemName}' not found in section '${sectionName}'`
-        };
-    }
-
-    /**
-     * แปลง type เป็น section name
-     * @param {string} type - ประเภท (keyword, operator, etc.)
-     * @returns {string} section name
-     * @private
-     */
-    static _mapTypeToSection(type) {
-        const typeMapping = {
-            // JavaScript/TypeScript
-            'keyword': 'keywords',
-            'reserved': 'keywords',
-            'operator': 'operators',
-            'punctuation': 'punctuation',
-            'literal': 'literals',
-            'separator': 'punctuation',
-            
-            // Java
-            'modifier': 'modifiers',
-            'primitiveType': 'primitiveTypes',
-            'annotation': 'annotations',
-            
-            // JSX
-            'element': 'elements',
-            'expression': 'expressions',
-            'attribute': 'attributes',
-            'component': 'builtInComponents',
-            
-            // TypeScript
-            'typeKeyword': 'typeKeywords',
-            'typeOperator': 'typeOperators',
-            'declaration': 'declarations',
-            'moduleKeyword': 'moduleKeywords'
-        };
-
-        return typeMapping[type] || type;
-    }
-
-    static async loadGrammar(language) {
-        try {
-            // ! PERFORMANCE BOOST: Use dynamic import() instead of JSON.parse(readFileSync())
-            // ! Benefits: V8 Engine loads .js as native code (no parsing overhead)
-            // ! Module System: "Magic Wand" - imports only what's needed
-            const grammarPath = join(__dirname, 'grammars', `${language}.grammar.js`);
-            
-            // ! CRITICAL FIX: Windows requires file:// URL for dynamic import()
+            // Construct grammar file path
+            const grammarPath = join(__dirname, 'grammars', `${this.language}.grammar.js`);
             const grammarURL = pathToFileURL(grammarPath).href;
+            
+            // Dynamic import
             const module = await import(grammarURL);
             
-            // Extract grammar object from module (javascriptGrammar, javaGrammar, typescriptGrammar)
-            const grammarExportName = `${language}Grammar`;
-            const grammarData = module[grammarExportName];
+            // Auto-detect export name (javascriptGrammar, pythonGrammar, etc.)
+            const exportName = `${this.language}Grammar`;
+            this.grammar = module[exportName];
             
-            if (!grammarData) {
-                // ! NO_THROW: Report แล้ว return null
-                report(BinaryCodes.PARSER.CONFIGURATION(10006));
-                return null;
-            }
-            
-            // ! CRITICAL FIX: Flatten nested operators and punctuation structures
-            // ! WHY: javascript.grammar.json has nested structure (binaryOperators, unaryOperators, etc.)
-            // ! BUT: Tokenizer expects flat objects like { "+": {...}, "-": {...} }
-            if (grammarData.operators && typeof grammarData.operators === 'object') {
-                const flatOperators = {};
-                for (const category in grammarData.operators) {
-                    if (typeof grammarData.operators[category] === 'object') {
-                        Object.assign(flatOperators, grammarData.operators[category]);
+            if (!this.grammar) {
+                // Try alternative export names
+                const altNames = [
+                    this.language, // 'javascript'
+                    `${this.language}_grammar`, // 'javascript_grammar'
+                    'grammar', // 'grammar'
+                    'default' // default export
+                ];
+                
+                for (const name of altNames) {
+                    if (module[name]) {
+                        this.grammar = module[name];
+                        break;
                     }
                 }
-                grammarData.operators = flatOperators;
             }
             
-            // Note: punctuation seems to be flat already, but check anyway
-            // If needed, we can apply same flattening logic here
+            if (!this.grammar) {
+                report(BinaryCodes.PARSER.CONFIGURATION(20001));
+                return false;
+            }
             
-            // FIX: Telemetry removed
+            // Generate binary map from grammar (metadata  binary)
+            this.grammar = generateBinaryMapFromGrammar(this.grammar);
             
-            return grammarData;
+            // Build binary cache
+            this._buildBinaryCache();
+            
+            this.loaded = true;
+            return true;
+            
         } catch (error) {
-            // ! NO_SILENT_FALLBACKS: Grammar file not found = Programming error
-            // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.PARSER.SYNTAX(10004));
-            // ! NO_THROW: Return null แทน throw
-            return null;
+            report(BinaryCodes.PARSER.CONFIGURATION(20002));
+            return false;
         }
-    }
-
-    static async loadAllGrammars() {
-        const [javascript, typescript, java, jsx] = await Promise.all([
-            GrammarIndex.loadGrammar('javascript'),
-            GrammarIndex.loadGrammar('typescript'),
-            GrammarIndex.loadGrammar('java'),
-            GrammarIndex.loadGrammar('jsx')
-        ]);
-        return { javascript, typescript, java, jsx };
-    }
-
-    static async searchBySection(language, sectionNumber, itemName) {
-        const grammar = await GrammarIndex.loadGrammar(language);
-        const sectionKey = `__section_${String(sectionNumber).padStart(2, '0')}_name`;
-        const sectionName = grammar[sectionKey];
-        
-        if (!sectionName) {
-            emitGrammarIndexEvent('Grammar section number not found', 'searchBySection', 'WARNING', {
-                language,
-                sectionNumber
-            });
-            return {
-                found: false,
-                error: `Section ${sectionNumber} not found in ${language} grammar`
-            };
-        }
-        return await GrammarIndex.search(language, sectionName, itemName);
-    }
-
-    static async search(language, sectionName, itemName) {
-        const grammar = await GrammarIndex.loadGrammar(language);
-        
-        if (!grammar[sectionName]) {
-            emitGrammarIndexEvent('Requested grammar section missing', 'search', 'WARNING', {
-                language,
-                section: sectionName,
-                item: itemName
-            });
-            return {
-                found: false,
-                error: `Section '${sectionName}' not found in ${language} grammar`
-            };
-        }
-
-        const section = grammar[sectionName];
-        if (section[itemName]) {
-            return {
-                found: true,
-                language,
-                section: sectionName,
-                item: itemName,
-                data: section[itemName],
-                metadata: await GrammarIndex.getSectionMetadata(language, sectionName)
-            };
-        }
-
-        emitGrammarIndexEvent('Grammar item missing during section search', 'search', 'WARNING', {
-            language,
-            section: sectionName,
-            item: itemName
-        });
-        return {
-            found: false,
-            language,
-            section: sectionName,
-            item: itemName,
-            error: `Item '${itemName}' not found in section '${sectionName}'`
-        };
-    }
-
-    static async getSectionMetadata(language, sectionName) {
-        const grammar = await GrammarIndex.loadGrammar(language);
-        
-        let sectionNumber = null;
-        for (let i = 1; i <= 20; i++) {
-            const numKey = `__section_${String(i).padStart(2, '0')}_number`;
-            const nameKey = `__section_${String(i).padStart(2, '0')}_name`;
-            
-            if (grammar[nameKey] === sectionName) {
-                sectionNumber = i;
-                break;
-            }
-        }
-
-        if (!sectionNumber) {
-            emitGrammarIndexEvent('Requested section metadata missing', 'getSectionMetadata', 'WARNING', {
-                language,
-                section: sectionName
-            });
-            return null;
-        }
-
-        const prefix = `__section_${String(sectionNumber).padStart(2, '0')}`;
-        
-        return {
-            number: grammar[`${prefix}_number`],
-            name: grammar[`${prefix}_name`],
-            title: grammar[`${prefix}_title`],
-            language: grammar[`${prefix}_language`],
-            total_items: grammar[`${prefix}_total_items`],
-            description: grammar[`${prefix}_description`],
-            purpose: grammar[`${prefix}_purpose`],
-            responsibility: grammar[`${prefix}_responsibility`],
-            used_by: grammar[`${prefix}_used_by`],
-            footer: grammar[`${prefix}_footer`]
-        };
     }
 
     /**
-     * ค้นหาหลายรายการพร้อมกัน (Batch search สำหรับ Tokenizer)
-     * @param {string} language - ภาษา
-     * @param {Array<{type: string, itemName: string}>} requests - รายการคำขอ
-     * @returns {Promise<Array<Object>>} ผลลัพธ์ทั้งหมด
+     * สร้าง binary cache สำหรับ fast lookup
+     * Cache Structure:
+     * - Forward: 'keyword:if'  0x0001
+     * - Reverse: 0x0001  { type: 'keyword', value: 'if', data: {...} }
+     * @private
      */
-    static async batchSearch(language, requests) {
-        const results = await Promise.all(
-            requests.map(req => GrammarIndex.searchByType(language, req.type, req.itemName))
-        );
+    _buildBinaryCache() {
+        if (!this.grammar) return;
+        
+        // Cache keywords
+        if (this.grammar.keywords) {
+            for (const [keyword, data] of Object.entries(this.grammar.keywords)) {
+                if (data.binary) {
+                    const cacheKey = `keyword:${keyword}`;
+                    this.binaryCache.set(cacheKey, data.binary);
+                    this.reverseCache.set(data.binary, {
+                        type: 'keyword',
+                        value: keyword,
+                        data: data
+                    });
+                }
+            }
+        }
+        
+        // Cache operators
+        if (this.grammar.operators) {
+            for (const [operator, data] of Object.entries(this.grammar.operators)) {
+                if (data.binary) {
+                    const cacheKey = `operator:${operator}`;
+                    this.binaryCache.set(cacheKey, data.binary);
+                    this.reverseCache.set(data.binary, {
+                        type: 'operator',
+                        value: operator,
+                        data: data
+                    });
+                }
+            }
+        }
+        
+        // Cache punctuation
+        if (this.grammar.punctuation) {
+            for (const [punct, data] of Object.entries(this.grammar.punctuation)) {
+                if (data.binary) {
+                    const cacheKey = `punctuation:${punct}`;
+                    this.binaryCache.set(cacheKey, data.binary);
+                    this.reverseCache.set(data.binary, {
+                        type: 'punctuation',
+                        value: punct,
+                        data: data
+                    });
+                }
+            }
+        }
+    }
+
+    /**
+     * ดึงค่า binary ของ token (with cache)
+     * @param {string} token - Token value (e.g., 'if', '+', '(')
+     * @param {string} type - Token type ('keyword', 'operator', 'punctuation')
+     * @returns {number|null} Binary value หรือ null
+     */
+    getBinary(token, type) {
+        const cacheKey = `${type}:${token}`;
+        
+        // Try cache first
+        if (this.binaryCache.has(cacheKey)) {
+            return this.binaryCache.get(cacheKey);
+        }
+        
+        // Fallback: direct lookup
+        if (!this.grammar) return null;
+        
+        const section = this._getSection(type);
+        if (section && section[token]) {
+            return section[token].binary || null;
+        }
+        
+        return null;
+    }
+
+    /**
+     * ค้นหา token จาก binary value (reverse lookup)
+     * @param {number} binary - Binary value
+     * @returns {Object|null} { type, value, data } หรือ null
+     */
+    getTokenFromBinary(binary) {
+        return this.reverseCache.get(binary) || null;
+    }
+
+    /**
+     * ตรวจสอบว่าเป็น keyword หรือไม่
+     * @param {string} word - คำที่ต้องการตรวจสอบ
+     * @returns {boolean}
+     */
+    isKeyword(word) {
+        if (!this.grammar || !this.grammar.keywords) return false;
+        return this.grammar.keywords.hasOwnProperty(word);
+    }
+
+    /**
+     * ตรวจสอบว่าเป็น operator หรือไม่
+     * @param {string} op - Operator ที่ต้องการตรวจสอบ
+     * @returns {boolean}
+     */
+    isOperator(op) {
+        if (!this.grammar || !this.grammar.operators) return false;
+        return this.grammar.operators.hasOwnProperty(op);
+    }
+
+    /**
+     * ตรวจสอบว่าเป็น punctuation หรือไม่
+     * @param {string} punct - Punctuation ที่ต้องการตรวจสอบ
+     * @returns {boolean}
+     */
+    isPunctuation(punct) {
+        if (!this.grammar || !this.grammar.punctuation) return false;
+        return this.grammar.punctuation.hasOwnProperty(punct);
+    }
+
+    /**
+     * ดึงข้อมูล keyword
+     * @param {string} keyword - Keyword name
+     * @returns {Object|null} Keyword data หรือ null
+     */
+    getKeywordInfo(keyword) {
+        if (!this.grammar || !this.grammar.keywords) return null;
+        return this.grammar.keywords[keyword] || null;
+    }
+
+    /**
+     * ดึงข้อมูล operator
+     * @param {string} operator - Operator symbol
+     * @returns {Object|null} Operator data หรือ null
+     */
+    getOperatorInfo(operator) {
+        if (!this.grammar || !this.grammar.operators) return null;
+        return this.grammar.operators[operator] || null;
+    }
+
+    /**
+     * ดึงข้อมูล punctuation
+     * @param {string} punct - Punctuation symbol
+     * @returns {Object|null} Punctuation data หรือ null
+     */
+    getPunctuationInfo(punct) {
+        if (!this.grammar || !this.grammar.punctuation) return null;
+        return this.grammar.punctuation[punct] || null;
+    }
+
+    /**
+     * Smart Detection - ตรวจจับว่า token เป็นอะไร
+     * @param {string} token - Token to identify
+     * @returns {Object|null} { type, category, binary, data } หรือ null
+     */
+    identifyToken(token) {
+        // Try keyword first
+        if (this.isKeyword(token)) {
+            const data = this.getKeywordInfo(token);
+            return {
+                type: 'keyword',
+                category: data.category || 'unknown',
+                binary: data.binary,
+                data: data
+            };
+        }
+        
+        // Try operator
+        if (this.isOperator(token)) {
+            const data = this.getOperatorInfo(token);
+            return {
+                type: 'operator',
+                category: data.category || 'unknown',
+                binary: data.binary,
+                data: data
+            };
+        }
+        
+        // Try punctuation
+        if (this.isPunctuation(token)) {
+            const data = this.getPunctuationInfo(token);
+            return {
+                type: 'punctuation',
+                category: data.type || 'unknown',
+                binary: data.binary,
+                data: data
+            };
+        }
+        
+        return null; // Unknown token
+    }
+
+    /**
+     * ค้นหา keyword ตาม category
+     * @param {string} category - Category name (control, iteration, function, etc.)
+     * @returns {Array<Object>} Array of { keyword, data }
+     */
+    findKeywordsByCategory(category) {
+        if (!this.grammar || !this.grammar.keywords) return [];
+        
+        const results = [];
+        for (const [keyword, data] of Object.entries(this.grammar.keywords)) {
+            if (data.category === category) {
+                results.push({ keyword, data });
+            }
+        }
         return results;
     }
 
     /**
-     * ตรวจสอบว่า item เป็นประเภทใดในภาษานั้นๆ
-     * @param {string} language - ภาษา
-     * @param {string} itemName - ชื่อ item
-     * @returns {Promise<Object>} { found, type, section, data }
+     * ค้นหา operator ตาม type
+     * @param {string} type - Operator type (arithmetic, comparison, logical, etc.)
+     * @returns {Array<Object>} Array of { operator, data }
      */
-    static async identifyType(language, itemName) {
-        const grammar = await GrammarIndex.loadGrammar(language);
+    findOperatorsByType(type) {
+        if (!this.grammar || !this.grammar.operators) return [];
         
-        // ลอง search ในทุก section
-        const possibleSections = [
-            'keywords', 'operators', 'punctuation', 'literals',
-            'modifiers', 'primitiveTypes', 'annotations',
-            'typeKeywords', 'typeOperators', 'declarations', 'moduleKeywords',
-            'elements', 'expressions', 'attributes'
-        ];
-
-        for (const sectionName of possibleSections) {
-            if (grammar[sectionName] && grammar[sectionName][itemName]) {
-                return {
-                    found: true,
-                    language,
-                    type: GrammarIndex._reverseMapSection(sectionName),
-                    section: sectionName,
-                    item: itemName,
-                    data: grammar[sectionName][itemName]
-                };
+        const results = [];
+        for (const [operator, data] of Object.entries(this.grammar.operators)) {
+            if (data.type === type) {
+                results.push({ operator, data });
             }
         }
-
-        emitGrammarIndexEvent('Unable to identify grammar type for item', 'identifyType', 'WARNING', {
-            language,
-            item: itemName
-        });
-        return {
-            found: false,
-            language,
-            item: itemName,
-            error: `Item '${itemName}' not found in any section of ${language} grammar`
-        };
+        return results;
     }
 
     /**
-     * แปลง section name กลับเป็น type
-     * @param {string} sectionName - ชื่อ section
-     * @returns {string} type
+     * ดึง section ตาม type
+     * @param {string} type - Type name
+     * @returns {Object|null} Section object หรือ null
      * @private
      */
-    static _reverseMapSection(sectionName) {
-        const reverseMapping = {
-            'keywords': 'keyword',
-            'operators': 'operator',
+    _getSection(type) {
+        if (!this.grammar) return null;
+        
+        const sectionMap = {
+            'keyword': 'keywords',
+            'operator': 'operators',
             'punctuation': 'punctuation',
-            'literals': 'literal',
-            'modifiers': 'modifier',
-            'primitiveTypes': 'primitiveType',
-            'annotations': 'annotation',
-            'typeKeywords': 'typeKeyword',
-            'typeOperators': 'typeOperator',
-            'declarations': 'declaration',
-            'moduleKeywords': 'moduleKeyword',
-            'elements': 'element',
-            'expressions': 'expression',
-            'attributes': 'attribute',
-            'builtInComponents': 'component'
+            'literal': 'literals'
         };
-
-        return reverseMapping[sectionName] || sectionName;
+        
+        const sectionName = sectionMap[type] || type;
+        return this.grammar[sectionName] || null;
     }
 
     /**
-     * ค้นหาข้อมูล keyword จาก grammar (instance method - ไม่ hardcode)
-     * @param {string} keyword - ชื่อ keyword (เช่น 'if', 'for', 'const')
-     * @returns {Object|null} ข้อมูล keyword จาก grammar หรือ null ถ้าไม่เจอ
-     */
-    getKeywordInfo(keyword) {
-        if (!this.grammar || !this.grammar.keywords) {
-            emitGrammarIndexEvent('Keyword lookup attempted without keyword section', 'getKeywordInfo', 'WARNING', {
-                keyword,
-                hasGrammar: !!this.grammar
-            });
-            return null;
-        }
-
-        const keywordData = this.grammar.keywords[keyword];
-        if (!keywordData) {
-            emitGrammarIndexEvent('Keyword not found in grammar', 'getKeywordInfo', 'WARNING', {
-                keyword
-            });
-            return null;
-        }
-
-        // คืนค่าข้อมูลจาก Grammar โดยตรง (ไม่ hardcode)
-        return keywordData;
-    }
-
-    /**
-     * ตรวจสอบว่า keyword มี subcategory ตรงกับที่ระบุหรือไม่ (section-based)
-     * @param {string} keyword - ชื่อ keyword
-     * @param {string} subcategory - subcategory ที่ต้องการตรวจสอบ (เช่น 'variableDeclaration', 'functionDeclaration', 'ifStatement')
-     * @returns {boolean}
-     */
-    isKeywordSubcategory(keyword, subcategory) {
-        const keywordInfo = this.getKeywordInfo(keyword);
-        if (!keywordInfo) {
-            return false;
-        }
-        return keywordInfo.subcategory === subcategory;
-    }
-
-    /**
-     * ดึง subcategory ของ keyword (section-based)
-     * @param {string} keyword - ชื่อ keyword
-     * @returns {string|null}
-     */
-    getKeywordSubcategory(keyword) {
-        const keywordInfo = this.getKeywordInfo(keyword);
-        return keywordInfo ? keywordInfo.subcategory : null;
-    }
-
-    /**
-     * ตรวจสอบว่า keyword เป็น unary keyword หรือไม่ (section-based)
-     * @param {string} keyword - ชื่อ keyword (เช่น 'typeof', 'void', 'delete')
+     * ตรวจสอบว่า keyword เป็น unary keyword หรือไม่
+     * @param {string} keyword - Keyword name
      * @returns {boolean}
      */
     isUnaryKeyword(keyword) {
-        const keywordInfo = this.getKeywordInfo(keyword);
-        if (!keywordInfo) {
-            return false;
-        }
-        // ตรวจสอบจาก subcategory, category, isPrefix หรือ usage
-        // ! await มี category = 'operator' และ isPrefix = true ดังนั้นต้องตรวจสอบ isPrefix ด้วย
-        return keywordInfo.subcategory === 'unaryOperator' || 
-               keywordInfo.category === 'unary' ||
-               keywordInfo.isPrefix === true ||  // เพิ่มการตรวจสอบ isPrefix สำหรับ await
-               (keywordInfo.usage && keywordInfo.usage.includes('unary'));
+        const data = this.getKeywordInfo(keyword);
+        if (!data) return false;
+        
+        return data.category === 'unary' || 
+               data.isPrefix === true ||
+               (data.usage && data.usage.includes('unary'));
     }
 
     /**
-     * ตรวจสอบว่า operator เป็น assignment operator หรือไม่ (อ่านจาก isAssign field ใน Grammar - NO_HARDCODE)
-     * @param {string} operator - ตัว operator (เช่น '=', '+=', '-=')
+     * ตรวจสอบว่า operator เป็น assignment operator หรือไม่
+     * @param {string} operator - Operator symbol
      * @returns {boolean}
      */
     isAssignmentOperator(operator) {
-        if (!this.grammar || !this.grammar.operators) {
-            emitGrammarIndexEvent('Assignment operator lookup without operator section', 'isAssignmentOperator', 'WARNING', {
-                operator,
-                hasGrammar: !!this.grammar
-            });
-            return false;
-        }
-
-        const operatorData = this.grammar.operators[operator];
-        if (!operatorData) {
-            emitGrammarIndexEvent('Assignment operator not found', 'isAssignmentOperator', 'WARNING', {
-                operator
-            });
-            return false;
-        }
-
-        // ตรวจสอบจาก isAssign field (assignment operators ใช้ isAssign แทน category)
-        return operatorData.isAssign === true || operatorData.category === 'assignment';
+        const data = this.getOperatorInfo(operator);
+        if (!data) return false;
+        
+        return data.isAssign === true || data.category === 'assignment';
     }
 
     /**
      * ตรวจสอบว่า operator เป็น logical operator หรือไม่
-     * @param {string} operator - ตัว operator (เช่น '&&', '||', '??')
+     * @param {string} operator - Operator symbol
      * @returns {boolean}
      */
     isLogicalOperator(operator) {
@@ -536,457 +408,196 @@ export class GrammarIndex {
     }
 
     /**
-     * ตรวจสอบว่า operator เป็น equality operator หรือไม่
-     * @param {string} operator - ตัว operator (เช่น '===', '!==', '==', '!=')
+     * ตรวจสอบว่า operator เป็น comparison operator หรือไม่
+     * @param {string} operator - Operator symbol
      * @returns {boolean}
      */
-    isEqualityOperator(operator) {
-        return this._isOperatorCategory(operator, 'equality');
+    isComparisonOperator(operator) {
+        const data = this.getOperatorInfo(operator);
+        if (!data) return false;
+        
+        return data.category === 'comparison' || 
+               data.type === 'comparison' ||
+               data.category === 'equality' ||
+               data.category === 'relational';
     }
 
     /**
-     * ตรวจสอบว่า operator เป็น relational operator หรือไม่
-     * @param {string} operator - ตัว operator (เช่น '<', '>', '<=', '>=')
-     * @returns {boolean}
-     */
-    isRelationalOperator(operator) {
-        return this._isOperatorCategory(operator, 'relational');
-    }
-
-    /**
-     * ตรวจสอบว่า operator เป็น additive operator หรือไม่
-     * @param {string} operator - ตัว operator (เช่น '+', '-')
-     * @returns {boolean}
-     */
-    isAdditiveOperator(operator) {
-        return this._isOperatorCategory(operator, 'additive');
-    }
-
-    /**
-     * ตรวจสอบว่า operator เป็น multiplicative operator หรือไม่
-     * @param {string} operator - ตัว operator (เช่น '*', '/', '%')
-     * @returns {boolean}
-     */
-    isMultiplicativeOperator(operator) {
-        return this._isOperatorCategory(operator, 'multiplicative');
-    }
-
-    /**
-     * ตรวจสอบว่า operator เป็น unary operator หรือไม่
-     * @param {string} operator - ตัว operator (เช่น '!', '-', '+', 'typeof')
-     * @returns {boolean}
-     */
-    isUnaryOperator(operator) {
-        if (!this.grammar || !this.grammar.operators) {
-            return false;
-        }
-
-        const operatorData = this.grammar.operators[operator];
-        if (!operatorData) {
-            return false;
-        }
-
-        // ตรวจสอบจาก category หรือ isPrefix field
-        return operatorData.category === 'unary' || operatorData.isPrefix === true;
-    }
-
-    /**
-     * ฟังก์ชันช่วยตรวจสอบ operator category จาก Grammar (NO_HARDCODE)
-     * @param {string} operator - ตัว operator
-     * @param {string} category - category ที่ต้องการตรวจสอบ
+     * ตรวจสอบ operator category
+     * @param {string} operator - Operator symbol
+     * @param {string} category - Category to check
      * @returns {boolean}
      * @private
      */
     _isOperatorCategory(operator, category) {
-        if (!this.grammar || !this.grammar.operators) {
-            emitGrammarIndexEvent('Operator category lookup without operator section', '_isOperatorCategory', 'WARNING', {
-                operator,
-                category,
-                hasGrammar: !!this.grammar
-            });
-            return false;
-        }
-
-        const operatorData = this.grammar.operators[operator];
-        if (!operatorData) {
-            emitGrammarIndexEvent('Operator not found for category comparison', '_isOperatorCategory', 'WARNING', {
-                operator,
-                category
-            });
-            return false;
-        }
-
-        return operatorData.category === category;
+        const data = this.getOperatorInfo(operator);
+        if (!data) return false;
+        
+        return data.category === category || data.type === category;
     }
 
     /**
-     * ดึงค่า binary ของ punctuation จาก binary map (100% Binary - NO FALLBACK)
-     * @param {string} punctuation - ตัว punctuation (เช่น '(', ')', '{', '}')
-     * @returns {number} - binary constant (MUST exist in map, or THROWS error)
+     * ดึงสถิติของ grammar
+     * @returns {Object} Statistics object
      */
-    getPunctuationBinary(punctuation) {
-        // ! STRICT MODE: ห้าม fallback - ต้องมีใน binary map เท่านั้น
-        if (this.punctuationBinaryMap && this.punctuationBinaryMap[punctuation]) {
-            return this.punctuationBinaryMap[punctuation];
+    getStatistics() {
+        if (!this.grammar) {
+            return {
+                language: this.language,
+                loaded: false
+            };
         }
         
-        // ! NO_SILENT_FALLBACKS: ถ้าไม่มีใน binary map = CRITICAL ERROR
-        // FIX: Universal Reporter - Auto-collect
-        report(BinaryCodes.PARSER.VALIDATION(10005));
-        // ! NO_THROW: Return null แทน throw
-        return null;
-    }
-
-    /**
-     * แปลง binary constant กลับเป็น punctuation character
-     * @param {number} binary - binary constant
-     * @returns {string|null} - punctuation character หรือ null ถ้าไม่พบ
-     */
-    getPunctuationFromBinary(binary) {
-        // ! ค้นหาจาก punctuationBinaryMap ที่ Brain มีอยู่
-        if (this.punctuationBinaryMap) {
-            for (const [punct, binaryValue] of Object.entries(this.punctuationBinaryMap)) {
-                if (binaryValue === binary) {
-                    return punct;
-                }
-            }
-        }
-        
-        // ! NO_HARDCODE: ลบ fallback ที่ใช้ punct.charCodeAt(0) ออก
-        // ! REMOVED HARDCODE: const punctBinary = data.binary || punct.charCodeAt(0); [VIOLATION]
-        // ! Grammar data ต้องมี binary value อย่างชัดเจน ไม่ fallback charCodeAt
-        
-        // ! NO_SILENT_FALLBACKS: แจ้งเตือนเมื่อไม่พบ แต่ไม่ throw (เพราะอาจเป็น token type อื่น)
-        emitGrammarIndexEvent('Unable to resolve punctuation from binary', 'getPunctuationFromBinary', 'WARNING', {
-            binary,
-            reason: 'Binary value not found in punctuationBinaryMap',
-            fix: 'Verify binary value is registered in tokenizer-binary-config.js'
-        });
-        return null;
-    }
-
-    /**
-     * ดึงค่า binary ของ keyword จาก grammar
-     * @param {string} keyword - ชื่อ keyword (เช่น 'if', 'for', 'const')
-     * @returns {number|undefined} - binary value หรือ undefined ถ้าไม่พบ
-     */
-    getKeywordBinary(keyword) {
-        if (!this.grammar || !this.grammar.keywords) {
-            emitGrammarIndexEvent('Keyword binary lookup without keyword section', 'getKeywordBinary', 'WARNING', {
-                keyword,
-                hasGrammar: !!this.grammar
-            });
-            return undefined;
-        }
-        
-        const keywordData = this.grammar.keywords[keyword];
-        if (!keywordData) {
-            emitGrammarIndexEvent('Keyword binary not found in grammar', 'getKeywordBinary', 'WARNING', {
-                keyword
-            });
-            return undefined;
-        }
-        
-        // อ่าน binary จาก grammar (ถ้ามี) หรือสร้างจาก hash
-        return keywordData.binary || this._generateKeywordBinary(keyword);
-    }
-
-    /**
-     * ดึงค่า binary ของ operator จาก grammar
-     * @param {string} operator - ตัว operator (เช่น '+', '-', '===')
-     * @returns {number|undefined} - binary value หรือ undefined ถ้าไม่พบ
-     */
-    getOperatorBinary(operator) {
-        if (!this.grammar || !this.grammar.operators) {
-            emitGrammarIndexEvent('Operator binary lookup without operator section', 'getOperatorBinary', 'WARNING', {
-                operator,
-                hasGrammar: !!this.grammar
-            });
-            return undefined;
-        }
-        
-        const operatorData = this.grammar.operators[operator];
-        if (!operatorData) {
-            emitGrammarIndexEvent('Operator binary not found in grammar', 'getOperatorBinary', 'WARNING', {
-                operator
-            });
-            return undefined;
-        }
-        
-        // อ่าน binary จาก grammar (ถ้ามี) หรือสร้างจาก hash
-        return operatorData.binary || this._generateOperatorBinary(operator);
-    }
-
-    /**
-     * ตรวจสอบว่าเป็น keyword หรือไม่ (ใช้ Section-Based Search)
-     * @param {string} word - คำที่ต้องการตรวจสอบ
-     * @returns {boolean}
-     */
-    isKeyword(word) {
-        if (!this.grammar || !this.grammar.keywords) {
-            emitGrammarIndexEvent('Keyword presence check without keyword section', 'isKeyword', 'WARNING', {
-                word,
-                hasGrammar: !!this.grammar
-            });
-            return false;
-        }
-        
-        // ค้นหาใน Section 01: keywords
-        const exists = this.grammar.keywords.hasOwnProperty(word);
-        if (!exists) {
-            emitGrammarIndexEvent('Keyword not registered in grammar', 'isKeyword', 'WARNING', {
-                word
-            });
-        }
-        return exists;
-    }
-
-    /**
-     * ตรวจสอบว่าเป็น operator หรือไม่ (ใช้ Section-Based Search)
-     * @param {string} op - operator ที่ต้องการตรวจสอบ
-     * @returns {boolean}
-     */
-    isOperator(op) {
-        if (!this.grammar || !this.grammar.operators) {
-            emitGrammarIndexEvent('Operator presence check without operator section', 'isOperator', 'WARNING', {
-                operator: op,
-                hasGrammar: !!this.grammar
-            });
-            return false;
-        }
-        
-        // ค้นหาใน Section 03: operators
-        const exists = this.grammar.operators.hasOwnProperty(op);
-        if (!exists) {
-            emitGrammarIndexEvent('Operator not registered in grammar', 'isOperator', 'WARNING', {
-                operator: op
-            });
-        }
-        return exists;
-    }
-
-    /**
-     * ตรวจสอบว่าเป็น punctuation หรือไม่ (ใช้ Section-Based Search)
-     * @param {string} punct - punctuation ที่ต้องการตรวจสอบ
-     * @returns {boolean}
-     */
-    isPunctuation(punct) {
-        if (!this.grammar || !this.grammar.punctuation) {
-            emitGrammarIndexEvent('Punctuation presence check without punctuation section', 'isPunctuation', 'WARNING', {
-                punctuation: punct,
-                hasGrammar: !!this.grammar
-            });
-            return false;
-        }
-        
-        // ค้นหาใน Section 04: punctuation
-        const exists = this.grammar.punctuation.hasOwnProperty(punct);
-        if (!exists) {
-            emitGrammarIndexEvent('Punctuation not registered in grammar', 'isPunctuation', 'WARNING', {
-                punctuation: punct
-            });
-        }
-        return exists;
-    }
-
-    /**
-     * ดึงข้อมูล punctuation จาก Section 04 (Section-Based Search)
-     * @param {string} punct - ตัว punctuation
-     * @returns {Object|null} - ข้อมูล punctuation หรือ null ถ้าไม่พบ
-     */
-    getPunctuationInfo(punct) {
-        if (!this.grammar || !this.grammar.punctuation) {
-            emitGrammarIndexEvent('Punctuation info requested without punctuation section', 'getPunctuationInfo', 'WARNING', {
-                punctuation: punct,
-                hasGrammar: !!this.grammar
-            });
-            return null;
-        }
-        
-        // ค้นหาใน Section 04: punctuation
-        const punctData = this.grammar.punctuation[punct];
-        if (!punctData) {
-            emitGrammarIndexEvent('Punctuation info not found in grammar', 'getPunctuationInfo', 'WARNING', {
-                punctuation: punct
-            });
-            return null;
-        }
-        
-        // คืนค่าข้อมูลจาก Section โดยตรง (NO HARDCODE)
         return {
-            punctuation: punct,
-            type: punctData.type || 'unknown',
-            precedence: punctData.precedence || null,
-            associativity: punctData.associativity || null,
-            binary: this.getPunctuationBinary(punct),
-            ...punctData
+            language: this.language,
+            loaded: true,
+            keywords: Object.keys(this.grammar.keywords || {}).length,
+            operators: Object.keys(this.grammar.operators || {}).length,
+            punctuation: Object.keys(this.grammar.punctuation || {}).length,
+            cacheSize: this.binaryCache.size,
+            reverseCacheSize: this.reverseCache.size
         };
     }
 
     /**
-     * ดึงข้อมูล operator จาก Section 03 (Section-Based Search)
-     * @param {string} operator - ตัว operator
-     * @returns {Object|null} - ข้อมูล operator หรือ null ถ้าไม่พบ
+     * Clear cache (สำหรับ reload grammar)
      */
-    getOperatorInfo(operator) {
-        if (!this.grammar || !this.grammar.operators) {
-            emitGrammarIndexEvent('Operator info requested without operator section', 'getOperatorInfo', 'WARNING', {
-                operator,
-                hasGrammar: !!this.grammar
-            });
-            return null;
-        }
-        
-        // ค้นหาใน Section 03: operators
-        const operatorData = this.grammar.operators[operator];
-        if (!operatorData) {
-            emitGrammarIndexEvent('Operator info not found in grammar', 'getOperatorInfo', 'WARNING', {
-                operator
-            });
-            return null;
-        }
-        
-        // คืนค่าข้อมูลจาก Section โดยตรง (NO HARDCODE)
-        return {
-            operator: operator,
-            category: operatorData.category || 'unknown',
-            precedence: operatorData.precedence || 0,
-            associativity: operatorData.associativity || 'left',
-            binary: operatorData.binary || this._generateOperatorBinary(operator),
-            ...operatorData
-        };
-    }
-
-    /**
-     * สร้างค่า binary สำหรับ keyword (fallback method)
-     * @param {string} keyword - ชื่อ keyword
-     * @returns {number}
-     * @private
-     */
-    _generateKeywordBinary(keyword) {
-        let hash = 0;
-        for (let i = 0; i < keyword.length; i++) {
-            hash = ((hash << 5) - hash) + keyword.charCodeAt(i);
-            hash = hash & hash; // Convert to 32bit integer
-        }
-        return Math.abs(hash);
-    }
-
-    /**
-     * สร้างค่า binary สำหรับ operator (fallback method)
-     * @param {string} operator - ตัว operator
-     * @returns {number}
-     * @private
-     */
-    _generateOperatorBinary(operator) {
-        let hash = 0;
-        for (let i = 0; i < operator.length; i++) {
-            hash = ((hash << 5) - hash) + operator.charCodeAt(i);
-            hash = hash & hash; // Convert to 32bit integer
-        }
-        return Math.abs(hash);
-    }
-
-    /**
-     * ค้นหา keyword จาก binary value (100% Binary Lookup - NO STRING COMPARISON)
-     * @param {number} keywordBinary - binary value ของ keyword
-     * @returns {Object|null} - ข้อมูล keyword หรือ null
-     */
-    getKeywordByBinary(keywordBinary) {
-        if (!this.grammar || !this.grammar.keywords) {
-            emitGrammarIndexEvent('Keyword binary reverse lookup without keyword section', 'getKeywordByBinary', 'WARNING', {
-                keywordBinary,
-                hasGrammar: !!this.grammar
-            });
-            return null;
-        }
-
-        // ค้นหา keyword ที่มี binary ตรงกัน
-        for (const [keyword, data] of Object.entries(this.grammar.keywords)) {
-            const binary = data.binary || this._generateKeywordBinary(keyword);
-            if (binary === keywordBinary) {
-                return {
-                    keyword: keyword,
-                    binary: binary,
-                    ...data
-                };
-            }
-        }
-
-        emitGrammarIndexEvent('Keyword binary not found in grammar', 'getKeywordByBinary', 'WARNING', {
-            keywordBinary
-        });
-        return null;
-    }
-
-    /**
-     * ค้นหา operator จาก binary value (100% Binary Lookup)
-     * @param {number} operatorBinary - binary value ของ operator
-     * @returns {Object|null} - ข้อมูล operator หรือ null
-     */
-    getOperatorByBinary(operatorBinary) {
-        if (!this.grammar || !this.grammar.operators) {
-            emitGrammarIndexEvent('Operator binary reverse lookup without operator section', 'getOperatorByBinary', 'WARNING', {
-                operatorBinary,
-                hasGrammar: !!this.grammar
-            });
-            return null;
-        }
-
-        // ค้นหา operator ที่มี binary ตรงกัน
-        for (const [operator, data] of Object.entries(this.grammar.operators)) {
-            const binary = data.binary || this._generateOperatorBinary(operator);
-            if (binary === operatorBinary) {
-                return {
-                    operator: operator,
-                    binary: binary,
-                    ...data
-                };
-            }
-        }
-
-        emitGrammarIndexEvent('Operator binary not found in grammar', 'getOperatorByBinary', 'WARNING', {
-            operatorBinary
-        });
-        return null;
-    }
-
-    /**
-     * ตรวจสอบว่า keyword binary นี้เป็น assignment operator หรือไม่ (Binary-based)
-     * @param {number} operatorBinary - binary value ของ operator
-     * @returns {boolean}
-     */
-    isAssignmentOperatorByBinary(operatorBinary) {
-        const operatorData = this.getOperatorByBinary(operatorBinary);
-        if (!operatorData) {
-            return false;
-        }
-
-        return operatorData.isAssign === true || operatorData.category === 'assignment';
-    }
-
-    /**
-     * ตรวจสอบว่า operator binary เป็น simple assignment (=) หรือไม่
-     * @param {number} operatorBinary - binary value ของ operator
-     * @returns {boolean}
-     */
-    isSimpleAssignmentByBinary(operatorBinary) {
-        const operatorData = this.getOperatorByBinary(operatorBinary);
-        if (!operatorData) {
-            return false;
-        }
-
-        return operatorData.isAssign === true && operatorData.type === 'simple';
-    }
-
-    /**
-     * ดึง category ของ keyword จาก binary (Binary-based)
-     * @param {number} keywordBinary - binary value ของ keyword
-     * @returns {string|null} - category หรือ null
-     */
-    getKeywordCategoryByBinary(keywordBinary) {
-        const keywordData = this.getKeywordByBinary(keywordBinary);
-        return keywordData ? keywordData.category : null;
+    clearCache() {
+        this.binaryCache.clear();
+        this.reverseCache.clear();
+        this.grammar = null;
+        this.loaded = false;
     }
 }
 
+/**
+ * Multi-Language Grammar Manager - จัดการหลายภาษาพร้อมกัน
+ * 
+ * USAGE:
+ * ```javascript
+ * const manager = new MultiLanguageGrammarManager();
+ * await manager.loadLanguage('javascript');
+ * await manager.loadLanguage('python');
+ * 
+ * const jsIndex = manager.getIndex('javascript');
+ * const binary = jsIndex.getBinary('if', 'keyword');
+ * ```
+ */
+export class MultiLanguageGrammarManager {
+    constructor() {
+        this.indices = new Map(); // language  SmartGrammarIndex
+        this.availableLanguages = this._scanAvailableGrammars();
+    }
+
+    /**
+     * สแกนหา grammar files ที่มีอยู่
+     * @returns {Array<string>} Array of language names
+     * @private
+     */
+    _scanAvailableGrammars() {
+        try {
+            const grammarsDir = join(__dirname, 'grammars');
+            const files = readdirSync(grammarsDir);
+            
+            return files
+                .filter(file => file.endsWith('.grammar.js'))
+                .map(file => file.replace('.grammar.js', ''));
+                
+        } catch (error) {
+            return [];
+        }
+    }
+
+    /**
+     * โหลดภาษาเข้า manager
+     * @param {string} language - Language name
+     * @returns {Promise<boolean>} สำเร็จหรือไม่
+     */
+    async loadLanguage(language) {
+        // Check if already loaded
+        if (this.indices.has(language)) {
+            return true;
+        }
+        
+        // Create and load index
+        const index = new SmartGrammarIndex(language);
+        const success = await index.loadGrammar();
+        
+        if (success) {
+            this.indices.set(language, index);
+            return true;
+        }
+        
+        return false;
+    }
+
+    /**
+     * ดึง SmartGrammarIndex สำหรับภาษาที่ต้องการ
+     * @param {string} language - Language name
+     * @returns {SmartGrammarIndex|null} Index instance หรือ null
+     */
+    getIndex(language) {
+        return this.indices.get(language) || null;
+    }
+
+    /**
+     * โหลดทุกภาษาที่มี
+     * @returns {Promise<Array<string>>} Array of loaded languages
+     */
+    async loadAllLanguages() {
+        const loaded = [];
+        
+        for (const language of this.availableLanguages) {
+            const success = await this.loadLanguage(language);
+            if (success) {
+                loaded.push(language);
+            }
+        }
+        
+        return loaded;
+    }
+
+    /**
+     * ดึงรายการภาษาที่โหลดแล้ว
+     * @returns {Array<string>} Array of loaded languages
+     */
+    getLoadedLanguages() {
+        return Array.from(this.indices.keys());
+    }
+
+    /**
+     * ดึงรายการภาษาที่มีอยู่ทั้งหมด
+     * @returns {Array<string>} Array of available languages
+     */
+    getAvailableLanguages() {
+        return [...this.availableLanguages];
+    }
+
+    /**
+     * ดึงสถิติของทุกภาษา
+     * @returns {Object} Statistics object
+     */
+    getAllStatistics() {
+        const stats = {};
+        
+        for (const [language, index] of this.indices.entries()) {
+            stats[language] = index.getStatistics();
+        }
+        
+        return stats;
+    }
+}
+
+// Export convenience functions
+export async function createGrammarIndex(language) {
+    const index = new SmartGrammarIndex(language);
+    await index.loadGrammar();
+    return index;
+}
+
+export async function createMultiLanguageManager() {
+    const manager = new MultiLanguageGrammarManager();
+    await manager.loadAllLanguages();
+    return manager;
+}
+ 

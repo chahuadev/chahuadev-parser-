@@ -66,10 +66,10 @@ async function addLanguage(languageName) {
         const registry = JSON.parse(fs.readFileSync(REGISTRY_PATH, 'utf8'));
         
         if (!registry.languages[languageName]) {
-            console.error(`✗ Language '${languageName}' not found in registry`);
+            console.error(` Language '${languageName}' not found in registry`);
             console.log(`\nAvailable languages:`);
             Object.keys(registry.languages).forEach(lang => {
-                const status = registry.languages[lang].enabled ? '✓' : '✗';
+                const status = registry.languages[lang].enabled ? '' : '';
                 console.log(`  ${status} ${lang}`);
             });
             return false;
@@ -78,7 +78,7 @@ async function addLanguage(languageName) {
         const langConfig = registry.languages[languageName];
         
         if (!langConfig.enabled) {
-            console.log(`⚠ Language '${languageName}' is disabled in registry`);
+            console.log(` Language '${languageName}' is disabled in registry`);
             return false;
         }
         
@@ -93,7 +93,7 @@ async function addLanguage(languageName) {
         // 3. บันทึกไฟล์ต้นฉบับ
         const externalPath = path.join(EXTERNAL_DIR, `${languageName}.json`);
         fs.writeFileSync(externalPath, grammarJson, 'utf8');
-        console.log(`✓ Saved external grammar: ${externalPath}`);
+        console.log(` Saved external grammar: ${externalPath}`);
         
         // 4. Parse JSON
         const treeSitterGrammar = JSON.parse(grammarJson);
@@ -110,14 +110,14 @@ async function addLanguage(languageName) {
         langConfig.status = 'ready';
         fs.writeFileSync(REGISTRY_PATH, JSON.stringify(registry, null, 2), 'utf8');
         
-        console.log(`\n✓ Successfully added ${languageName}`);
+        console.log(`\n Successfully added ${languageName}`);
         console.log(`  External: ${externalPath}`);
         console.log(`  Grammar: ${outputFile}`);
         
         return true;
         
     } catch (error) {
-        console.error(`✗ Failed to add ${languageName}:`, error.message);
+        console.error(` Failed to add ${languageName}:`, error.message);
         return false;
     }
 }
@@ -143,12 +143,12 @@ async function addMultipleLanguages(languages) {
     const failed = Object.entries(results).filter(([_, success]) => !success);
     
     if (successful.length > 0) {
-        console.log(`\n✓ Successfully added (${successful.length}):`);
+        console.log(`\n Successfully added (${successful.length}):`);
         successful.forEach(([lang]) => console.log(`  - ${lang}`));
     }
     
     if (failed.length > 0) {
-        console.log(`\n✗ Failed (${failed.length}):`);
+        console.log(`\n Failed (${failed.length}):`);
         failed.forEach(([lang]) => console.log(`  - ${lang}`));
     }
     
@@ -191,7 +191,7 @@ Options:
         console.log(`\nAvailable languages in registry:\n`);
         
         Object.entries(registry.languages).forEach(([lang, config]) => {
-            const status = config.enabled ? '✓ Enabled ' : '✗ Disabled';
+            const status = config.enabled ? ' Enabled ' : ' Disabled';
             const state = config.status || 'pending';
             console.log(`  ${status} | ${lang.padEnd(15)} | ${state.padEnd(10)} | ${config.repo}`);
         });

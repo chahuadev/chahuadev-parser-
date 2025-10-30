@@ -84,7 +84,7 @@ export function convertTreeSitterGrammar(treeSitterGrammar, language) {
     // อัพเดท total sections
     chahuaGrammar.__grammar_total_sections = sectionNumber;
     
-    console.log(`✓ Converted ${sectionNumber} sections`);
+    console.log(` Converted ${sectionNumber} sections`);
     console.log(`  - Keywords: ${chahuaGrammar.keywords ? Object.keys(chahuaGrammar.keywords).length : 0}`);
     console.log(`  - Operators: ${chahuaGrammar.operators ? Object.keys(chahuaGrammar.operators).length : 0}`);
     console.log(`  - Punctuation: ${chahuaGrammar.punctuation ? Object.keys(chahuaGrammar.punctuation).length : 0}`);
@@ -352,7 +352,7 @@ export default ${language}Grammar;
 `;
     
     fs.writeFileSync(filename, content, 'utf8');
-    console.log(`✓ Grammar saved: ${filename}`);
+    console.log(` Grammar saved: ${filename}`);
     
     return filename;
 }
@@ -376,7 +376,7 @@ export async function convertFromTreeSitter(languageName, treeSitterGrammarPath)
     const outputPath = path.join(process.cwd(), 'src/grammars/shared/grammars');
     const savedFile = saveGrammarFile(grammarWithBinary, languageName, outputPath);
     
-    console.log(`✓ Conversion complete: ${savedFile}`);
+    console.log(` Conversion complete: ${savedFile}`);
     
     return grammarWithBinary;
 }
