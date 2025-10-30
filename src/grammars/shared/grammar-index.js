@@ -46,7 +46,7 @@ function emitGrammarIndexEvent(message, method, severity = 'INFO', context = {})
     }
 
     // FIX: Universal Reporter - Auto-collect
-    report(BinaryCodes.PARSER.SYNTAX(10002), { method, message: normalizedMessage, ...context });
+    report(BinaryCodes.PARSER.SYNTAX(10002));
 }
 
 export class GrammarIndex {
@@ -83,23 +83,15 @@ export class GrammarIndex {
             const punctuationBinaryMapData = tokenizerBinaryConfig.punctuationBinaryMap?.map;
             
             if (!punctuationBinaryMapData || typeof punctuationBinaryMapData !== 'object') {
-                const configError = new Error('punctuationBinaryMap.map is missing or invalid in tokenizer-binary-config.js');
-                configError.isOperational = false;
-                throw configError;
+                report(BinaryCodes.PARSER.CONFIGURATION(1056));
+                return null;
             }
             
             this.punctuationBinaryMap = punctuationBinaryMapData;
             
             // ! VALIDATION: ห้าม empty map - ถ้าไม่มี binary map = CRITICAL ERROR
             if (Object.keys(this.punctuationBinaryMap).length === 0) {
-                const validationError = new Error('Punctuation binary map is empty - CRITICAL CONFIG ERROR');
-                validationError.isOperational = false;
-                // ! NO_THROW: Report แล้ว return null
-                report(BinaryCodes.PARSER.CONFIGURATION(1056), { 
-                    error: validationError, 
-                    file: 'tokenizer-binary-config.js',
-                    mapSize: 0 
-                });
+                report(BinaryCodes.PARSER.CONFIGURATION(1056));
                 return null;
             }
             
@@ -107,7 +99,7 @@ export class GrammarIndex {
         } catch (error) {
             // ! NO_SILENT_FALLBACKS: ห้ามใช้ empty map - ต้อง FAIL
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.PARSER.CONFIGURATION(10003), { error, file: 'tokenizer-binary-config.js' });
+            report(BinaryCodes.PARSER.CONFIGURATION(10003));
             // ! NO_THROW: Return null แทน throw
             return null;
         }
@@ -221,12 +213,7 @@ export class GrammarIndex {
             
             if (!grammarData) {
                 // ! NO_THROW: Report แล้ว return null
-                report(BinaryCodes.PARSER.CONFIGURATION(10006), { 
-                    error: new Error(`Grammar export '${grammarExportName}' not found`),
-                    language,
-                    grammarPath,
-                    grammarExportName 
-                });
+                report(BinaryCodes.PARSER.CONFIGURATION(10006));
                 return null;
             }
             
@@ -252,7 +239,7 @@ export class GrammarIndex {
         } catch (error) {
             // ! NO_SILENT_FALLBACKS: Grammar file not found = Programming error
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.PARSER.SYNTAX(10004), { error, language });
+            report(BinaryCodes.PARSER.SYNTAX(10004));
             // ! NO_THROW: Return null แทน throw
             return null;
         }
@@ -648,11 +635,7 @@ export class GrammarIndex {
         
         // ! NO_SILENT_FALLBACKS: ถ้าไม่มีใน binary map = CRITICAL ERROR
         // FIX: Universal Reporter - Auto-collect
-        report(BinaryCodes.PARSER.VALIDATION(10005), { 
-            error: new Error(`Punctuation '${punctuation}' not found in binary map`),
-            punctuation, 
-            availablePunctuations: Object.keys(this.punctuationBinaryMap || {}) 
-        });
+        report(BinaryCodes.PARSER.VALIDATION(10005));
         // ! NO_THROW: Return null แทน throw
         return null;
     }

@@ -136,12 +136,7 @@ function normalizeRuleDefinition(key, definition) {
     const resolvedId = determineRuleId(key, definition);
     if (!resolvedId) {
         // FIX: Universal Reporter - Auto-collect
-        report(BinaryCodes.VALIDATOR.VALIDATION(7001), {
-            key: String(key),
-            definitionType: typeof definition,
-            hasId: definition?.id !== undefined,
-            hasSlug: definition?.slug !== undefined
-        });
+        report(BinaryCodes.VALIDATOR.VALIDATION(7001));
         // ไม่ throw - return null แทน
         return null;
     }
@@ -232,11 +227,7 @@ export class ValidationEngine {
             return true;
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.PARSER.SYNTAX(1020), {
-                errorType: error?.constructor?.name,
-                errorMessage: error?.message || 'Parser initialization failed',
-                stackPreview: error?.stack?.split('\n').slice(0, 3).join('\n')
-            });
+            report(BinaryCodes.PARSER.SYNTAX(1020));
             // ไม่ throw - ให้ระบบทำงานต่อ (parser จะเป็น null)
         }
     }
@@ -244,9 +235,7 @@ export class ValidationEngine {
     async validateCode(code, fileName = 'unknown') {
         if (!this.parser) {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.SYSTEM.CONFIGURATION(7002), {
-                fileName: fileName
-            });
+            report(BinaryCodes.SYSTEM.CONFIGURATION(7002));
             // ไม่ throw - return empty violations แทน
             return [];
         }
@@ -261,12 +250,7 @@ export class ValidationEngine {
                 ast = this.parser.parse(tokens);
             } catch (parseError) {
                 // FIX: Universal Reporter - Auto-collect
-                report(BinaryCodes.PARSER.SYNTAX(1032), {
-                    fileName: fileName,
-                    tokensCount: tokens.length,
-                    errorType: parseError?.constructor?.name,
-                    errorMessage: parseError?.message || 'Parser failed - syntax error in source code'
-                });
+                report(BinaryCodes.PARSER.SYNTAX(1032));
                 // ไม่ throw - return empty violations แทน
                 return [];
             }
@@ -274,11 +258,7 @@ export class ValidationEngine {
             // ! ตรวจสอบ AST validity
             if (!ast || typeof ast !== 'object') {
                 // FIX: Universal Reporter - Auto-collect
-                report(BinaryCodes.PARSER.SYNTAX(2005), {
-                    fileName: fileName,
-                    astType: typeof ast,
-                    astConstructor: ast?.constructor?.name
-                });
+                report(BinaryCodes.PARSER.SYNTAX(2005));
                 // ไม่ throw - return empty violations แทน
                 return [];
             }
@@ -289,17 +269,10 @@ export class ValidationEngine {
             // ! NO_SILENT_FALLBACKS: ห้ามใช้ || [] ซ่อน parser failure
             if (!Array.isArray(violations)) {
                 // FIX: Universal Reporter - Auto-collect
-                report(BinaryCodes.VALIDATOR.LOGIC(1027), {
-                    fileName: fileName,
-                    violationsType: typeof violations,
-                    violationsConstructor: violations?.constructor?.name
-                });
+                report(BinaryCodes.VALIDATOR.LOGIC(1027));
                 // ไม่ throw - return empty violations แทน
                 return [];
             }
-            
-            // ! DEBUG: Log violation count
-            console.log(`[DEBUG] detectViolations returned ${violations.length} violations`);
             
             return {
                 fileName,
@@ -321,12 +294,7 @@ export class ValidationEngine {
             }
             
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.VALIDATOR.LOGIC(1021), {
-                fileName: fileName,
-                errorType: error?.constructor?.name,
-                errorMessage: error?.message || 'Unexpected error during validation',
-                stackPreview: error?.stack?.split('\n').slice(0, 3).join('\n')
-            });
+            report(BinaryCodes.VALIDATOR.LOGIC(1021));
             // ไม่ throw - return empty violations แทน
             return [];
         }
@@ -357,14 +325,6 @@ export class ValidationEngine {
                         for (const violation of enriched) {
                             this.errorCollector.collect(
                                 BinaryCodes.VALIDATOR.VALIDATION(3000 + (rule.id || 0)),
-                                {
-                                    fileName,
-                                    rule: rule.slug || rule.id,
-                                    violationMessage: violation.message,
-                                    line: violation.line,
-                                    column: violation.column,
-                                    severity: violation.severity
-                                },
                                 { nonThrowing: true } // Don't throw on violations
                             );
                         }
@@ -405,12 +365,7 @@ export class ValidationEngine {
             .map(rule => rule.slug || rule.id)
             .join(', ');
             
-        report(BinaryCodes.VALIDATOR.VALIDATION(7003), {
-            requestedRuleId: String(ruleId),
-            resolvedId: String(resolvedId),
-            availableCount: Object.keys(this.rules).length,
-            availableRules: availableRules
-        });
+        report(BinaryCodes.VALIDATOR.VALIDATION(7003));
         // ไม่ throw - return null แทน
         return null;
     }

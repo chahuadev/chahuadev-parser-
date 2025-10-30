@@ -7,7 +7,7 @@
  * @performance 10-50x faster than full parsing
  * 
  * COMPLIANCE:
- * - NO console.log() / console.error() - Use errorHandler only
+ * - All errors sent to ErrorHandler via report()
  * - 100% Binary-First approach
  * - All errors sent to ErrorHandler
  */
@@ -27,25 +27,14 @@ class BinaryScout {
     constructor(tokens, grammarIndex) {
         if (!tokens || !Array.isArray(tokens)) {
             // FIX: Universal Reporter - Auto-collect
-            const error = new Error('BinaryScout requires valid tokens array');
-            error.name = 'ValidationError';
-            error.isOperational = true;
-            report(BinaryCodes.VALIDATOR.VALIDATION(1019), {
-                error: error,
-                tokens: tokens
-            });
+            report(BinaryCodes.VALIDATOR.VALIDATION(1019));
             // ! NO_THROW: Return early - object will be invalid
             return;
         }
 
         if (!grammarIndex) {
             // FIX: Universal Reporter - Auto-collect
-            const error = new Error('BinaryScout requires valid grammarIndex');
-            error.name = 'ValidationError';
-            error.isOperational = true;
-            report(BinaryCodes.VALIDATOR.VALIDATION(1026), {
-                error: error
-            });
+            report(BinaryCodes.VALIDATOR.VALIDATION(1026));
             // ! NO_THROW: Return early - object will be invalid
             return;
         }
@@ -70,10 +59,7 @@ class BinaryScout {
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
             error.isOperational = true;
-            report(BinaryCodes.SYSTEM.CONFIGURATION(1009), {
-                error: error,
-                step: 'binary_cache_initialization'
-            });
+            report(BinaryCodes.SYSTEM.CONFIGURATION(1009));
             // ! NO_THROW: Set BINARY to empty object to prevent crashes
             this.BINARY = {};
         }
@@ -117,11 +103,7 @@ class BinaryScout {
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
             error.isOperational = true;
-            report(BinaryCodes.PARSER.SYNTAX(1030), {
-                error: error,
-                tokensLength: this.tokens.length,
-                structuresFound: this.structureMap.size
-            });
+            report(BinaryCodes.PARSER.SYNTAX(1030));
             // ! NO_THROW: Return empty map แทน throw
             return new Map();
         }
@@ -159,10 +141,7 @@ class BinaryScout {
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
             error.isOperational = true;
-            report(BinaryCodes.PARSER.VALIDATION(1053), {
-                error: error,
-                startPos: startPos
-            });
+            report(BinaryCodes.PARSER.VALIDATION(1053));
             return startPos; // Fallback: don't jump
         }
     }
@@ -202,10 +181,7 @@ class BinaryScout {
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
             error.isOperational = true;
-            report(BinaryCodes.PARSER.VALIDATION(1049), {
-                error: error,
-                startPos: startPos
-            });
+            report(BinaryCodes.PARSER.VALIDATION(1049));
             return startPos;
         }
     }
@@ -243,11 +219,7 @@ class BinaryScout {
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
             error.isOperational = true;
-            report(BinaryCodes.PARSER.VALIDATION(1054), {
-                error: error,
-                startPos: startPos,
-                typeLabel: typeLabel
-            });
+            report(BinaryCodes.PARSER.VALIDATION(1054));
             return startPos;
         }
     }
@@ -300,10 +272,7 @@ class BinaryScout {
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
             error.isOperational = true;
-            report(BinaryCodes.PARSER.VALIDATION(1050), {
-                error: error,
-                startPos: startPos
-            });
+            report(BinaryCodes.PARSER.VALIDATION(1050));
             return startPos;
         }
     }
@@ -336,14 +305,7 @@ class BinaryScout {
 
         // FIX: Universal Reporter - Auto-collect
         // No matching brace found - send to Binary Error System
-        const error = new Error('No matching closing brace found');
-        error.name = 'ParserError';
-        error.isOperational = true;
-        report(BinaryCodes.PARSER.SYNTAX(1051), {
-            error: error,
-            startPos: startPos,
-            tokensLength: this.tokens.length
-        });
+        report(BinaryCodes.PARSER.SYNTAX(1051));
 
         return -1;
     }
@@ -442,11 +404,7 @@ class BinaryScout {
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
             error.isOperational = true;
-            report(BinaryCodes.PARSER.VALIDATION(1055), {
-                error: error,
-                startPos: startPos,
-                endPos: endPos
-            });
+            report(BinaryCodes.PARSER.VALIDATION(1055));
         }
 
         return methods;

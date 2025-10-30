@@ -7,7 +7,7 @@
  * @performance 20-30% faster than pure binary parser
  * 
  * COMPLIANCE:
- * - NO console.log() / console.error() - Use errorHandler only
+ * - All errors sent to ErrorHandler via report()
  * - 100% Binary-First approach
  * - All errors sent to ErrorHandler
  */

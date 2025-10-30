@@ -31,17 +31,8 @@ function emitExtensionLog(message, method, severity = 'INFO', context = {}) {
         ? message
         : 'Extension event emitted';
 
-    const notice = new Error(normalizedMessage);
-    notice.name = 'ExtensionNotice';
-    notice.isOperational = true;
-
     // FIX: Universal Reporter - Auto-collect
-    report(BinaryCodes.SYSTEM.RUNTIME(5000), {
-        method,
-        message: normalizedMessage,
-        error: notice,
-        context
-    });
+    report(BinaryCodes.SYSTEM.RUNTIME(5000));
 }
 
 function showProjectInfo() {
@@ -73,9 +64,9 @@ function activate(context) {
         // ! NO_SILENT_FALLBACKS: Validate policies loaded correctly
         const policies = securityConfig.policies;
         if (!policies || typeof policies !== 'object') {
-            const configError = new Error('Security policies missing or invalid in securityConfig');
-            configError.isOperational = false;
-            throw configError;
+            report(BinaryCodes.SYSTEM.CONFIGURATION(1047));
+            // ไม่ throw - report() จัดการแล้ว
+            return;
         }
         
         emitExtensionLog('Security middleware initialized', 'activate', 'INFO', {
@@ -86,7 +77,7 @@ function activate(context) {
         // ! Initialize validation engine
         validationEngine = new ValidationEngine();
         validationEngine.initializeParserStudy().catch(error => {
-            report(BinaryCodes.SYSTEM.CONFIGURATION(1046), { error });
+            report(BinaryCodes.SYSTEM.CONFIGURATION(1046));
             // ไม่ throw - ให้ extension ทำงานต่อแม้ parser ไม่สำเร็จ
         });
         
@@ -100,7 +91,7 @@ function activate(context) {
         );
         
     } catch (error) {
-        report(BinaryCodes.SYSTEM.CONFIGURATION(1047), { error });
+        report(BinaryCodes.SYSTEM.CONFIGURATION(1047));
         vscode.window.showErrorMessage(extensionConfig.messages.securityInitFailed);
         // ไม่ throw - report() จัดการแล้ว
     }
@@ -118,7 +109,7 @@ function activate(context) {
             try {
                 await secureDocumentScan(event.document);
             } catch (error) {
-                report(BinaryCodes.SECURITY.RUNTIME(1048), { error });
+                report(BinaryCodes.SECURITY.RUNTIME(1048));
                 // ไม่ throw - report() จัดการแล้ว
             }
         }, throttleMs);
@@ -133,7 +124,7 @@ function activate(context) {
             await secureDocumentScan(document);
             await securityMiddleware.showSecureNotification(extensionConfig.messages.scanSuccess);
         } catch (error) {
-            report(BinaryCodes.SECURITY.RUNTIME(5004), { error });
+            report(BinaryCodes.SECURITY.RUNTIME(5004));
             await securityMiddleware.showSecureNotification(extensionConfig.messages.securityError, 'error');
             // ไม่ throw - report() จัดการแล้ว
         }
@@ -168,7 +159,7 @@ function activate(context) {
                 showSubtleNotification(message);
             }
         } catch (error) {
-            report(BinaryCodes.SYSTEM.RUNTIME(5006), { error });
+            report(BinaryCodes.SYSTEM.RUNTIME(5006));
         }
     });
     
@@ -205,7 +196,7 @@ function activate(context) {
                     const results = await scanDocument(document);
                     
                     if (!results || !results.violations) {
-                        report(BinaryCodes.VALIDATOR.VALIDATION(5007), { fileName });
+                        report(BinaryCodes.VALIDATOR.VALIDATION(5007));
                         // ไม่ throw - skip file นี้และทำงานต่อ
                         continue;
                     }
@@ -213,7 +204,7 @@ function activate(context) {
                     totalViolations += results.violations.length;
                     scannedCount++;
                 } catch (error) {
-                    report(BinaryCodes.SYSTEM.RUNTIME(5008), { error, fileName });
+                    report(BinaryCodes.SYSTEM.RUNTIME(5008));
                 }
             }
             
@@ -243,7 +234,7 @@ function activate(context) {
     // ! Initial scan of active document
     if (vscode.window.activeTextEditor) {
         scanDocument(vscode.window.activeTextEditor.document).catch(error => {
-            report(BinaryCodes.SYSTEM.RUNTIME(5009), { error });
+            report(BinaryCodes.SYSTEM.RUNTIME(5009));
         });
     }
     
@@ -339,7 +330,7 @@ async function scanDocument(document) {
         return results;
         
     } catch (error) {
-        report(BinaryCodes.SYSTEM.RUNTIME(5011), { error, fileName: document.fileName });
+        report(BinaryCodes.SYSTEM.RUNTIME(5011));
         
         // ! Show error as diagnostic
         const errorDiagnostic = new vscode.Diagnostic(
@@ -464,9 +455,7 @@ async function secureDocumentScan(document) {
             // ! NO_SILENT_FALLBACKS: Validate diagnosticCollection.get() result
             const existingDiagnostics = diagnosticCollection.get(document.uri);
             if (!Array.isArray(existingDiagnostics)) {
-                report(BinaryCodes.VALIDATOR.VALIDATION(5013), {
-                    uri: document.uri.toString()
-                });
+                report(BinaryCodes.VALIDATOR.VALIDATION(5013));
                 // ถ้าไม่ใช่ array ให้ใช้ empty array แทน (แต่ต้อง log warning ก่อน)
                 diagnosticCollection.set(document.uri, securityDiagnostics);
             } else {
@@ -484,7 +473,7 @@ async function secureDocumentScan(document) {
         };
         
     } catch (error) {
-        report(BinaryCodes.SECURITY.RUNTIME(5014), { error, fileName: document.fileName });
+        report(BinaryCodes.SECURITY.RUNTIME(5014));
         
         // ! Show security alert to user
         await securityMiddleware.showSecureNotification(
@@ -527,7 +516,7 @@ async function showSecurityStatus() {
         }
         
     } catch (error) {
-        report(BinaryCodes.SECURITY.RUNTIME(5015), { error });
+        report(BinaryCodes.SECURITY.RUNTIME(5015));
         vscode.window.showErrorMessage(extensionConfig.messages.securityStatusFailed);
     }
 }
@@ -547,7 +536,7 @@ async function showDetailedSecurityReport(report) {
         await vscode.window.showTextDocument(doc);
         
     } catch (error) {
-        report(BinaryCodes.SECURITY.RUNTIME(5016), { error });
+        report(BinaryCodes.SECURITY.RUNTIME(5016));
     }
 }
 
