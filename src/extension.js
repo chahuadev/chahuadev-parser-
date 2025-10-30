@@ -86,12 +86,7 @@ function activate(context) {
         // ! Initialize validation engine
         validationEngine = new ValidationEngine();
         validationEngine.initializeParserStudy().catch(error => {
-            errorHandler.handleError(error, {
-                source: 'Extension',
-                method: 'activate',
-                severity: 'CRITICAL',
-                context: 'Failed to initialize validation engine'
-            });
+            report(BinaryCodes.SYSTEM.CONFIGURATION(1046), { error });
             // ไม่ throw - ให้ extension ทำงานต่อแม้ parser ไม่สำเร็จ
         });
         
@@ -105,14 +100,9 @@ function activate(context) {
         );
         
     } catch (error) {
-        errorHandler.handleError(error, {
-            source: 'Extension',
-            method: 'activate',
-            severity: 'CRITICAL',
-            context: 'Failed to initialize security system'
-        });
+        report(BinaryCodes.SYSTEM.CONFIGURATION(1047), { error });
         vscode.window.showErrorMessage(extensionConfig.messages.securityInitFailed);
-        throw error; // ! Don't silently continue - extension should fail if security can't initialize
+        // ไม่ throw - report() จัดการแล้ว
     }
     
     // ! Real-time scanning on document change (throttled with security)
@@ -128,13 +118,8 @@ function activate(context) {
             try {
                 await secureDocumentScan(event.document);
             } catch (error) {
-                errorHandler.handleError(error, {
-                    source: 'Extension',
-                    method: 'onDidChangeTextDocument',
-                    severity: 'HIGH',
-                    context: 'Security error in document scan'
-                });
-                throw error; // ! Re-throw to let caller handle properly
+                report(BinaryCodes.SECURITY.RUNTIME(1048), { error });
+                // ไม่ throw - report() จัดการแล้ว
             }
         }, throttleMs);
     });
@@ -148,14 +133,9 @@ function activate(context) {
             await secureDocumentScan(document);
             await securityMiddleware.showSecureNotification(extensionConfig.messages.scanSuccess);
         } catch (error) {
-            errorHandler.handleError(error, {
-                source: 'Extension',
-                method: 'onDidSaveTextDocument',
-                severity: 'HIGH',
-                context: 'Security error in save scan'
-            });
+            report(BinaryCodes.SECURITY.RUNTIME(5004), { error });
             await securityMiddleware.showSecureNotification(extensionConfig.messages.securityError, 'error');
-            throw error; // ! Re-throw for proper error handling
+            // ไม่ throw - report() จัดการแล้ว
         }
     });
     
@@ -170,11 +150,7 @@ function activate(context) {
         try {
             const results = await scanDocument(activeEditor.document);
             if (!results || !results.violations) {
-                errorHandler.handleError(new Error('Scan results are invalid or missing'), {
-                    source: 'Extension',
-                    method: 'scanActiveFile',
-                    severity: 'MEDIUM'
-                });
+                report(BinaryCodes.VALIDATOR.VALIDATION(5005));
                 // ไม่ throw - แสดง message แล้ว return
                 showSubtleNotification(extensionConfig.messages.fileClean);
                 return;
@@ -192,13 +168,7 @@ function activate(context) {
                 showSubtleNotification(message);
             }
         } catch (error) {
-            errorHandler.handleError(error, {
-                source: 'Extension',
-                method: 'scanFileCommand',
-                severity: 'HIGH',
-                context: 'Scan file command failed'
-            });
-            throw error;
+            report(BinaryCodes.SYSTEM.RUNTIME(5006), { error });
         }
     });
     
@@ -235,11 +205,7 @@ function activate(context) {
                     const results = await scanDocument(document);
                     
                     if (!results || !results.violations) {
-                        errorHandler.handleError(new Error(`Invalid scan results for file: ${fileName}`), {
-                            source: 'Extension',
-                            method: 'scanWorkspace',
-                            severity: 'MEDIUM'
-                        });
+                        report(BinaryCodes.VALIDATOR.VALIDATION(5007), { fileName });
                         // ไม่ throw - skip file นี้และทำงานต่อ
                         continue;
                     }
@@ -247,13 +213,7 @@ function activate(context) {
                     totalViolations += results.violations.length;
                     scannedCount++;
                 } catch (error) {
-                    errorHandler.handleError(error, {
-                        source: 'Extension',
-                        method: 'scanWorkspaceCommand',
-                        severity: 'HIGH',
-                        context: `Scan error for file: ${fileName}`
-                    });
-                    throw error; // ! Re-throw to surface scanning issues
+                    report(BinaryCodes.SYSTEM.RUNTIME(5008), { error, fileName });
                 }
             }
             
@@ -283,13 +243,7 @@ function activate(context) {
     // ! Initial scan of active document
     if (vscode.window.activeTextEditor) {
         scanDocument(vscode.window.activeTextEditor.document).catch(error => {
-            errorHandler.handleError(error, {
-                source: 'Extension',
-                method: 'activate',
-                severity: 'MEDIUM',
-                context: 'Initial document scan failed'
-            });
-            // Error already handled, no need to log again
+            report(BinaryCodes.SYSTEM.RUNTIME(5009), { error });
         });
     }
     
@@ -323,12 +277,7 @@ async function scanDocument(document) {
         const diagnostics = results.violations.map(violation => {
             // ! Explicit validation instead of silent fallback
             if (!violation.location) {
-                errorHandler.handleError(new Error('Violation missing required location information'), {
-                    source: 'Extension',
-                    method: 'scanDocument',
-                    severity: 'MEDIUM',
-                    context: { violation }
-                });
+                report(BinaryCodes.VALIDATOR.VALIDATION(5010));
                 // ไม่ throw - skip violation นี้โดยใช้ default location
                 return null;
             }
@@ -390,14 +339,9 @@ async function scanDocument(document) {
         return results;
         
     } catch (error) {
-        errorHandler.handleError(error, {
-            source: 'Extension',
-            method: 'scanDocument',
-            severity: 'HIGH',
-            context: `Scan error for document: ${document.fileName}`
-        });
+        report(BinaryCodes.SYSTEM.RUNTIME(5011), { error, fileName: document.fileName });
         
-        // ! Show error as diagnostic but re-throw for proper error handling
+        // ! Show error as diagnostic
         const errorDiagnostic = new vscode.Diagnostic(
             new vscode.Range(0, 0, 0, 10),
             'Scan failed - check syntax',
@@ -406,7 +350,7 @@ async function scanDocument(document) {
         errorDiagnostic.source = 'Chahuadev Sentinel';
         
         diagnosticCollection.set(document.uri, [errorDiagnostic]);
-        throw error; // ! Don't silently return null
+        // ไม่ throw - report() จัดการแล้ว
     }
 }
 
@@ -493,11 +437,7 @@ async function secureDocumentScan(document) {
         const readResult = await securityMiddleware.secureReadDocument(document);
         
         if (!readResult.success) {
-            errorHandler.handleError(new Error('Document security validation failed'), {
-                source: 'Extension',
-                method: 'secureDocumentScan',
-                severity: 'HIGH'
-            });
+            report(BinaryCodes.SECURITY.VALIDATION(5012));
             // ไม่ throw - return empty result แทน
             return { violations: [], securityIssues: [] };
         }
@@ -524,18 +464,9 @@ async function secureDocumentScan(document) {
             // ! NO_SILENT_FALLBACKS: Validate diagnosticCollection.get() result
             const existingDiagnostics = diagnosticCollection.get(document.uri);
             if (!Array.isArray(existingDiagnostics)) {
-                errorHandler.handleError(
-                    new Error('diagnosticCollection.get() returned non-array value'),
-                    {
-                        source: 'Extension',
-                        method: 'scanDocumentForSecurityIssues',
-                        severity: 'WARNING',
-                        context: {
-                            uri: document.uri.toString(),
-                            existingType: typeof existingDiagnostics
-                        }
-                    }
-                );
+                report(BinaryCodes.VALIDATOR.VALIDATION(5013), {
+                    uri: document.uri.toString()
+                });
                 // ถ้าไม่ใช่ array ให้ใช้ empty array แทน (แต่ต้อง log warning ก่อน)
                 diagnosticCollection.set(document.uri, securityDiagnostics);
             } else {
@@ -553,20 +484,13 @@ async function secureDocumentScan(document) {
         };
         
     } catch (error) {
-        errorHandler.handleError(error, {
-            source: 'Extension',
-            method: 'secureDocumentScan',
-            severity: 'HIGH',
-            context: `Secure document scan failed for: ${document.fileName}`
-        });
+        report(BinaryCodes.SECURITY.RUNTIME(5014), { error, fileName: document.fileName });
         
         // ! Show security alert to user
         await securityMiddleware.showSecureNotification(
             `Security scan failed: ${error.message}`,
             'warning'
         );
-        
-        throw error;
     }
 }
 
@@ -603,14 +527,8 @@ async function showSecurityStatus() {
         }
         
     } catch (error) {
-        errorHandler.handleError(error, {
-            source: 'Extension',
-            method: 'showSecurityStatus',
-            severity: 'MEDIUM',
-            context: 'Failed to show security status'
-        });
+        report(BinaryCodes.SECURITY.RUNTIME(5015), { error });
         vscode.window.showErrorMessage(extensionConfig.messages.securityStatusFailed);
-        throw error; // ! Re-throw for proper error handling
     }
 }
 
@@ -629,13 +547,7 @@ async function showDetailedSecurityReport(report) {
         await vscode.window.showTextDocument(doc);
         
     } catch (error) {
-        errorHandler.handleError(error, {
-            source: 'Extension',
-            method: 'showDetailedSecurityReport',
-            severity: 'MEDIUM',
-            context: 'Failed to show security report'
-        });
-        // Error already handled by ErrorHandler, no need to duplicate logging
+        report(BinaryCodes.SECURITY.RUNTIME(5016), { error });
     }
 }
 

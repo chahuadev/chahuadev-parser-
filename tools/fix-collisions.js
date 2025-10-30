@@ -11,7 +11,7 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const PROJECT_ROOT = path.resolve(__dirname, '../..');
+const PROJECT_ROOT = path.resolve(__dirname, '..');
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Load Registry
@@ -30,7 +30,7 @@ const registry = JSON.parse(fs.readFileSync(registryPath, 'utf8'));
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function analyzeCollisions() {
-    const offsetMap = new Map(); // offset → [{ domain, category, files, count }]
+    const offsetMap = new Map(); // offset  [{ domain, category, files, count }]
     
     // Group by offset
     for (const [groupKey, offsets] of Object.entries(registry.offsets)) {
@@ -173,7 +173,7 @@ function generateFixPlan(collisions) {
                 continue;
             }
             
-            console.log(`   Reassign: ${groupKey} → ${newOffset}`);
+            console.log(`   Reassign: ${groupKey}  ${newOffset}`);
             console.log(`      Files: ${group.files.join(', ')}`);
             console.log(`      Context: ${group.firstSeen.substring(0, 60)}...`);
             
@@ -236,7 +236,7 @@ function applyFixes(plan, dryRun = true) {
                 fs.writeFileSync(filePath, content, 'utf8');
             }
             
-            console.log(`   ${dryRun ? '[PREVIEW]' : '[DONE]'} ${relativeFile}: ${oldOffset} → ${newOffset} (${count} occurrences)`);
+            console.log(`   ${dryRun ? '[PREVIEW]' : '[DONE]'} ${relativeFile}: ${oldOffset}  ${newOffset} (${count} occurrences)`);
             
             fixes.push({
                 file: relativeFile,

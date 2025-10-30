@@ -1,13 +1,1338 @@
 {
   "version": "1.0.0",
-  "generated": "2025-10-29T05:24:41.544Z",
+  "generated": "2025-10-30T10:16:19.345Z",
   "description": "Auto-generated offset registry - DO NOT EDIT MANUALLY",
   "stats": {
-    "filesScanned": 0,
-    "offsetsFound": 0,
+    "filesScanned": 46,
+    "offsetsFound": 159,
     "collisions": 0,
-    "domains": [],
-    "categories": []
+    "domains": [
+      "IO",
+      "PARSER",
+      "SECURITY",
+      "SYSTEM",
+      "VALIDATOR"
+    ],
+    "categories": [
+      "CONFIG",
+      "CONFIGURATION",
+      "FILE_SYSTEM",
+      "IO",
+      "LOGIC",
+      "PERMISSION",
+      "RESOURCE_NOT_FOUND",
+      "RESOURCE_UNAVAILABLE",
+      "RUNTIME",
+      "SYNTAX",
+      "VALIDATION"
+    ]
   },
-  "offsets": {}
+  "offsets": {
+    "SECURITY.PERMISSION": [
+      {
+        "offset": 3005,
+        "files": [
+          "src\\security\\security-manager.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.PERMISSION(3005), { path: validatedPath, allowSymlin"
+      },
+      {
+        "offset": 4001,
+        "files": [
+          "src\\security\\security-manager.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.PERMISSION(4001), { resolvedPath: resolvedPath });"
+      },
+      {
+        "offset": 4002,
+        "files": [
+          "src\\security\\security-manager.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.PERMISSION(4002), { resolvedPath: resolvedPath, work"
+      },
+      {
+        "offset": 5001,
+        "files": [
+          "src\\error-handler\\universal-reporter.js"
+        ],
+        "count": 5,
+        "firstSeen": "* report(BinaryCodes.SECURITY.PERMISSION(5001));"
+      },
+      {
+        "offset": 6001,
+        "files": [
+          "src\\security\\security-manager.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.PERMISSION(6001), { filePath: filePath, operation: o"
+      },
+      {
+        "offset": 6002,
+        "files": [
+          "src\\security\\security-manager.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.PERMISSION(6002), { filePath: filePath, errorMessage"
+      },
+      {
+        "offset": 6003,
+        "files": [
+          "src\\security\\security-manager.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.PERMISSION(6003), { filePath: filePath, operation: o"
+      }
+    ],
+    "SECURITY.VALIDATION": [
+      {
+        "offset": 1000,
+        "files": [
+          "src\\security\\security-manager.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.VALIDATION(1000), { key: key, actualType: typeof sto"
+      },
+      {
+        "offset": 1001,
+        "files": [
+          "src\\security\\security-manager.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.VALIDATION(1001), { identifier: identifier, currentC"
+      },
+      {
+        "offset": 1002,
+        "files": [
+          "src\\security\\security-manager.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.VALIDATION(1002), {"
+      },
+      {
+        "offset": 1003,
+        "files": [
+          "src\\security\\security-manager.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.VALIDATION(1003), { entriesRemoved: entriesToRemove,"
+      },
+      {
+        "offset": 2001,
+        "files": [
+          "src\\security\\security-manager.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.VALIDATION(2001), {"
+      },
+      {
+        "offset": 2002,
+        "files": [
+          "src\\security\\security-manager.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.VALIDATION(2002), {"
+      },
+      {
+        "offset": 2003,
+        "files": [
+          "src\\security\\security-manager.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.VALIDATION(2003), {"
+      },
+      {
+        "offset": 2004,
+        "files": [
+          "src\\security\\security-manager.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.VALIDATION(2004), {"
+      },
+      {
+        "offset": 2006,
+        "files": [
+          "src\\security\\security-middleware.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.VALIDATION(2006), {"
+      },
+      {
+        "offset": 2007,
+        "files": [
+          "src\\security\\security-middleware.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.VALIDATION(2007), {"
+      },
+      {
+        "offset": 2008,
+        "files": [
+          "src\\security\\security-middleware.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.VALIDATION(2008), {"
+      },
+      {
+        "offset": 2009,
+        "files": [
+          "src\\security\\security-middleware.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.VALIDATION(2009), {"
+      },
+      {
+        "offset": 2010,
+        "files": [
+          "src\\security\\security-middleware.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.VALIDATION(2010), {"
+      },
+      {
+        "offset": 2015,
+        "files": [
+          "src\\security\\security-middleware.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.VALIDATION(2015), {"
+      },
+      {
+        "offset": 2016,
+        "files": [
+          "src\\security\\security-middleware.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.VALIDATION(2016), {"
+      },
+      {
+        "offset": 3006,
+        "files": [
+          "src\\security\\security-manager.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.VALIDATION(3006), { path: validatedPath, fileSize: s"
+      },
+      {
+        "offset": 3007,
+        "files": [
+          "src\\security\\security-manager.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.VALIDATION(3007), { pattern: pattern.source, errorMe"
+      },
+      {
+        "offset": 3008,
+        "files": [
+          "src\\security\\security-manager.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.VALIDATION(3008), { pattern: pattern.source, timeout"
+      },
+      {
+        "offset": 3009,
+        "files": [
+          "src\\security\\security-manager.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.VALIDATION(3009), { pattern: pattern.source, errorMe"
+      },
+      {
+        "offset": 3012,
+        "files": [
+          "src\\security\\security-middleware.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.VALIDATION(3012), {"
+      },
+      {
+        "offset": 3015,
+        "files": [
+          "src\\security\\rate-limit-store-factory.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.VALIDATION(3015), {"
+      },
+      {
+        "offset": 4003,
+        "files": [
+          "src\\security\\security-manager.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.VALIDATION(4003), { filePath: filePath, extension: e"
+      },
+      {
+        "offset": 5012,
+        "files": [
+          "src\\extension.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.VALIDATION(5012));"
+      },
+      {
+        "offset": 8001,
+        "files": [
+          "src\\error-handler\\universal-reporter.js"
+        ],
+        "count": 3,
+        "firstSeen": "* report(BinaryCodes.SECURITY.VALIDATION(8001), { userId: 123 }, {"
+      },
+      {
+        "offset": 8002,
+        "files": [
+          "src\\error-handler\\universal-reporter.js"
+        ],
+        "count": 1,
+        "firstSeen": "* batch.add(BinaryCodes.SECURITY.VALIDATION(8002), { error2 });"
+      },
+      {
+        "offset": 9001,
+        "files": [
+          "src\\security\\security-manager.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.VALIDATION(9001), {"
+      }
+    ],
+    "VALIDATOR.LOGIC": [
+      {
+        "offset": 1021,
+        "files": [
+          "src\\rules\\validator.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.VALIDATOR.LOGIC(1021), {"
+      },
+      {
+        "offset": 1027,
+        "files": [
+          "src\\rules\\validator.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.VALIDATOR.LOGIC(1027), {"
+      },
+      {
+        "offset": 15003,
+        "files": [
+          "src\\error-handler\\universal-reporter.js",
+          "cli.js"
+        ],
+        "count": 4,
+        "firstSeen": "* report(BinaryCodes.VALIDATOR.LOGIC(15003), { error, filePath }, {"
+      },
+      {
+        "offset": 15004,
+        "files": [
+          "cli.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.VALIDATOR.LOGIC(15004), { error: fileError, file });"
+      }
+    ],
+    "SYSTEM.RUNTIME": [
+      {
+        "offset": 1045,
+        "files": [
+          "src\\security\\security-middleware.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SYSTEM.RUNTIME(1045), {"
+      },
+      {
+        "offset": 5000,
+        "files": [
+          "src\\extension.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SYSTEM.RUNTIME(5000), {"
+      },
+      {
+        "offset": 5002,
+        "files": [
+          "src\\security\\security-middleware.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SYSTEM.RUNTIME(5002), {"
+      },
+      {
+        "offset": 5003,
+        "files": [
+          "src\\security\\security-middleware.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SYSTEM.RUNTIME(5003), {"
+      },
+      {
+        "offset": 5006,
+        "files": [
+          "src\\extension.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SYSTEM.RUNTIME(5006), { error });"
+      },
+      {
+        "offset": 5008,
+        "files": [
+          "src\\extension.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SYSTEM.RUNTIME(5008), { error, fileName });"
+      },
+      {
+        "offset": 5009,
+        "files": [
+          "src\\extension.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SYSTEM.RUNTIME(5009), { error });"
+      },
+      {
+        "offset": 5011,
+        "files": [
+          "src\\extension.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SYSTEM.RUNTIME(5011), { error, fileName: document.fileName })"
+      },
+      {
+        "offset": 15005,
+        "files": [
+          "cli.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SYSTEM.RUNTIME(15005), { error, pattern });"
+      },
+      {
+        "offset": 15009,
+        "files": [
+          "cli.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SYSTEM.RUNTIME(15009), { error, args, patterns });"
+      },
+      {
+        "offset": 15010,
+        "files": [
+          "cli.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SYSTEM.RUNTIME(15010), { error });"
+      },
+      {
+        "offset": 90001,
+        "files": [
+          "src\\error-handler\\universal-reporter.js"
+        ],
+        "count": 1,
+        "firstSeen": "BinaryCodes.SYSTEM.RUNTIME(90001),"
+      },
+      {
+        "offset": 90002,
+        "files": [
+          "src\\error-handler\\universal-reporter.js"
+        ],
+        "count": 1,
+        "firstSeen": "BinaryCodes.SYSTEM.RUNTIME(90002),"
+      },
+      {
+        "offset": 90003,
+        "files": [
+          "src\\error-handler\\universal-reporter.js"
+        ],
+        "count": 1,
+        "firstSeen": "BinaryCodes.SYSTEM.RUNTIME(90003),"
+      }
+    ],
+    "SECURITY.IO": [
+      {
+        "offset": 1016,
+        "files": [
+          "src\\error-handler\\universal-reporter.js"
+        ],
+        "count": 1,
+        "firstSeen": "*     BinaryCodes.SECURITY.IO(1016),"
+      }
+    ],
+    "SYSTEM.CONFIGURATION": [
+      {
+        "offset": 1008,
+        "files": [
+          "src\\grammars\\shared\\tokenizer-helper.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SYSTEM.CONFIGURATION(1008), {"
+      },
+      {
+        "offset": 1009,
+        "files": [
+          "src\\grammars\\shared\\binary-scout.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SYSTEM.CONFIGURATION(1009), {"
+      },
+      {
+        "offset": 1010,
+        "files": [
+          "src\\grammars\\shared\\tokenizer-helper.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SYSTEM.CONFIGURATION(1010), {"
+      },
+      {
+        "offset": 1011,
+        "files": [
+          "src\\grammars\\shared\\tokenizer-helper.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SYSTEM.CONFIGURATION(1011), {"
+      },
+      {
+        "offset": 1012,
+        "files": [
+          "src\\grammars\\shared\\tokenizer-helper.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SYSTEM.CONFIGURATION(1012), {"
+      },
+      {
+        "offset": 1013,
+        "files": [
+          "src\\grammars\\shared\\tokenizer-helper.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SYSTEM.CONFIGURATION(1013), {"
+      },
+      {
+        "offset": 1014,
+        "files": [
+          "src\\grammars\\shared\\binary-prophet.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SYSTEM.CONFIGURATION(1014), {"
+      },
+      {
+        "offset": 1017,
+        "files": [
+          "src\\grammars\\shared\\tokenizer-helper.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SYSTEM.CONFIGURATION(1017), {"
+      },
+      {
+        "offset": 1034,
+        "files": [
+          "src\\grammars\\shared\\tokenizer-helper.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SYSTEM.CONFIGURATION(1034), {"
+      },
+      {
+        "offset": 1041,
+        "files": [
+          "src\\security\\rate-limit-store-factory.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SYSTEM.CONFIGURATION(1041), {"
+      },
+      {
+        "offset": 1042,
+        "files": [
+          "src\\security\\rate-limit-store-factory.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SYSTEM.CONFIGURATION(1042), {"
+      },
+      {
+        "offset": 1043,
+        "files": [
+          "src\\security\\rate-limit-store-factory.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SYSTEM.CONFIGURATION(1043), {"
+      },
+      {
+        "offset": 1044,
+        "files": [
+          "src\\security\\rate-limit-store-factory.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SYSTEM.CONFIGURATION(1044), {"
+      },
+      {
+        "offset": 1046,
+        "files": [
+          "src\\extension.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SYSTEM.CONFIGURATION(1046), { error });"
+      },
+      {
+        "offset": 1047,
+        "files": [
+          "src\\extension.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SYSTEM.CONFIGURATION(1047), { error });"
+      },
+      {
+        "offset": 1052,
+        "files": [
+          "src\\security\\security-middleware.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SYSTEM.CONFIGURATION(1052), {"
+      },
+      {
+        "offset": 4104,
+        "files": [
+          "src\\grammars\\shared\\tokenizer-helper.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SYSTEM.CONFIGURATION(4104), {"
+      },
+      {
+        "offset": 4105,
+        "files": [
+          "src\\grammars\\shared\\tokenizer-helper.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SYSTEM.CONFIGURATION(4105), {"
+      },
+      {
+        "offset": 4106,
+        "files": [
+          "src\\grammars\\shared\\tokenizer-helper.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SYSTEM.CONFIGURATION(4106), {"
+      },
+      {
+        "offset": 4107,
+        "files": [
+          "src\\grammars\\shared\\tokenizer-helper.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SYSTEM.CONFIGURATION(4107), {"
+      },
+      {
+        "offset": 4114,
+        "files": [
+          "src\\grammars\\shared\\tokenizer-helper.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SYSTEM.CONFIGURATION(4114), {"
+      },
+      {
+        "offset": 4115,
+        "files": [
+          "src\\grammars\\shared\\tokenizer-helper.js"
+        ],
+        "count": 4,
+        "firstSeen": "report(BinaryCodes.SYSTEM.CONFIGURATION(4115), {"
+      },
+      {
+        "offset": 4116,
+        "files": [
+          "src\\grammars\\shared\\tokenizer-helper.js"
+        ],
+        "count": 4,
+        "firstSeen": "report(BinaryCodes.SYSTEM.CONFIGURATION(4116), {"
+      },
+      {
+        "offset": 7002,
+        "files": [
+          "src\\rules\\validator.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SYSTEM.CONFIGURATION(7002), {"
+      },
+      {
+        "offset": 10001,
+        "files": [
+          "src\\grammars\\index.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SYSTEM.CONFIGURATION(10001), { error: configError, configFile"
+      },
+      {
+        "offset": 15001,
+        "files": [
+          "cli.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SYSTEM.CONFIGURATION(15001), { error });"
+      }
+    ],
+    "SECURITY.RUNTIME": [
+      {
+        "offset": 1048,
+        "files": [
+          "src\\extension.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.RUNTIME(1048), { error });"
+      },
+      {
+        "offset": 3013,
+        "files": [
+          "src\\security\\security-middleware.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.RUNTIME(3013), {"
+      },
+      {
+        "offset": 3014,
+        "files": [
+          "src\\security\\rate-limit-store-factory.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.RUNTIME(3014), {"
+      },
+      {
+        "offset": 5004,
+        "files": [
+          "src\\extension.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.RUNTIME(5004), { error });"
+      },
+      {
+        "offset": 5014,
+        "files": [
+          "src\\extension.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.RUNTIME(5014), { error, fileName: document.fileName "
+      },
+      {
+        "offset": 5015,
+        "files": [
+          "src\\extension.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.RUNTIME(5015), { error });"
+      },
+      {
+        "offset": 5016,
+        "files": [
+          "src\\extension.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.RUNTIME(5016), { error });"
+      }
+    ],
+    "VALIDATOR.VALIDATION": [
+      {
+        "offset": 1019,
+        "files": [
+          "src\\grammars\\shared\\binary-scout.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.VALIDATOR.VALIDATION(1019), {"
+      },
+      {
+        "offset": 1026,
+        "files": [
+          "src\\grammars\\shared\\binary-scout.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.VALIDATOR.VALIDATION(1026), {"
+      },
+      {
+        "offset": 3001,
+        "files": [
+          "src\\rules\\validator.js"
+        ],
+        "count": 2,
+        "firstSeen": "BinaryCodes.VALIDATOR.VALIDATION(3001),"
+      },
+      {
+        "offset": 4108,
+        "files": [
+          "src\\grammars\\shared\\tokenizer-helper.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.VALIDATOR.VALIDATION(4108), {"
+      },
+      {
+        "offset": 4109,
+        "files": [
+          "src\\grammars\\shared\\tokenizer-helper.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.VALIDATOR.VALIDATION(4109), {"
+      },
+      {
+        "offset": 4111,
+        "files": [
+          "src\\grammars\\shared\\tokenizer-helper.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.VALIDATOR.VALIDATION(4111), {"
+      },
+      {
+        "offset": 4112,
+        "files": [
+          "src\\grammars\\shared\\tokenizer-helper.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.VALIDATOR.VALIDATION(4112), {"
+      },
+      {
+        "offset": 4113,
+        "files": [
+          "src\\grammars\\shared\\tokenizer-helper.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.VALIDATOR.VALIDATION(4113), {"
+      },
+      {
+        "offset": 5005,
+        "files": [
+          "src\\extension.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.VALIDATOR.VALIDATION(5005));"
+      },
+      {
+        "offset": 5007,
+        "files": [
+          "src\\extension.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.VALIDATOR.VALIDATION(5007), { fileName });"
+      },
+      {
+        "offset": 5010,
+        "files": [
+          "src\\extension.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.VALIDATOR.VALIDATION(5010));"
+      },
+      {
+        "offset": 5013,
+        "files": [
+          "src\\extension.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.VALIDATOR.VALIDATION(5013), {"
+      },
+      {
+        "offset": 7001,
+        "files": [
+          "src\\rules\\validator.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.VALIDATOR.VALIDATION(7001), {"
+      },
+      {
+        "offset": 7003,
+        "files": [
+          "src\\rules\\validator.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.VALIDATOR.VALIDATION(7003), {"
+      },
+      {
+        "offset": 7004,
+        "files": [
+          "src\\security\\security-middleware.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.VALIDATOR.VALIDATION(7004), {"
+      },
+      {
+        "offset": 7005,
+        "files": [
+          "src\\security\\security-middleware.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.VALIDATOR.VALIDATION(7005), {"
+      }
+    ],
+    "PARSER.VALIDATION": [
+      {
+        "offset": 1018,
+        "files": [
+          "src\\grammars\\shared\\enhanced-binary-parser.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.PARSER.VALIDATION(1018), {"
+      },
+      {
+        "offset": 1025,
+        "files": [
+          "src\\grammars\\shared\\binary-prophet.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.PARSER.VALIDATION(1025), {"
+      },
+      {
+        "offset": 1029,
+        "files": [
+          "src\\grammars\\shared\\binary-prophet.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.PARSER.VALIDATION(1029), {"
+      },
+      {
+        "offset": 1049,
+        "files": [
+          "src\\grammars\\shared\\binary-scout.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.PARSER.VALIDATION(1049), {"
+      },
+      {
+        "offset": 1050,
+        "files": [
+          "src\\grammars\\shared\\binary-scout.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.PARSER.VALIDATION(1050), {"
+      },
+      {
+        "offset": 1053,
+        "files": [
+          "src\\grammars\\shared\\binary-scout.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.PARSER.VALIDATION(1053), {"
+      },
+      {
+        "offset": 1054,
+        "files": [
+          "src\\grammars\\shared\\binary-scout.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.PARSER.VALIDATION(1054), {"
+      },
+      {
+        "offset": 1055,
+        "files": [
+          "src\\grammars\\shared\\binary-scout.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.PARSER.VALIDATION(1055), {"
+      },
+      {
+        "offset": 4005,
+        "files": [
+          "src\\grammars\\shared\\enhanced-binary-parser.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.PARSER.VALIDATION(4005), {"
+      },
+      {
+        "offset": 4101,
+        "files": [
+          "src\\grammars\\shared\\tokenizer-helper.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.PARSER.VALIDATION(4101), {"
+      },
+      {
+        "offset": 4103,
+        "files": [
+          "src\\grammars\\shared\\tokenizer-helper.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.PARSER.VALIDATION(4103), {"
+      },
+      {
+        "offset": 6004,
+        "files": [
+          "src\\grammars\\shared\\binary-prophet.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.PARSER.VALIDATION(6004), {"
+      },
+      {
+        "offset": 10005,
+        "files": [
+          "src\\grammars\\shared\\grammar-index.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.PARSER.VALIDATION(10005), {"
+      },
+      {
+        "offset": 20001,
+        "files": [
+          "src\\grammars\\shared\\constants.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.PARSER.VALIDATION(20001), {"
+      },
+      {
+        "offset": 20002,
+        "files": [
+          "src\\grammars\\shared\\constants.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.PARSER.VALIDATION(20002), {"
+      }
+    ],
+    "PARSER.SYNTAX": [
+      {
+        "offset": 1020,
+        "files": [
+          "src\\rules\\validator.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.PARSER.SYNTAX(1020), {"
+      },
+      {
+        "offset": 1030,
+        "files": [
+          "src\\grammars\\shared\\binary-scout.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.PARSER.SYNTAX(1030), {"
+      },
+      {
+        "offset": 1032,
+        "files": [
+          "src\\rules\\validator.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.PARSER.SYNTAX(1032), {"
+      },
+      {
+        "offset": 1033,
+        "files": [
+          "src\\grammars\\shared\\enhanced-binary-parser.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.PARSER.SYNTAX(1033), {"
+      },
+      {
+        "offset": 1051,
+        "files": [
+          "src\\grammars\\shared\\binary-scout.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.PARSER.SYNTAX(1051), {"
+      },
+      {
+        "offset": 2005,
+        "files": [
+          "src\\rules\\validator.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.PARSER.SYNTAX(2005), {"
+      },
+      {
+        "offset": 2011,
+        "files": [
+          "src\\grammars\\shared\\tokenizer-helper.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.PARSER.SYNTAX(2011), {"
+      },
+      {
+        "offset": 4004,
+        "files": [
+          "src\\grammars\\shared\\enhanced-binary-parser.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.PARSER.SYNTAX(4004), {"
+      },
+      {
+        "offset": 4102,
+        "files": [
+          "src\\grammars\\shared\\tokenizer-helper.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.PARSER.SYNTAX(4102), {"
+      },
+      {
+        "offset": 4110,
+        "files": [
+          "src\\grammars\\shared\\tokenizer-helper.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.PARSER.SYNTAX(4110), {"
+      },
+      {
+        "offset": 4117,
+        "files": [
+          "src\\grammars\\shared\\tokenizer-helper.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.PARSER.SYNTAX(4117), {"
+      },
+      {
+        "offset": 6000,
+        "files": [
+          "src\\grammars\\shared\\pure-binary-parser.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.PARSER.SYNTAX(6000), {"
+      },
+      {
+        "offset": 10002,
+        "files": [
+          "src\\grammars\\shared\\grammar-index.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.PARSER.SYNTAX(10002), { method, message: normalizedMessage, ."
+      },
+      {
+        "offset": 10004,
+        "files": [
+          "src\\grammars\\shared\\grammar-index.js",
+          "src\\grammars\\shared\\tokenizer-helper.js"
+        ],
+        "count": 4,
+        "firstSeen": "report(BinaryCodes.PARSER.SYNTAX(10004), { error, language });"
+      }
+    ],
+    "PARSER.CONFIGURATION": [
+      {
+        "offset": 1056,
+        "files": [
+          "src\\grammars\\shared\\grammar-index.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.PARSER.CONFIGURATION(1056), {"
+      },
+      {
+        "offset": 10003,
+        "files": [
+          "src\\grammars\\shared\\grammar-index.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.PARSER.CONFIGURATION(10003), { error, file: 'tokenizer-binary"
+      },
+      {
+        "offset": 10006,
+        "files": [
+          "src\\grammars\\shared\\grammar-index.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.PARSER.CONFIGURATION(10006), {"
+      }
+    ],
+    "IO.RESOURCE_UNAVAILABLE": [
+      {
+        "offset": 1023,
+        "files": [
+          "src\\security\\security-manager.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.IO.RESOURCE_UNAVAILABLE(1023), {"
+      },
+      {
+        "offset": 1028,
+        "files": [
+          "src\\security\\security-manager.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.IO.RESOURCE_UNAVAILABLE(1028), {"
+      },
+      {
+        "offset": 3003,
+        "files": [
+          "src\\security\\security-manager.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.IO.RESOURCE_UNAVAILABLE(3003), { path: validatedPath, errorCo"
+      },
+      {
+        "offset": 3016,
+        "files": [
+          "src\\security\\rate-limit-store-factory.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.IO.RESOURCE_UNAVAILABLE(3016), {"
+      },
+      {
+        "offset": 15006,
+        "files": [
+          "cli.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.IO.RESOURCE_UNAVAILABLE(15006), { error, directory: resolvedD"
+      },
+      {
+        "offset": 15007,
+        "files": [
+          "cli.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.IO.RESOURCE_UNAVAILABLE(15007), { error: itemError, filePath:"
+      }
+    ],
+    "SECURITY.CONFIG": [
+      {
+        "offset": 1022,
+        "files": [
+          "src\\security\\security-config.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.CONFIG(1022), {"
+      },
+      {
+        "offset": 1035,
+        "files": [
+          "src\\security\\security-config.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.CONFIG(1035), {"
+      },
+      {
+        "offset": 1036,
+        "files": [
+          "src\\security\\security-config.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.CONFIG(1036), {"
+      },
+      {
+        "offset": 1037,
+        "files": [
+          "src\\security\\security-config.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.CONFIG(1037), {"
+      },
+      {
+        "offset": 1038,
+        "files": [
+          "src\\security\\security-config.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.CONFIG(1038), {"
+      },
+      {
+        "offset": 1039,
+        "files": [
+          "src\\security\\security-config.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.CONFIG(1039), {"
+      },
+      {
+        "offset": 1040,
+        "files": [
+          "src\\security\\security-config.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.CONFIG(1040), {"
+      }
+    ],
+    "SECURITY.CONFIGURATION": [
+      {
+        "offset": 1004,
+        "files": [
+          "src\\security\\security-manager.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.CONFIGURATION(1004), {"
+      },
+      {
+        "offset": 1005,
+        "files": [
+          "src\\security\\security-manager.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.CONFIGURATION(1005), {"
+      },
+      {
+        "offset": 1006,
+        "files": [
+          "src\\security\\security-manager.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.CONFIGURATION(1006), {"
+      },
+      {
+        "offset": 1007,
+        "files": [
+          "src\\security\\security-manager.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.CONFIGURATION(1007), { configType: typeof this.confi"
+      },
+      {
+        "offset": 1015,
+        "files": [
+          "src\\security\\security-manager.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.CONFIGURATION(1015), {"
+      },
+      {
+        "offset": 1024,
+        "files": [
+          "src\\security\\security-manager.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.CONFIGURATION(1024), {"
+      },
+      {
+        "offset": 1031,
+        "files": [
+          "src\\security\\security-manager.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.CONFIGURATION(1031), {"
+      }
+    ],
+    "IO.RESOURCE_NOT_FOUND": [
+      {
+        "offset": 3002,
+        "files": [
+          "src\\security\\security-manager.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.IO.RESOURCE_NOT_FOUND(3002), { path: validatedPath });"
+      },
+      {
+        "offset": 3004,
+        "files": [
+          "src\\security\\security-manager.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.IO.RESOURCE_NOT_FOUND(3004), { path: validatedPath, operation"
+      },
+      {
+        "offset": 15002,
+        "files": [
+          "cli.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.IO.RESOURCE_NOT_FOUND(15002), { filePath });"
+      },
+      {
+        "offset": 15008,
+        "files": [
+          "cli.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.IO.RESOURCE_NOT_FOUND(15008), { pattern });"
+      }
+    ],
+    "SECURITY.FILE_SYSTEM": [
+      {
+        "offset": 2013,
+        "files": [
+          "src\\security\\security-middleware.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.FILE_SYSTEM(2013), {"
+      },
+      {
+        "offset": 2014,
+        "files": [
+          "src\\security\\security-middleware.js"
+        ],
+        "count": 2,
+        "firstSeen": "report(BinaryCodes.SECURITY.FILE_SYSTEM(2014), {"
+      }
+    ]
+  }
 }

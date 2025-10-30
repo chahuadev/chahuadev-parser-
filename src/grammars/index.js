@@ -78,11 +78,11 @@ export async function createParser(rules, options = {}) {
         ? grammarCandidate
         : new GrammarIndex(grammarCandidate);
     
-    // ! MIGRATION: JSON → ES Module for Parser Config
+    // ! MIGRATION: JSON  ES Module for Parser Config
     // ! OLD: readFileSync('parser-config.json') + JSON.parse()
     // ! NEW: import parserConfig from ES module (top-level import)
 
-    // ! MIGRATION: JSON → ES Module for Quantum Architecture Config
+    // ! MIGRATION: JSON  ES Module for Quantum Architecture Config
     // ! OLD: readFileSync('quantum-architecture.json') + JSON.parse()
     // ! NEW: import quantumArchitectureConfig from ES module (top-level import)
     let fileQuantumConfig = DEFAULT_QUANTUM_CONFIG;
@@ -98,7 +98,7 @@ export async function createParser(rules, options = {}) {
         }
     } catch (configError) {
         // FIX: Binary Error Pattern
-        report(BinaryCodes.SYSTEM.CONFIGURATION(10001), { error: configError, configFile: 'shared/configs/quantum-architecture.js' });
+        report(BinaryCodes.SYSTEM.CONFIGURATION(10001));
         fileQuantumConfig = { ...DEFAULT_QUANTUM_CONFIG };
     }
 

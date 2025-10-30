@@ -1,7 +1,7 @@
 // ! ═══════════════════════════════════════════════════════════════════════════════
 // ! BinaryErrorParser.js - Binary Error Parser + Logger + Renderer
 // ! ═══════════════════════════════════════════════════════════════════════════════
-// ! หน้าที่: แกะ Binary Code → ค้นหา Grammar → Render เป็นภาษามนุษย์ → Log + Throw
+// ! หน้าที่: แกะ Binary Code  ค้นหา Grammar  Render เป็นภาษามนุษย์  Log + Throw
 // ! ═══════════════════════════════════════════════════════════════════════════════
 
 import { binaryErrorGrammar } from './binary-error.grammar.js';
@@ -220,10 +220,10 @@ class BinaryErrorParser {
         lines.push('┌─────────────────────────────────────────────────────────────────────────────┐');
         lines.push('│ BINARY CODE COMPONENTS                                                      │');
         lines.push('├─────────────────────────────────────────────────────────────────────────────┤');
-        lines.push(`│ Domain:          0x${components.domain.toString(16).toUpperCase().padStart(4, '0')} (${components.domain})  → ${domain?.label || 'Unknown'}`);
-        lines.push(`│ Category:        0x${components.category.toString(16).toUpperCase().padStart(4, '0')} (${components.category})  → ${category?.label || 'Unknown'}`);
-        lines.push(`│ Severity:        0x${components.severity.toString(16).toUpperCase().padStart(2, '0')} (${components.severity})    → ${severity?.label || 'Unknown'} ${severity?.icon || ''}`);
-        lines.push(`│ Source:          0x${components.source.toString(16).toUpperCase().padStart(2, '0')} (${components.source})    → ${source?.label || 'Unknown'}`);
+        lines.push(`│ Domain:          0x${components.domain.toString(16).toUpperCase().padStart(4, '0')} (${components.domain})   ${domain?.label || 'Unknown'}`);
+        lines.push(`│ Category:        0x${components.category.toString(16).toUpperCase().padStart(4, '0')} (${components.category})   ${category?.label || 'Unknown'}`);
+        lines.push(`│ Severity:        0x${components.severity.toString(16).toUpperCase().padStart(2, '0')} (${components.severity})     ${severity?.label || 'Unknown'} ${severity?.icon || ''}`);
+        lines.push(`│ Source:          0x${components.source.toString(16).toUpperCase().padStart(2, '0')} (${components.source})     ${source?.label || 'Unknown'}`);
         lines.push(`│ Offset:          ${components.offset}`);
         lines.push('└─────────────────────────────────────────────────────────────────────────────┘');
         lines.push('');

@@ -484,23 +484,29 @@ export const binaryErrorGrammar = {
             "bitPosition": 5,
             "label": "Configuration Error",
             "slug": "configuration",
-            "description": "Invalid or missing configuration, setup errors",
-            "defaultSeverity": "ERROR",
-            "defaultSeverityCode": 16,
+            "description": "Invalid or missing configuration, setup errors - CRITICAL for parser/grammar configs",
+            "defaultSeverity": "CRITICAL",
+            "defaultSeverityCode": 32,
             "commonCauses": [
                 "Missing config file",
                 "Invalid config value",
-                "Required config missing"
+                "Required config missing",
+                "Grammar definition error",
+                "Binary map configuration error"
             ],
             "fixSuggestions": [
                 "Create config file",
                 "Verify config values",
-                "Add required settings"
+                "Add required settings",
+                "Fix grammar definition",
+                "Repair binary map"
             ],
             "exampleErrors": [
                 "MISSING_CONFIG",
                 "INVALID_CONFIG_VALUE",
-                "CONFIG_PARSE_ERROR"
+                "CONFIG_PARSE_ERROR",
+                "GRAMMAR_CONFIG_ERROR",
+                "BINARY_MAP_ERROR"
             ]
         },
         "PERMISSION": {

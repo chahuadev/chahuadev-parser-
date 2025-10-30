@@ -82,13 +82,7 @@ export class PureBinaryParser {
         
         // ! NO_THROW: Report error to Binary Error System with proper Binary Code
         // ! PARSER.SYNTAX errors are CRITICAL by default
-        report(BinaryCodes.PARSER.SYNTAX(this.current || 0), {
-            method: context.method || 'parse',
-            message: message,
-            position: this.current,
-            token: this.peek(),
-            ...context
-        });
+        report(BinaryCodes.PARSER.SYNTAX(6000));
         
         // ! NO_THROW: เก็บ error ใน parseErrors array
         this.parseErrors.push(errorInfo);
@@ -195,10 +189,7 @@ export class PureBinaryParser {
         
         if (!keywordInfo) {
             // ! NO_THROW: บันทึก error แล้ว return null
-            this.createParserError(`Unknown keyword: ${keyword} at position ${this.current}`, {
-                method: 'parseKeywordStatement',
-                keyword
-            });
+            this.createParserError(`Unknown keyword: ${keyword} at position ${this.current}`, { keyword });
             return null;
         }
 
@@ -245,11 +236,7 @@ export class PureBinaryParser {
                 // ! NO_THROW: บันทึก error แล้ว return null
                 this.createParserError(
                     `'${keyword}' accessor keyword cannot be used as a statement`,
-                    {
-                        method: 'parseKeywordStatement',
-                        keyword,
-                        category
-                    }
+                    { keyword, category }
                 );
                 return null;
             
@@ -275,21 +262,13 @@ export class PureBinaryParser {
                 // ! NO_THROW: บันทึก error แล้ว return null
                 this.createParserError(
                     `'${keyword}' is a reserved keyword and cannot be used`, 
-                    {
-                        method: 'parseKeywordStatement',
-                        keyword,
-                        category
-                    }
+                    { keyword, category }
                 );
                 return null;
             
             default:
                 // ! NO_THROW: บันทึก error แล้ว return null
-                this.createParserError(`Unknown keyword category: ${category} for keyword: ${keyword}`, {
-                    method: 'parseKeywordStatement',
-                    keyword,
-                    category
-                });
+                this.createParserError(`Unknown keyword category: ${category} for keyword: ${keyword}`, { keyword, category });
                 return null;
         }
     }
@@ -330,10 +309,7 @@ export class PureBinaryParser {
             };
         } else {
             // ! NO_THROW: บันทึก error แล้ว return null
-            this.createParserError(`Unhandled statement keyword: ${keyword}`, {
-                method: 'parseStatementKeyword',
-                keyword
-            });
+            this.createParserError(`Unhandled statement keyword: ${keyword}`, { keyword });
             return null;
         }
     }
@@ -362,10 +338,7 @@ export class PureBinaryParser {
             return this.parseClassDeclaration(start);
         } else {
             // ! NO_THROW: บันทึก error แล้ว return null
-            this.createParserError(`Unhandled declaration keyword: ${keyword}`, {
-                method: 'parseDeclaration',
-                keyword
-            });
+            this.createParserError(`Unhandled declaration keyword: ${keyword}`, { keyword });
             return null;
         }
     }
@@ -536,10 +509,7 @@ export class PureBinaryParser {
             return this.parseSwitchStatement(start);
         } else {
             // ! NO_THROW: บันทึก error แล้ว return null
-            this.createParserError(`Unhandled control keyword: ${keyword}`, {
-                method: 'parseControl',
-                keyword
-            });
+            this.createParserError(`Unhandled control keyword: ${keyword}`, { keyword });
             return null;
         }
     }
@@ -629,10 +599,7 @@ export class PureBinaryParser {
             return this.parseDoWhileStatement(start);
         } else {
             // ! NO_THROW: บันทึก error แล้ว return null
-            this.createParserError(`Unhandled iteration keyword: ${keyword}`, {
-                method: 'parseIteration',
-                keyword
-            });
+            this.createParserError(`Unhandled iteration keyword: ${keyword}`, { keyword });
             return null;
         }
     }
@@ -742,10 +709,7 @@ export class PureBinaryParser {
             return this.parseThrowStatement(start);
         } else {
             // ! NO_THROW: บันทึก error แล้ว return null
-            this.createParserError(`Unhandled exception keyword: ${keyword}`, {
-                method: 'parseException',
-                keyword
-            });
+            this.createParserError(`Unhandled exception keyword: ${keyword}`, { keyword });
             return null;
         }
     }
@@ -827,10 +791,7 @@ export class PureBinaryParser {
             return this.parseExportDeclaration(start);
         } else {
             // ! NO_THROW: บันทึก error แล้ว return null
-            this.createParserError(`Unhandled module keyword: ${keyword}`, {
-                method: 'parseModule',
-                keyword
-            });
+            this.createParserError(`Unhandled module keyword: ${keyword}`, { keyword });
             return null;
         }
     }
@@ -972,18 +933,12 @@ export class PureBinaryParser {
             // async arrow function: async () => {}
             // TODO: Implement arrow function parsing
             // ! NO_THROW: บันทึก error แล้ว return null
-            this.createParserError(`Async arrow functions not yet implemented`, {
-                method: 'parseModifier',
-                modifier: keyword
-            });
+            this.createParserError(`Async arrow functions not yet implemented`, { modifier: keyword });
             return null;
         }
 
         // ! NO_THROW: บันทึก error แล้ว return null
-        this.createParserError(`Unhandled modifier: ${keyword}`, {
-            method: 'parseModifier',
-            modifier: keyword
-        });
+        this.createParserError(`Unhandled modifier: ${keyword}`, { modifier: keyword });
         return null;
     }
 
@@ -1066,9 +1021,7 @@ export class PureBinaryParser {
         const token = this.peek();
         if (!token) {
             // ! NO_THROW: บันทึก error แล้ว return null
-            this.createParserError('Unexpected end of input in parsePrefix', {
-                method: 'parsePrefix'
-            });
+            this.createParserError('Unexpected end of input in parsePrefix');
             return null;
         }
 
@@ -1095,9 +1048,7 @@ export class PureBinaryParser {
         const token = this.peek();
         if (!token) {
             // ! NO_THROW: บันทึก error แล้ว return null
-            this.createParserError('Unexpected end of input in parseInfix', {
-                method: 'parseInfix'
-            });
+            this.createParserError('Unexpected end of input in parseInfix');
             return null;
         }
 
@@ -1111,7 +1062,6 @@ export class PureBinaryParser {
                 this.createParserError(
                     `Unknown operator "${token.value}" not found in Grammar`,
                     { 
-                        method: 'parseInfix', 
                         tokenValue: token.value,
                         severity: 'CRITICAL',
                         hint: 'Add this operator to javascript.grammar.json binaryOperators section'
@@ -1153,7 +1103,6 @@ export class PureBinaryParser {
             this.createParserError(
                 `Operator "${token.value}" has unknown category "${category}" in Grammar`,
                 { 
-                    method: 'parseInfix', 
                     tokenValue: token.value,
                     operatorCategory: category,
                     severity: 'CRITICAL',
@@ -1236,7 +1185,7 @@ export class PureBinaryParser {
         // ! NO_THROW: บันทึก error แล้ว return null
         this.createParserError(
             `Unexpected infix operator: "${token.value}"`,
-            { method: 'parseInfix', tokenValue: token.value }
+            { tokenValue: token.value }
         );
         return null;
     }
@@ -1470,9 +1419,7 @@ export class PureBinaryParser {
 
         if (!token) {
             // ! NO_THROW: บันทึก error แล้ว return null
-            this.createParserError('Unexpected end of input', {
-                method: 'parsePrimaryExpression'
-            });
+            this.createParserError('Unexpected end of input');
             return null;
         }
 
@@ -1567,7 +1514,7 @@ export class PureBinaryParser {
             `Unexpected token in primary expression: "${token.value}"\n` +
             `Binary: ${token.binary}\n` +
             `Position: ${this.current}`,
-            { method: 'parsePrimaryExpression', tokenValue: token.value, tokenBinary: token.binary }
+            { tokenValue: token.value, tokenBinary: token.binary }
         );
         return null;
     }
@@ -1631,9 +1578,7 @@ export class PureBinaryParser {
             const keyToken = this.peek();
             if (!keyToken) {
                 // ! NO_THROW: บันทึก error แล้ว return null
-                this.createParserError('Unexpected end of input while parsing object property key', {
-                    method: 'parseObjectProperty'
-                });
+                this.createParserError('Unexpected end of input while parsing object property key');
                 return null;
             }
 
@@ -1811,10 +1756,7 @@ export class PureBinaryParser {
             };
         }
         // ! NO_THROW: บันทึก error แล้ว return null
-        this.createParserError(`Expected identifier but got '${token?.value || 'EOF'}'`, {
-            method: 'parseIdentifier',
-            tokenValue: token?.value
-        });
+        this.createParserError(`Expected identifier but got '${token?.value || 'EOF'}'`, { tokenValue: token?.value });
         return null;
     }
 
@@ -2019,7 +1961,6 @@ export class PureBinaryParser {
         }
         // ! NO_THROW: บันทึก error แล้ว return null
         this.createParserError(`Expected keyword '${keyword}' but got '${token?.value || 'EOF'}'`, {
-            method: 'consumeKeyword',
             expected: keyword,
             actual: token?.value
         });
@@ -2040,7 +1981,6 @@ export class PureBinaryParser {
         const expected = this.grammarIndex.getPunctuationFromBinary(punctBinary);
         // ! NO_THROW: บันทึก error แล้ว return null
         this.createParserError(`Expected '${expected}' but got '${token?.value || 'EOF'}'`, {
-            method: 'consumePunctuation',
             expected,
             actual: token?.value
         });
@@ -2074,7 +2014,6 @@ export class PureBinaryParser {
             if (!token || token.binary !== this.BINARY.IDENTIFIER) {
                 // ! NO_THROW: บันทึก error แล้ว return null
                 this.createParserError(errorMessage || `Expected identifier but got "${token?.value}"`, {
-                    method: 'expect',
                     expected: 'IDENTIFIER',
                     actual: token?.value
                 });
@@ -2088,7 +2027,6 @@ export class PureBinaryParser {
             if (!this.matchPunctuation(expected)) {
                 // ! NO_THROW: บันทึก error แล้ว return null
                 this.createParserError(errorMessage || `Expected punctuation`, {
-                    method: 'expect',
                     expected: expected,
                     actual: token?.value
                 });
@@ -2098,7 +2036,7 @@ export class PureBinaryParser {
         }
         
         // ! NO_THROW: บันทึก error แล้ว return null
-        this.createParserError('Invalid expect() usage', { method: 'expect' });
+        this.createParserError('Invalid expect() usage');
         return null;
     }
 

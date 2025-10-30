@@ -7,10 +7,10 @@
  * - สรุปยอดรวมเมื่อสแกนเสร็จ
  * 
  * Architecture:
- * 1. Scout (เสก๊า) → กวาดหา error
- * 2. ErrorCollector → เก็บ + stream to log
- * 3. BinaryErrorParser → เขียน log ทันที
- * 4. Summary Report → สรุปท้ายสุด
+ * 1. Scout (เสก๊า)  กวาดหา error
+ * 2. ErrorCollector  เก็บ + stream to log
+ * 3. BinaryErrorParser  เขียน log ทันที
+ * 4. Summary Report  สรุปท้ายสุด
  * 
  * NO_SILENT_FALLBACKS: ทุก error ต้องถูกเก็บและ report
  */

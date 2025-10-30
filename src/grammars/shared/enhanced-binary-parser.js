@@ -84,11 +84,7 @@ class EnhancedBinaryParser extends PureBinaryParser {
                     // ! Scout ต้องรายงานข้อผิดพลาดแต่อย่าหยุดระบบ
                     // FIX: Universal Reporter - Auto-collect
                     scoutError.isOperational = true;
-                    report(BinaryCodes.PARSER.VALIDATION(1018), {
-                        error: scoutError,
-                        phase: 'scout_failed',
-                        fallback: 'continuing_without_structure_map'
-                    });
+                    report(BinaryCodes.PARSER.VALIDATION(1018));
                     this.structureMap = new Map();
                 }
             }
@@ -106,12 +102,9 @@ class EnhancedBinaryParser extends PureBinaryParser {
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
             error.isOperational = true;
-            report(BinaryCodes.PARSER.SYNTAX(1033), {
-                error: error,
-                tokensLength: tokens?.length || 0,
-                stats: this.stats
-            });
-            throw error;
+            report(BinaryCodes.PARSER.SYNTAX(1033));
+            // ! NO_THROW: Return null แทน throw
+            return null;
         }
     }
 
@@ -138,12 +131,9 @@ class EnhancedBinaryParser extends PureBinaryParser {
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
             error.isOperational = true;
-            report(BinaryCodes.PARSER.SYNTAX(4004), {
-                error: error,
-                start: start,
-                currentPos: this.current
-            });
-            throw error;
+            report(BinaryCodes.PARSER.SYNTAX(4004));
+            // ! NO_THROW: Return null แทน throw
+            return null;
         }
     }
 
@@ -176,10 +166,7 @@ class EnhancedBinaryParser extends PureBinaryParser {
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
             error.isOperational = true;
-            report(BinaryCodes.PARSER.VALIDATION(4005), {
-                error: error,
-                targetPos: targetPos
-            });
+            report(BinaryCodes.PARSER.VALIDATION(4005));
         }
     }
 

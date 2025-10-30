@@ -508,11 +508,7 @@ export function getSeverityCode(severityName) {
     const severity = SEVERITY_LEVELS[severityName];
     if (!severity) {
         // FIX: Use Binary Reporter instead of errorHandler
-        report(BinaryCodes.PARSER.VALIDATION(20001), {
-            error: new Error(`Unknown severity: ${severityName}`),
-            source: 'constants.js',
-            severityName: severityName
-        });
+        report(BinaryCodes.PARSER.VALIDATION(20001));
         return SEVERITY_LEVELS.INFO.code;
     }
     return severity.code;
@@ -530,11 +526,7 @@ export function getRuleIdByCode(code) {
         }
     }
     // FIX: Use Binary Reporter instead of errorHandler
-    report(BinaryCodes.PARSER.VALIDATION(20002), {
-        error: new Error(`Unknown rule code: ${code}`),
-        source: 'constants.js',
-        code: code
-    });
+    report(BinaryCodes.PARSER.VALIDATION(20002));
     return 'UNKNOWN_RULE';
 }
 

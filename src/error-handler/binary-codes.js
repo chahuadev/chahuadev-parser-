@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // หน้าที่: อ่าน Grammar และสร้าง Error Builder ทุกตัวที่เป็นไปได้ล่วงหน้า
 // Purpose: Read Grammar and build all possible Error Builders ahead of time
-// Pattern: BinaryCodes.DOMAIN.CATEGORY(severity, source, offset) → binaryCode
+// Pattern: BinaryCodes.DOMAIN.CATEGORY(severity, source, offset)  binaryCode
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { binaryErrorGrammar } from './binary-error.grammar.js';

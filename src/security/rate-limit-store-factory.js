@@ -30,12 +30,7 @@ import BinaryCodes from '../error-handler/binary-codes.js';
 
 function emitRateLimitNotice(message, method, severity, context) {
     // FIX: Universal Reporter - Auto-collect
-    report(BinaryCodes.SECURITY.RUNTIME(3014), {
-        method: `RateLimitStoreFactory.${method}`,
-        message: message,
-        severity: severity,
-        context: context
-    });
+    report(BinaryCodes.SECURITY.RUNTIME(3014));
 }
 
 /**
@@ -60,10 +55,7 @@ function createRateLimitStore(type = 'memory', config = {}) {
         
         default:
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.SECURITY.VALIDATION(3015), {
-                requestedType: type,
-                supportedTypes: 'memory, redis, memcached'
-            });
+            report(BinaryCodes.SECURITY.VALIDATION(3015));
             // Return memory store as fallback
             return createMemoryStore();
     }
@@ -101,15 +93,12 @@ function createRedisStore(config) {
             ...config
         });
         
-           // FIX: Universal Reporter - Auto-collect
-           client.connect().catch(err => {
-           report(BinaryCodes.IO.RESOURCE_UNAVAILABLE(3016), {
-                 errorType: err.constructor?.name,
-                 errorCode: err.code,
-                 errorMessage: err.message
+        // FIX: Universal Reporter - Auto-collect
+        client.connect().catch(err => {
+            report(BinaryCodes.IO.RESOURCE_UNAVAILABLE(3016));
+            // ไม่ต้อง throw err; ปล่อยให้มันทำงานต่อ (เดี๋ยวจะ fallback ไป memory store เอง)
         });
-                // ไม่ต้อง throw err; ปล่อยให้มันทำงานต่อ (เดี๋ยวจะ fallback ไป memory store เอง)
-           });
+        
         // Adapter to match Map interface
         return {
             async get(key) {
@@ -147,21 +136,11 @@ function createRedisStore(config) {
         
     } catch (error) {
         // FIX: Universal Reporter - Auto-collect
-        const errorType = error?.constructor?.name || 'Error';
-        const stackPreview = error?.stack ? error.stack.split('\n').slice(0, 3).join('\n') : 'No stack';
-        
-        report(BinaryCodes.SYSTEM.CONFIGURATION(1041), {
-            errorCode: error.code || 'UNKNOWN',
-            errorType: errorType,
-            errorMessage: error.message,
-            stackPreview: stackPreview
-        });
+        report(BinaryCodes.SYSTEM.CONFIGURATION(1041));
         
         if (error.code === 'MODULE_NOT_FOUND') {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.SYSTEM.CONFIGURATION(1042), {
-                suggestion: 'Install: npm install redis OR use memory store for development'
-            });
+            report(BinaryCodes.SYSTEM.CONFIGURATION(1042));
             // Return memory store as fallback
             return createMemoryStore();
         }
@@ -237,21 +216,11 @@ function createMemcachedStore(config) {
         
     } catch (error) {
         // FIX: Universal Reporter - Auto-collect
-        const errorType = error?.constructor?.name || 'Error';
-        const stackPreview = error?.stack ? error.stack.split('\n').slice(0, 3).join('\n') : 'No stack';
-        
-        report(BinaryCodes.SYSTEM.CONFIGURATION(1043), {
-            errorCode: error.code || 'UNKNOWN',
-            errorType: errorType,
-            errorMessage: error.message,
-            stackPreview: stackPreview
-        });
+        report(BinaryCodes.SYSTEM.CONFIGURATION(1043));
         
         if (error.code === 'MODULE_NOT_FOUND') {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.SYSTEM.CONFIGURATION(1044), {
-                suggestion: 'Install: npm install memcached OR use memory store for development'
-            });
+            report(BinaryCodes.SYSTEM.CONFIGURATION(1044));
             // Return memory store as fallback
             return createMemoryStore();
         }

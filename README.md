@@ -219,7 +219,7 @@ Collisions:        0 [OK]
 │                                                              │
 └─────────────────────────────────────────────────────────────┘
                           │
-                          ▼
+                          
 ┌─────────────────────────────────────────────────────────────┐
 │                    BINARY ERROR SYSTEM                       │
 ├─────────────────────────────────────────────────────────────┤
@@ -230,13 +230,13 @@ Collisions:        0 [OK]
 │    └─ OFFSET:   32-bit (unique identifier within category) │
 │                                                              │
 │  Binary Operations:                                         │
-│    - encode(domain, category, offset) → 64-bit             │
-│    - decode(binaryCode) → { domain, category, offset }     │
-│    - match(code, pattern) → boolean                        │
+│    - encode(domain, category, offset)  64-bit             │
+│    - decode(binaryCode)  { domain, category, offset }     │
+│    - match(code, pattern)  boolean                        │
 │                                                              │
 └─────────────────────────────────────────────────────────────┘
                           │
-                          ▼
+                          
 ┌─────────────────────────────────────────────────────────────┐
 │                    OFFSET REGISTRY                           │
 ├─────────────────────────────────────────────────────────────┤

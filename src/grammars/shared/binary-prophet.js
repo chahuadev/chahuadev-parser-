@@ -37,11 +37,7 @@ class BinaryProphet {
     constructor(grammarIndex, options = {}) {
         if (!grammarIndex) {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.SYSTEM.CONFIGURATION(1014), {
-                received: typeof grammarIndex,
-                expected: 'GrammarIndex instance'
-            });
-            // ไม่ throw - ให้ระบบทำงานต่อแม้ไม่มี grammarIndex
+            report(BinaryCodes.SYSTEM.CONFIGURATION(1014));
         }
 
         this.grammarIndex = grammarIndex;
@@ -90,11 +86,7 @@ class BinaryProphet {
         const successfulUniverses = hypotheses.filter(hypothesis => hypothesis.success);
         if (successfulUniverses.length === 0) {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.PARSER.VALIDATION(1025), {
-                propertyKey: context.propertyKey,
-                universesTested: hypotheses.length,
-                durationMs: (performance.now() - startTime).toFixed(2)
-            });
+            report(BinaryCodes.PARSER.VALIDATION(1025));
             return null;
         }
 
@@ -148,10 +140,7 @@ class BinaryProphet {
             };
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.PARSER.VALIDATION(1029), {
-                propertyKey: context?.propertyKey,
-                errorName: error.name
-            });
+            report(BinaryCodes.PARSER.VALIDATION(1029));
             return {
                 assumption: 'method',
                 success: false,
@@ -202,10 +191,7 @@ class BinaryProphet {
             };
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.PARSER.VALIDATION(6004), {
-                propertyKey: context?.propertyKey,
-                errorName: error.name
-            });
+            report(BinaryCodes.PARSER.VALIDATION(6004));
             return {
                 assumption: 'arrow',
                 success: false,

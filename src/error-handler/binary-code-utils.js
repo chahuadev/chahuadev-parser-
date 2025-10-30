@@ -173,7 +173,7 @@ export function createErrorCodeBuilder(binaryErrorGrammar, domainName, categoryN
     }
 
     // Determine default source from domain name
-    // PARSER domain → PARSER source, VALIDATOR domain → VALIDATOR source, etc.
+    // PARSER domain  PARSER source, VALIDATOR domain  VALIDATOR source, etc.
     const defaultSource = binaryErrorGrammar.sources[domainName] 
         ? domainName 
         : 'SYSTEM'; // Fallback to SYSTEM source

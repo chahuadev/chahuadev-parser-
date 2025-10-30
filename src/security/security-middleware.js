@@ -28,9 +28,7 @@ async function initializeVSCode() {
             vscode = vscodeModule;
         } else {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.SYSTEM.CONFIGURATION(1016), {
-                moduleKeys: JSON.stringify(Object.keys(vscodeModule || {}))
-            });
+            report(BinaryCodes.SYSTEM.CONFIGURATION(1052));
             // ไม่ throw - ใช้ mock vscode object แทน
             vscode = null;
         }
@@ -161,10 +159,7 @@ class SecurityMiddleware {
         try {
             if (!document || !document.uri) {
                 // FIX: Universal Reporter - Auto-collect
-                report(BinaryCodes.SYSTEM.RUNTIME(5001), {
-                    hasDocument: !!document,
-                    hasUri: !!(document && document.uri)
-                });
+                report(BinaryCodes.SYSTEM.RUNTIME(1045));
                 // ไม่ throw - return error result แทน
                 return { success: false, error: 'Invalid document object' };
             }
@@ -182,10 +177,7 @@ class SecurityMiddleware {
             // ตรวจสอบ content size
             if (content && content.length > MAX_DOCUMENT_SIZE) {
                 // FIX: Universal Reporter - Auto-collect
-                report(BinaryCodes.SECURITY.VALIDATION(2006), {
-                    contentLength: content.length,
-                    maxSize: MAX_DOCUMENT_SIZE
-                });
+                report(BinaryCodes.SECURITY.VALIDATION(2006));
                 return { success: false, error: 'Document too large' };
             }
             
@@ -212,10 +204,7 @@ class SecurityMiddleware {
             const validOperations = ['READ', 'WRITE', 'DELETE', 'SCAN'];
             if (!validOperations.includes(operation)) {
                 // FIX: Universal Reporter - Auto-collect
-                report(BinaryCodes.SECURITY.VALIDATION(2007), {
-                    operation: operation,
-                    validOperations: JSON.stringify(validOperations)
-                });
+                report(BinaryCodes.SECURITY.VALIDATION(2007));
                 // ไม่ throw - return error result แทน
                 return { success: false, error: `Invalid operation: ${operation}` };
             }
@@ -235,9 +224,7 @@ class SecurityMiddleware {
                     return await this.secureFileScan(validatedPath);
                 default:
                     // FIX: Universal Reporter - Auto-collect
-                    report(BinaryCodes.SECURITY.VALIDATION(2008), {
-                        operation: operation
-                    });
+                    report(BinaryCodes.SECURITY.VALIDATION(2008));
                     // ไม่ throw - return error result แทน
                     return { success: false, error: `Operation ${operation} not implemented` };
             }
@@ -257,10 +244,7 @@ class SecurityMiddleware {
             // Validate inputs
             if (!pattern || !text) {
                 // FIX: Universal Reporter - Auto-collect
-                report(BinaryCodes.SECURITY.VALIDATION(2009), {
-                    hasPattern: !!pattern,
-                    hasText: !!text
-                });
+                report(BinaryCodes.SECURITY.VALIDATION(2009));
                 // ไม่ throw - return null แทน
                 return null;
             }
@@ -279,9 +263,7 @@ class SecurityMiddleware {
                 patternString = pattern;
             } else {
                 // FIX: Universal Reporter - Auto-collect
-                report(BinaryCodes.SECURITY.VALIDATION(2010), {
-                    patternType: typeof pattern
-                });
+                report(BinaryCodes.SECURITY.VALIDATION(2010));
                 // ไม่ throw - return null แทน
                 return null;
             }
@@ -295,7 +277,8 @@ class SecurityMiddleware {
             
         } catch (error) {
             this.handleSecurityError(error, 'PATTERN_MATCH');
-            throw error;
+            // ! NO_THROW: Return null แทน throw
+            return null;
         }
     }
     
@@ -409,10 +392,7 @@ class SecurityMiddleware {
             
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.SECURITY.FILE_SYSTEM(2013), {
-                filePath,
-                error
-            });
+            report(BinaryCodes.SECURITY.FILE_SYSTEM(2013));
             throw new SecurityError(`File read failed: ${error.message}`, filePath);
         }
     }
@@ -447,10 +427,7 @@ class SecurityMiddleware {
             
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.SECURITY.FILE_SYSTEM(2014), {
-                filePath,
-                error
-            });
+            report(BinaryCodes.SECURITY.FILE_SYSTEM(2014));
             throw new SecurityError(`File write failed: ${error.message}`, filePath);
         }
     }
@@ -505,11 +482,7 @@ class SecurityMiddleware {
                     }
                 } catch (regexError) {
                     // FIX: Universal Reporter - Auto-collect
-                    report(BinaryCodes.SECURITY.VALIDATION(2015), {
-                        patternName: patternConfig.name,
-                        filePath,
-                        error: regexError
-                    });
+                    report(BinaryCodes.SECURITY.VALIDATION(2015));
                     // Log regex execution error but continue scanning
                     this.securityManager.logSecurityEvent(
                         'SCAN_PATTERN_ERROR', 
@@ -546,10 +519,7 @@ class SecurityMiddleware {
                         JSON.parse(content);
                     } catch (jsonError) {
                         // FIX: Universal Reporter - Auto-collect
-                        report(BinaryCodes.SECURITY.VALIDATION(2016), {
-                            filePath,
-                            error: jsonError
-                        });
+                        report(BinaryCodes.SECURITY.VALIDATION(2016));
                         securityIssues.push({
                             issue: 'Invalid JSON format detected',
                             name: 'JSON Syntax Error',
@@ -573,10 +543,7 @@ class SecurityMiddleware {
             
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.SECURITY.VALIDATION(3012), {
-                filePath,
-                error
-            });
+            report(BinaryCodes.SECURITY.VALIDATION(3012));
             throw new SecurityError(`File scan failed: ${error.message}`, filePath);
         }
     }
@@ -610,9 +577,7 @@ class SecurityMiddleware {
         if (error.errorCode) {
             if (typeof error.errorCode !== 'string') {
                 // FIX: Universal Reporter - Auto-collect
-                report(BinaryCodes.VALIDATOR.VALIDATION(7004), {
-                    errorCodeType: typeof error.errorCode
-                });
+                report(BinaryCodes.VALIDATOR.VALIDATION(7004));
             } else {
                 errorCode = error.errorCode;
             }
@@ -623,21 +588,14 @@ class SecurityMiddleware {
         if (error.severity) {
             if (typeof error.severity !== 'string') {
                 // FIX: Universal Reporter - Auto-collect
-                report(BinaryCodes.VALIDATOR.VALIDATION(7005), {
-                    severityType: typeof error.severity
-                });
+                report(BinaryCodes.VALIDATOR.VALIDATION(7005));
             } else {
                 severity = error.severity;
             }
         }
         
         // FIX: Universal Reporter - Auto-collect (central error reporting)
-        report(BinaryCodes.SECURITY.RUNTIME(3013), {
-            operation: operation,
-            error,
-            errorCode,
-            severity
-        });
+        report(BinaryCodes.SECURITY.RUNTIME(3013));
         
         // Log security event with sanitized message (message will be sanitized in logSecurityEvent)
         this.securityManager.logSecurityEvent('SECURITY_ERROR', error.message, {
@@ -693,10 +651,7 @@ class SecurityMiddleware {
             
         } catch (notificationError) {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.SYSTEM.RUNTIME(5002), {
-                error: notificationError,
-                originalError: error.message
-            });
+            report(BinaryCodes.SYSTEM.RUNTIME(5002));
         }
     }
     
@@ -738,9 +693,7 @@ class SecurityMiddleware {
             
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.SYSTEM.RUNTIME(5003), {
-                error
-            });
+            report(BinaryCodes.SYSTEM.RUNTIME(5003));
         }
     }
     
@@ -821,7 +774,8 @@ function withSecurity(securityMiddleware, operation) {
                 
             } catch (error) {
                 securityMiddleware.handleSecurityError(error, `METHOD_${propertyKey}`);
-                throw error;
+                // ! NO_THROW: Return null แทน throw (decorator should not throw)
+                return null;
             }
         };
         

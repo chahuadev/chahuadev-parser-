@@ -34,7 +34,8 @@ class BinaryScout {
                 error: error,
                 tokens: tokens
             });
-            throw error;
+            // ! NO_THROW: Return early - object will be invalid
+            return;
         }
 
         if (!grammarIndex) {
@@ -45,12 +46,13 @@ class BinaryScout {
             report(BinaryCodes.VALIDATOR.VALIDATION(1026), {
                 error: error
             });
-            throw error;
+            // ! NO_THROW: Return early - object will be invalid
+            return;
         }
 
         this.tokens = tokens;
         this.grammarIndex = grammarIndex;
-        this.structureMap = new Map(); // startPos → StructureInfo
+        this.structureMap = new Map(); // startPos  StructureInfo
         
         // Cache binary values for O(1) comparison (100% Binary-First)
         try {
@@ -72,7 +74,8 @@ class BinaryScout {
                 error: error,
                 step: 'binary_cache_initialization'
             });
-            throw error;
+            // ! NO_THROW: Set BINARY to empty object to prevent crashes
+            this.BINARY = {};
         }
     }
 
@@ -119,7 +122,8 @@ class BinaryScout {
                 tokensLength: this.tokens.length,
                 structuresFound: this.structureMap.size
             });
-            throw error;
+            // ! NO_THROW: Return empty map แทน throw
+            return new Map();
         }
     }
 
@@ -155,7 +159,7 @@ class BinaryScout {
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
             error.isOperational = true;
-            report(BinaryCodes.PARSER.VALIDATION(5005), {
+            report(BinaryCodes.PARSER.VALIDATION(1053), {
                 error: error,
                 startPos: startPos
             });
@@ -198,7 +202,7 @@ class BinaryScout {
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
             error.isOperational = true;
-            report(BinaryCodes.PARSER.VALIDATION(5006), {
+            report(BinaryCodes.PARSER.VALIDATION(1049), {
                 error: error,
                 startPos: startPos
             });
@@ -239,7 +243,7 @@ class BinaryScout {
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
             error.isOperational = true;
-            report(BinaryCodes.PARSER.VALIDATION(5007), {
+            report(BinaryCodes.PARSER.VALIDATION(1054), {
                 error: error,
                 startPos: startPos,
                 typeLabel: typeLabel
@@ -296,7 +300,7 @@ class BinaryScout {
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
             error.isOperational = true;
-            report(BinaryCodes.PARSER.VALIDATION(5008), {
+            report(BinaryCodes.PARSER.VALIDATION(1050), {
                 error: error,
                 startPos: startPos
             });
@@ -335,7 +339,7 @@ class BinaryScout {
         const error = new Error('No matching closing brace found');
         error.name = 'ParserError';
         error.isOperational = true;
-        report(BinaryCodes.PARSER.SYNTAX(5009), {
+        report(BinaryCodes.PARSER.SYNTAX(1051), {
             error: error,
             startPos: startPos,
             tokensLength: this.tokens.length
@@ -438,7 +442,7 @@ class BinaryScout {
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
             error.isOperational = true;
-            report(BinaryCodes.PARSER.VALIDATION(5010), {
+            report(BinaryCodes.PARSER.VALIDATION(1055), {
                 error: error,
                 startPos: startPos,
                 endPos: endPos

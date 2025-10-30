@@ -20,7 +20,7 @@
 
 // ! ══════════════════════════════════════════════════════════════════════════════
 // ! PERFORMANCE BOOST: Migrate from JSON.parse() to ES Modules
-// ! Why: JSON.parse() is slow (String → Object conversion)
+// ! Why: JSON.parse() is slow (String  Object conversion)
 // ! Solution: Use import() for .js modules (V8 native, no parsing needed)
 // ! ══════════════════════════════════════════════════════════════════════════════
 import { fileURLToPath, pathToFileURL } from 'url';
@@ -94,7 +94,13 @@ export class GrammarIndex {
             if (Object.keys(this.punctuationBinaryMap).length === 0) {
                 const validationError = new Error('Punctuation binary map is empty - CRITICAL CONFIG ERROR');
                 validationError.isOperational = false;
-                throw validationError;
+                // ! NO_THROW: Report แล้ว return null
+                report(BinaryCodes.PARSER.CONFIGURATION(1056), { 
+                    error: validationError, 
+                    file: 'tokenizer-binary-config.js',
+                    mapSize: 0 
+                });
+                return null;
             }
             
             // FIX: Telemetry removed
@@ -102,7 +108,8 @@ export class GrammarIndex {
             // ! NO_SILENT_FALLBACKS: ห้ามใช้ empty map - ต้อง FAIL
             // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.PARSER.CONFIGURATION(10003), { error, file: 'tokenizer-binary-config.js' });
-            throw error;
+            // ! NO_THROW: Return null แทน throw
+            return null;
         }
     }
     
@@ -213,7 +220,14 @@ export class GrammarIndex {
             const grammarData = module[grammarExportName];
             
             if (!grammarData) {
-                throw new Error(`Grammar export '${grammarExportName}' not found in ${grammarPath}`);
+                // ! NO_THROW: Report แล้ว return null
+                report(BinaryCodes.PARSER.CONFIGURATION(10006), { 
+                    error: new Error(`Grammar export '${grammarExportName}' not found`),
+                    language,
+                    grammarPath,
+                    grammarExportName 
+                });
+                return null;
             }
             
             // ! CRITICAL FIX: Flatten nested operators and punctuation structures
@@ -239,7 +253,8 @@ export class GrammarIndex {
             // ! NO_SILENT_FALLBACKS: Grammar file not found = Programming error
             // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.PARSER.SYNTAX(10004), { error, language });
-            throw error; // Re-throw - this is programming bug
+            // ! NO_THROW: Return null แทน throw
+            return null;
         }
     }
 
@@ -633,8 +648,13 @@ export class GrammarIndex {
         
         // ! NO_SILENT_FALLBACKS: ถ้าไม่มีใน binary map = CRITICAL ERROR
         // FIX: Universal Reporter - Auto-collect
-        report(BinaryCodes.PARSER.VALIDATION(10005), { punctuation, availablePunctuations: Object.keys(this.punctuationBinaryMap || {}) });
-        throw new Error(`Punctuation '${punctuation}' not found in binary map`); // FAIL fast
+        report(BinaryCodes.PARSER.VALIDATION(10005), { 
+            error: new Error(`Punctuation '${punctuation}' not found in binary map`),
+            punctuation, 
+            availablePunctuations: Object.keys(this.punctuationBinaryMap || {}) 
+        });
+        // ! NO_THROW: Return null แทน throw
+        return null;
     }
 
     /**

@@ -114,43 +114,29 @@ class SecurityManager {
         // !
         if (!options.rateLimitStore) {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.SECURITY.CONFIGURATION(1015), { 
-                storeProvided: false 
-            });
+            report(BinaryCodes.SECURITY.CONFIGURATION(1015));
             return;
         }
         
         // Validate injected store implements required interface
         if (typeof options.rateLimitStore.get !== 'function') {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.SECURITY.CONFIGURATION(1031), { 
-                hasGet: false,
-                storeType: typeof options.rateLimitStore
-            });
+            report(BinaryCodes.SECURITY.CONFIGURATION(1031));
             return;
         }
         if (typeof options.rateLimitStore.set !== 'function') {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.SECURITY.CONFIGURATION(1004), { 
-                hasSet: false,
-                storeType: typeof options.rateLimitStore
-            });
+            report(BinaryCodes.SECURITY.CONFIGURATION(1004));
             return;
         }
         if (typeof options.rateLimitStore.has !== 'function') {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.SECURITY.CONFIGURATION(1005), { 
-                hasHas: false,
-                storeType: typeof options.rateLimitStore
-            });
+            report(BinaryCodes.SECURITY.CONFIGURATION(1005));
             return;
         }
         if (typeof options.rateLimitStore.delete !== 'function') {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.SECURITY.CONFIGURATION(1006), { 
-                hasDelete: false,
-                storeType: typeof options.rateLimitStore
-            });
+            report(BinaryCodes.SECURITY.CONFIGURATION(1006));
             return;
         }
         
@@ -169,10 +155,7 @@ class SecurityManager {
         if (this.config.SECURITY_LEVEL) {
             if (typeof this.config.SECURITY_LEVEL !== 'string') {
                 // FIX: Universal Reporter - Auto-collect
-                report(BinaryCodes.SECURITY.CONFIGURATION(1024), { 
-                    actualType: typeof this.config.SECURITY_LEVEL, 
-                    value: JSON.stringify(this.config.SECURITY_LEVEL) 
-                });
+                report(BinaryCodes.SECURITY.CONFIGURATION(1024));
                 return;
             }
             securityLevel = this.config.SECURITY_LEVEL;
@@ -230,9 +213,7 @@ class SecurityManager {
             // ! NO_SILENT_FALLBACKS: Explicit check for dangerous keys - FAIL LOUD
             if (DANGEROUS_KEYS.includes(key)) {
                 // FIX: Universal Reporter - Auto-collect
-                report(BinaryCodes.SECURITY.VALIDATION(1002), { 
-                    dangerousKey: key 
-                });
+                report(BinaryCodes.SECURITY.VALIDATION(1002));
                 return result;
             }
             
@@ -261,38 +242,28 @@ class SecurityManager {
         // Input type validation
         if (!inputPath || typeof inputPath !== 'string') {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.SECURITY.VALIDATION(2001), { 
-                hasPath: !!inputPath, 
-                pathType: typeof inputPath 
-            });
+            report(BinaryCodes.SECURITY.VALIDATION(2001));
             return null;
         }
         
         // Length validation
         if (inputPath.length > this.config.MAX_PATH_LENGTH) {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.SECURITY.VALIDATION(2002), { 
-                pathLength: inputPath.length, 
-                maxLength: this.config.MAX_PATH_LENGTH 
-            });
+            report(BinaryCodes.SECURITY.VALIDATION(2002));
             return null;
         }
         
         // Dangerous characters check
         if (this.config.DANGEROUS_CHARS_REGEX.test(inputPath)) {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.SECURITY.VALIDATION(2003), { 
-                path: inputPath 
-            });
+            report(BinaryCodes.SECURITY.VALIDATION(2003));
             return null;
         }
         
         // Path traversal protection
         if (this.config.PATH_TRAVERSAL_REGEX.test(inputPath)) {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.SECURITY.VALIDATION(2004), { 
-                path: inputPath 
-            });
+            report(BinaryCodes.SECURITY.VALIDATION(2004));
             return null;
         }
         
@@ -347,18 +318,18 @@ class SecurityManager {
             // FIX: Binary Error Pattern - New signature with context
             if (error.code === 'ENOENT') {
                 // FIX: Universal Reporter - Auto-collect
-                report(BinaryCodes.IO.RESOURCE_NOT_FOUND(3002), { path: validatedPath });
+                report(BinaryCodes.IO.RESOURCE_NOT_FOUND(3002));
                 exists = false;
             } else {
                 // FIX: Universal Reporter - Auto-collect
-                report(BinaryCodes.IO.RESOURCE_UNAVAILABLE(3003), { path: validatedPath, errorCode: error.code, errorMessage: error.message });
+                report(BinaryCodes.IO.RESOURCE_UNAVAILABLE(3003));
                 return null;
             }
         }
         
         if (!exists && operation === 'READ') {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.IO.RESOURCE_NOT_FOUND(3004), { path: validatedPath, operation: operation });
+            report(BinaryCodes.IO.RESOURCE_NOT_FOUND(3004));
             return null;
         }
         
@@ -366,14 +337,14 @@ class SecurityManager {
             // Symlink check
             if (stats.isSymbolicLink() && !this.config.ALLOW_SYMLINKS) {
                 // FIX: Universal Reporter - Auto-collect
-                report(BinaryCodes.SECURITY.PERMISSION(3005), { path: validatedPath, allowSymlinks: this.config.ALLOW_SYMLINKS });
+                report(BinaryCodes.SECURITY.PERMISSION(3005));
                 return null;
             }
             
             // File size check
             if (stats.size > this.config.MAX_FILE_SIZE) {
                 // FIX: Universal Reporter - Auto-collect
-                report(BinaryCodes.SECURITY.VALIDATION(3006), { path: validatedPath, fileSize: stats.size, maxSize: this.config.MAX_FILE_SIZE });
+                report(BinaryCodes.SECURITY.VALIDATION(3006));
                 return null;
             }
             
@@ -396,7 +367,7 @@ class SecurityManager {
                 return input.match(pattern);
             } catch (error) {
                 // FIX: Universal Reporter - Auto-collect
-                report(BinaryCodes.SECURITY.VALIDATION(3007), { pattern: pattern.source, errorMessage: error.message, userContext: JSON.stringify(context) });
+                report(BinaryCodes.SECURITY.VALIDATION(3007));
                 return null;
             }
         }
@@ -404,7 +375,7 @@ class SecurityManager {
         return new Promise((resolve) => {
             const timeout = setTimeout(() => {
                 // FIX: Universal Reporter - Auto-collect
-                report(BinaryCodes.SECURITY.VALIDATION(3008), { pattern: pattern.source, timeout: this.config.MAX_REGEX_EXECUTION_TIME, userContext: JSON.stringify(context) });
+                report(BinaryCodes.SECURITY.VALIDATION(3008));
                 resolve(null);
             }, this.config.MAX_REGEX_EXECUTION_TIME);
             
@@ -415,7 +386,7 @@ class SecurityManager {
             } catch (error) {
                 // FIX: Binary Error Pattern - New signature with context
                 // FIX: Universal Reporter - Auto-collect
-                report(BinaryCodes.SECURITY.VALIDATION(3009), { pattern: pattern.source, errorMessage: error.message, userContext: JSON.stringify(context) });
+                report(BinaryCodes.SECURITY.VALIDATION(3009));
                 clearTimeout(timeout);
                 resolve(null);
             }
@@ -444,7 +415,7 @@ class SecurityManager {
             if (typeof storedCount !== 'number') {
                 // FIX: Binary Error Pattern - New signature with context
                 // FIX: Universal Reporter - Auto-collect
-                report(BinaryCodes.SECURITY.VALIDATION(1000), { key: key, actualType: typeof storedCount });
+                report(BinaryCodes.SECURITY.VALIDATION(1000));
                 // Reset corrupted entry
                 count = 0;
             } else {
@@ -454,7 +425,7 @@ class SecurityManager {
         
         if (count >= this.config.MAX_REQUESTS_PER_MINUTE) {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.SECURITY.VALIDATION(1001), { identifier: identifier, currentCount: count, limit: this.config.MAX_REQUESTS_PER_MINUTE });
+            report(BinaryCodes.SECURITY.VALIDATION(1001));
             return false;
         }
         
@@ -468,7 +439,7 @@ class SecurityManager {
             if (!this.config.MAX_RATE_LIMIT_KEYS) {
                 // FIX: Binary Error Pattern - New signature with context
                 // FIX: Universal Reporter - Auto-collect
-                report(BinaryCodes.SECURITY.CONFIGURATION(1007), { configType: typeof this.config.MAX_RATE_LIMIT_KEYS });
+                report(BinaryCodes.SECURITY.CONFIGURATION(1007));
                 return false;
             }
             
@@ -482,7 +453,7 @@ class SecurityManager {
                 }
                 
                 // FIX: Universal Reporter - Auto-collect
-                report(BinaryCodes.SECURITY.VALIDATION(1003), { entriesRemoved: entriesToRemove, currentSize: this.requestCounts.size, maxSize: this.config.MAX_RATE_LIMIT_KEYS });
+                report(BinaryCodes.SECURITY.VALIDATION(1003));
             }
             
             // Cleanup old entries (keep last 5 minutes) - only for in-memory Map
@@ -518,7 +489,7 @@ class SecurityManager {
         for (const forbiddenPattern of this.config.FORBIDDEN_PATHS) {
             if (forbiddenPattern.test(resolvedPath)) {
                 // FIX: Universal Reporter - Auto-collect
-                report(BinaryCodes.SECURITY.PERMISSION(4001), { resolvedPath: resolvedPath });
+                report(BinaryCodes.SECURITY.PERMISSION(4001));
                 return false;
             }
         }
@@ -532,7 +503,7 @@ class SecurityManager {
         // For write operations, ensure we stay within working directory
         if (operation === 'WRITE' && !resolvedPath.startsWith(this.workingDirectory)) {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.SECURITY.PERMISSION(4002), { resolvedPath: resolvedPath, workingDirectory: this.workingDirectory });
+            report(BinaryCodes.SECURITY.PERMISSION(4002));
             return false;
         }
         return true;
@@ -546,7 +517,7 @@ class SecurityManager {
         
         if (ext && !this.config.ALLOWED_EXTENSIONS.includes(ext)) {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.SECURITY.VALIDATION(4003), { filePath: filePath, extension: ext, allowedExtensions: JSON.stringify(this.config.ALLOWED_EXTENSIONS) });
+            report(BinaryCodes.SECURITY.VALIDATION(4003));
             return false;
         }
         return true;
@@ -567,23 +538,21 @@ class SecurityManager {
                     await fs.promises.access(filePath, fs.constants.W_OK);
                 } catch (error) {
                     // FIX: Universal Reporter - Auto-collect
-                    report(BinaryCodes.SECURITY.PERMISSION(6001), { filePath: filePath, operation: operation, errorCode: error.code, errorMessage: error.message });
+                    report(BinaryCodes.SECURITY.PERMISSION(6001));
                     if (error.code === 'ENOENT') {
                         // File doesn't exist, check directory write permission
                         await fs.promises.access(path.dirname(filePath), fs.constants.W_OK);
                     } else {
                         // FIX: Universal Reporter - Auto-collect
-                        report(BinaryCodes.SECURITY.PERMISSION(6002), { filePath: filePath, errorMessage: error.message });
+                        report(BinaryCodes.SECURITY.PERMISSION(6002));
                         return false;
                     }
                 }
             }
             return true;
         } catch (error) {
-            const errorType = error?.constructor?.name || 'Error';
-            const stackPreview = error?.stack ? error.stack.split('\n').slice(0, 3).join('\n') : 'No stack';
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.SECURITY.PERMISSION(6003), { filePath: filePath, operation: operation, errorType: errorType, errorMessage: error.message, stackPreview: stackPreview });
+            report(BinaryCodes.SECURITY.PERMISSION(6003));
             return false;
         }
     }
@@ -636,22 +605,11 @@ class SecurityManager {
                 const logEntry = JSON.stringify(event) + '\n';
                 fs.promises.appendFile(this.securityLogPath, logEntry).catch((writeError) => {
                     // FIX: Universal Reporter - Auto-collect
-                    report(BinaryCodes.IO.RESOURCE_UNAVAILABLE(1023), {
-                        path: this.securityLogPath,
-                        errorMessage: writeError.message
-                    });
+                    report(BinaryCodes.IO.RESOURCE_UNAVAILABLE(1023));
                 });
             } catch (error) {
                 // FIX: Universal Reporter - Auto-collect
-                const errorType = error?.constructor?.name || 'Error';
-                const stackPreview = error?.stack ? error.stack.split('\n').slice(0, 3).join('\n') : 'No stack';
-                
-                report(BinaryCodes.IO.RESOURCE_UNAVAILABLE(1028), {
-                    path: this.securityLogPath,
-                    errorType: errorType,
-                    errorMessage: error.message,
-                    stackPreview: stackPreview
-                });
+                report(BinaryCodes.IO.RESOURCE_UNAVAILABLE(1028));
             }
         }
         
@@ -747,10 +705,7 @@ class SecurityManager {
             } else {
                 // Should never happen, but fail loud if it does
                 // FIX: Universal Reporter - Auto-collect
-                report(BinaryCodes.SECURITY.VALIDATION(9001), {
-                    lastIndex: lastIndex,
-                    violationsLength: violations.length
-                });
+                report(BinaryCodes.SECURITY.VALIDATION(9001));
             }
         }
         

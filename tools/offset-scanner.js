@@ -12,7 +12,7 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const PROJECT_ROOT = path.resolve(__dirname, '../..');
+const PROJECT_ROOT = path.resolve(__dirname, '..');
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Configuration
@@ -41,7 +41,7 @@ const PATTERNS = [
 
 class OffsetScanner {
     constructor() {
-        this.offsets = new Map(); // key: "DOMAIN.CATEGORY:offset" → value: { files, lines, contexts }
+        this.offsets = new Map(); // key: "DOMAIN.CATEGORY:offset"  value: { files, lines, contexts }
         this.stats = {
             filesScanned: 0,
             offsetsFound: 0,
@@ -173,7 +173,7 @@ class OffsetScanner {
      * Detect collision (same offset used by different domain.category)
      */
     detectCollisions() {
-        const offsetMap = new Map(); // offset → [domain.category]
+        const offsetMap = new Map(); // offset  [domain.category]
         
         for (const [key, data] of this.offsets.entries()) {
             const offset = data.offset;

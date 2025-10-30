@@ -216,10 +216,7 @@ class SecurityConfig {
         // !  NO_SILENT_FALLBACKS: Explicit validation - Fail Fast, Fail Loud
         if (typeof SECURITY_LEVELS[level] === 'undefined') {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.SECURITY.CONFIG(1035), {
-                providedLevel: level,
-                validLevels: JSON.stringify(Object.keys(SECURITY_LEVELS))
-            });
+            report(BinaryCodes.SECURITY.CONFIG(1035));
             // Use default level instead of throwing
             level = 'STANDARD';
         }
@@ -262,10 +259,7 @@ class SecurityConfig {
                 // !  Report immediately if property doesn't exist - LOUD failure
                 if (typeof acc[part] === 'undefined') {
                     // FIX: Universal Reporter - Auto-collect
-                    report(BinaryCodes.SECURITY.CONFIG(1022), {
-                        configPath: path,
-                        missingProperty: part
-                    });
+                    report(BinaryCodes.SECURITY.CONFIG(1022));
                     // Return empty object to continue reduce (will fail at final check)
                     return {};
                 }
@@ -275,9 +269,7 @@ class SecurityConfig {
             // !  NO_SILENT_FALLBACKS: Validate final result - Never return undefined
             if (typeof result === 'undefined') {
                 // FIX: Universal Reporter - Auto-collect
-                report(BinaryCodes.SECURITY.CONFIG(1036), {
-                    configPath: path
-                });
+                report(BinaryCodes.SECURITY.CONFIG(1036));
                 // Return default value if provided, otherwise null
                 return defaultValue !== null ? defaultValue : null;
             }
@@ -285,15 +277,7 @@ class SecurityConfig {
             return result;
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
-            const errorType = error?.constructor?.name || 'Error';
-            const stackPreview = error?.stack ? error.stack.split('\n').slice(0, 3).join('\n') : 'No stack';
-            
-            report(BinaryCodes.SECURITY.CONFIG(1037), {
-                configPath: path,
-                errorType: errorType,
-                errorMessage: error.message,
-                stackPreview: stackPreview
-            });
+            report(BinaryCodes.SECURITY.CONFIG(1037));
             
             // !  NO_SILENT_FALLBACKS: Return default if provided, otherwise null
             return defaultValue !== null ? defaultValue : null;
@@ -329,10 +313,7 @@ class SecurityConfig {
         // !  NO_SILENT_FALLBACKS: Explicit check before assignment
         if (typeof SECURITY_LEVELS[level] === 'undefined') {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.SECURITY.CONFIG(1038), {
-                requestedLevel: level,
-                validLevels: JSON.stringify(Object.keys(SECURITY_LEVELS))
-            });
+            report(BinaryCodes.SECURITY.CONFIG(1038));
             // Don't change level if invalid
             return;
         }
@@ -489,15 +470,7 @@ function applyVSCodeSettings(config, vscodeSettings) {
             }
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
-            const errorType = error?.constructor?.name || 'Error';
-            const stackPreview = error?.stack ? error.stack.split('\n').slice(0, 3).join('\n') : 'No stack';
-            
-            report(BinaryCodes.SECURITY.CONFIG(1039), {
-                vscodeKey: vscodeKey,
-                errorType: errorType,
-                errorMessage: error.message,
-                stackPreview: stackPreview
-            });
+            report(BinaryCodes.SECURITY.CONFIG(1039));
             // !  NO_SILENT_FALLBACKS: Collect error instead of swallowing it
             errors.push(`${vscodeKey}: ${error.message}`);
         }
@@ -507,10 +480,7 @@ function applyVSCodeSettings(config, vscodeSettings) {
     // !  WHY: Force user to fix invalid settings, don't run with broken config
     if (errors.length > 0) {
         // FIX: Universal Reporter - Auto-collect
-        report(BinaryCodes.SECURITY.CONFIG(1040), {
-            errorCount: errors.length,
-            errors: JSON.stringify(errors)
-        });
+        report(BinaryCodes.SECURITY.CONFIG(1040));
         // Return early instead of throwing
         return;
     }

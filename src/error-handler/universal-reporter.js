@@ -103,7 +103,7 @@ export function clearAllCollectors() {
  *     dangerousOperation();
  * } catch (error) {
  *     report(BinaryCodes.SECURITY.PERMISSION(5001), { error });
- *     // ✅ Auto-collected! No need for { collect: true, collector: xxx }
+ *     //  Auto-collected! No need for { collect: true, collector: xxx }
  * }
  * 
  * @example
