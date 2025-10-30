@@ -1,4 +1,4 @@
-<div align="center"><div align="center"><div align="center"><div align="center"><div align="center"><div align="center">
+<div align="center"><div align="center"><div align="center"><div align="center"><div align="center"><div align="center"><div align="center">
 
 
 
@@ -18,7 +18,7 @@
 
 
 
-> Code analysis tool using binary instead of strings - because it's faster  
+> Code analysis tool using binary instead of strings - NOT for speed, but for memory efficiency  
 
 > Don't like it? Fork it - MIT License
 
@@ -30,7 +30,7 @@
 
 ---
 
-[![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen)]()**FROM CHAOS TO CODE**# Chahuadev Sentinel  <img src="./logo.png" alt="Chahuadev Sentinel" width="150"/>
+[![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen)]()**FROM CHAOS TO CODE**# Chahuadev Sentinel
 
 ## What It Does (Straight Talk)
 
@@ -38,21 +38,21 @@
 
 ### 1. Binary Error Reporting
 
-**Problem:** String error codes (`"ERR_SECURITY_5001"`) are slow to compare  > Code analysis tool using binary instead of strings - because it's faster  
+**Problem:** String error codes (`"ERR_SECURITY_5001"`) use 20-50 bytes each  > Code analysis tool using binary instead of strings - because it's faster  
 
-**Solution:** Use 64-bit integers instead - instant comparison
+**Solution:** Use 64-bit integers instead - only 8 bytes (60-80% smaller)
 
 > Don't like it? Fork it - MIT License
 
 ```javascript
 
-// Old way (string) - slow comparison[![Version](https://img.shields.io/badge/version-3.0.0--beta-blue)](https://github.com/chahuadev-com/Chahuadev-Sentinel)
+// Old way (string) - 20-50 bytes per error[![Version](https://img.shields.io/badge/version-3.0.0--beta-blue)](https://github.com/chahuadev-com/Chahuadev-Sentinel)
 
 if (errorCode === "ERR_SECURITY_5001") { ... }
 
 </div>
 
-// New way (binary) - instant comparison
+// New way (binary) - 8 bytes per error
 
 const targetCode = BinaryCodes.SECURITY.PERMISSION(5001);[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
@@ -62,15 +62,15 @@ if (errorCode === targetCode) { ... }
 
 // Or use pattern matching
 
-if (matchBinaryCode(errorCode, grammar, 'SECURITY', 'PERMISSION')) { ... }[![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen)]()**FROM CHAOS TO CODE**#  Chahuadev Sentinel
+if (matchBinaryCode(errorCode, 'SECURITY', 'PERMISSION')) { ... }[![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen)]()**FROM CHAOS TO CODE**# Chahuadev Sentinel  <img src="./logo.png" alt="Chahuadev Sentinel" width="150"/>
 
 ```
 
 ## What It Does (Straight Talk)
 
-**Truth:** You never write `0x0001000400001389n` by hand - you use `BinaryCodes` API  
+**Truth:** Binary is NOT faster than strings in JavaScript (V8 optimizes strings heavily)  
 
-**Don't like it?** Keep using strings - slower but fine for small codebases
+**Why we use it:** **Memory efficiency** - 60-80% smaller, structured data, type safety
 
 
 
@@ -94,7 +94,7 @@ reportError(code, {> Don't like it? Fork it - MIT License
 
     line: 42              // might be wrong
 
-});// Old way (string) - slow comparison[![Version](https://img.shields.io/badge/version-3.0.0--beta-blue)](https://github.com/chahuadev-com/Chahuadev-Sentinel)# Chahuadev Sentinel
+});// Old way (string) - slow comparison[![Version](https://img.shields.io/badge/version-3.0.0--beta-blue)](https://github.com/chahuadev-com/Chahuadev-Sentinel)
 
 
 
@@ -126,7 +126,7 @@ if (errorCode === targetCode) { ... }
 
 ```javascript
 
-// Hardcoded (hard to maintain)if (matchBinaryCode(errorCode, 'SECURITY', 'PERMISSION')) { ... }[![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen)]()**The Philosophy: FROM CHAOS TO CODE**
+// Hardcoded (hard to maintain)if (matchBinaryCode(errorCode, grammar, 'SECURITY', 'PERMISSION')) { ... }[![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen)]()**FROM CHAOS TO CODE**#  Chahuadev Sentinel
 
 const keywords = { if: true, const: true, async: true };
 
@@ -158,7 +158,7 @@ const keywords = grammar.keywords; // from javascript.grammar.js## What It Does 
 
 const binary = generateBinary('if', 'keyword'); // generates on-the-fly
 
-```**Solution:** Extract context from stack traces automatically**Problem:** String error codes (`"ERR_SECURITY_5001"`) are slow to compare  > Code analysis tool ที่ใช้เลขฐานสองแทน string เพราะเร็วกว่า  [![Version](https://img.shields.io/badge/version-2.0.0--beta-blue?style=flat-square)](https://github.com/chahuadev-com/Chahuadev-Sentinel)
+```**Solution:** Extract context from stack traces automatically**Problem:** String error codes (`"ERR_SECURITY_5001"`) are slow to compare  > Code analysis tool using binary instead of strings - because it's faster  
 
 
 
@@ -170,449 +170,1065 @@ const binary = generateBinary('if', 'keyword'); // generates on-the-fly
 
 
 
-## The Real Power: Instant Filtering & Categorization// Old way - manual (error-prone)
+## The Truth About Binary Performance// Old way - manual (error-prone)
 
 
 
-This is where binary codes shine - **instant pattern matching** instead of slow string operations.reportError(code, {> ถ้าไม่ชอบก็ fork ไปแก้ได้ - MIT License
+**Honest Benchmark Results (40,000 errors):**reportError(code, {> Don't like it? Fork it - MIT License
 
 
 
-### String-Based Filtering (Traditional Way)    file: 'auth.js',      // might typo
+| Method | Time | Winner |    file: 'auth.js',      // might typo
 
-```javascript
+|--------|------|--------|
 
-// Slow: O(n) character comparison for EACH error    method: 'login',      // might forget```javascript
+| String filtering | 5.2ms | Fastest |    method: 'login',      // might forget```javascript
 
-const securityErrors = allErrors.filter(err => 
+| Bitwise + Grammar lookup | 13.3ms | Medium |
 
-    err.code.startsWith('ERR_SECURITY')  // iterates through "ERR_SECURITY" chars    line: 42              // might be wrong
-
-);
-
-});// Old way (string) - slow comparison> Binary-First Code Intelligence Platform  [![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
-
-// Slower: Multiple string operations
-
-const criticalSecurityErrors = allErrors.filter(err =>
-
-    err.code.startsWith('ERR_SECURITY') &&   // O(n)
-
-    err.code.includes('CRITICAL')            // O(n*m)// New way - auto-captureif (errorCode === "ERR_SECURITY_5001") { ... }
-
-);
-
-```report(code, { error }); // extracts everything from stack trace
+| Raw Bitwise (pure) | 22.7ms | Slowest |    line: 42              // might be wrong
 
 
 
-### Binary-Based Filtering (Our Way)```</div>
+**Why String is Faster in JavaScript:**});// Old way (string) - slow comparison[![Version](https://img.shields.io/badge/version-3.0.0--beta-blue)](https://github.com/chahuadev-com/Chahuadev-Sentinel)# Chahuadev Sentinel
 
-```javascript
+- V8 engine heavily optimizes string operations
 
-import { filterByPattern, matchBinaryCode } from './src/error-handler/binary-code-utils.js';
+- `startsWith()` and `includes()` are native C++ code
 
-import { binaryErrorGrammar } from './src/error-handler/binary-error.grammar.js';
+- String comparison is CPU-native, no BigInt overhead
 
-**Don't like it?** Write context manually - system doesn't forbid it:// New way (binary) - instant comparison
-
-// Fast: O(1) bitwise comparison for EACH error
-
-const securityErrors = filterByPattern(allErrors, binaryErrorGrammar, {```javascript
-
-    domain: 'SECURITY'  // instant bitwise mask check
-
-});report(code, { file: 'x.js', method: 'y', line: 10, error });const targetCode = BinaryCodes.SECURITY.PERMISSION(5001);> Where every error speaks in numbers, every token carries meaning[![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen?style=flat-square)]()
+- BigInt shift/mask operations have overhead in JavaScript// New way - auto-captureif (errorCode === "ERR_SECURITY_5001") { ... }
 
 
 
-// Still O(1): Multiple bitwise operations```
-
-const criticalSecurityErrors = filterByPattern(allErrors, binaryErrorGrammar, {
-
-    domain: 'SECURITY',if (errorCode === targetCode) { ... }
-
-    severity: 'CRITICAL'
-
-});### 3. Grammar-Based Tokenizer
+**Why We Still Use Binary:**report(code, { error }); // extracts everything from stack trace
 
 
 
-// Manual matching - same speed**Problem:** Hardcoded keywords in code = hard to maintain  ---
-
-if (matchBinaryCode(errorCode, binaryErrorGrammar, 'SECURITY', 'PERMISSION')) {
-
-    console.log('This is a SECURITY.PERMISSION error');**Solution:** Store in grammar files - change one file, done
-
-}
-
-```// Or use pattern matching
-
-
-
-### How Bitwise Filtering Works```javascript
-
-
-
-**Binary Code Structure:**// Hardcoded (hard to maintain)if (matchBinaryCode(errorCode, 'SECURITY', 'PERMISSION')) { ... }
+### Primary Reason: Memory Efficiency```</div>
 
 ```
 
-64-bit: [Domain 16][Category 16][Severity 8][Source 8][Offset 16]const keywords = { if: true, const: true, async: true };
+String error code: "ERR_SECURITY_PERMISSION_5001"
 
-Example: 0x0001000400001389
+  → 28 characters × 2 bytes (UTF-16) = 56 bytes
+
+  → Plus object overhead = ~70-80 bytes**Don't like it?** Write context manually - system doesn't forbid it:// New way (binary) - instant comparison
+
+
+
+Binary error code: 4503874773783433n```javascript
+
+  → 8 bytes (64-bit integer)
+
+  → 60-80% memory savingsreport(code, { file: 'x.js', method: 'y', line: 10, error });const targetCode = BinaryCodes.SECURITY.PERMISSION(5001);[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
+```
+
+```
+
+**In a system with 1 million errors:**
+
+- String codes: ~70 MBif (errorCode === targetCode) { ... }
+
+- Binary codes: ~8 MB
+
+- **Savings: 62 MB (88% reduction)**### 3. Grammar-Based Tokenizer
+
+
+
+### Secondary Benefits:**Problem:** Hardcoded keywords in code = hard to maintain  ---
+
+
+
+1. **Structured Data****Solution:** Store in grammar files - change one file, done
+
+   ```javascript
+
+   // Binary encodes structure// Or use pattern matching
+
+   64-bit: [Domain 16][Category 16][Severity 8][Source 8][Offset 16]
+
+   ```javascript
+
+   // Extract instantly
+
+   const domain = extractDomain(errorCode);   // SECURITY// Hardcoded (hard to maintain)if (matchBinaryCode(errorCode, 'SECURITY', 'PERMISSION')) { ... }[![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen)]()**The Philosophy: FROM CHAOS TO CODE**
+
+   const category = extractCategory(errorCode); // PERMISSION
+
+   const severity = extractSeverity(errorCode); // ERRORconst keywords = { if: true, const: true, async: true };
+
+   ```
+
+```
+
+2. **Type Safety**
+
+   - No string parsing errors// Grammar-based (easy to maintain)
+
+   - No typos ("ERR_SECURTY" vs "ERR_SECURITY")
+
+   - Compile-time validationconst keywords = grammar.keywords; // from javascript.grammar.js## What It Does (Straight Talk)
+
+
+
+3. **Cross-Language Compatibility**```
+
+   - C++/Rust/Go get MASSIVE speedups with bitwise
+
+   - Same binary format across all languages**Truth:** You never write `0x0001000400001389n` by hand - you use `BinaryCodes` API  
+
+   - No string encoding issues
+
+**Don't like it?** Hardcode it - just means editing multiple places when changes needed
+
+4. **Collision Detection**
+
+   - Offset registry prevents duplicate codes**Don't like it?** Keep using strings - slower but fine for small codebases
+
+   - Automated conflict detection
+
+   - Structured error code management### 4. Runtime Binary Generation
+
+
+
+---**Problem:** Build-time generation = rebuild every change  
+
+
+
+## When to Use Binary vs String**Solution:** Runtime generation - change grammar, use immediately
+
+
+
+### Use Binary Error Codes When:### 2. Auto-Capture Context### 1. Binary Error Reporting
+
+- Memory is constrained (embedded systems, large-scale logging)
+
+- You need structured error data (domain/category/severity)```javascript
+
+- Working with multiple languages (C++, Rust, Go, JavaScript)
+
+- Error code collision detection is important// No build needed**Problem:** Manual context writing is error-prone  
+
+- Type safety matters more than readability
+
+const binary = generateBinary('if', 'keyword'); // generates on-the-fly
+
+### Use String Error Codes When:
+
+- Working purely in JavaScript/Node.js```**Solution:** Extract context from stack traces automatically**Problem:** String error codes (`"ERR_SECURITY_5001"`) are slow to compare  > Code analysis tool ที่ใช้เลขฐานสองแทน string เพราะเร็วกว่า  [![Version](https://img.shields.io/badge/version-2.0.0--beta-blue?style=flat-square)](https://github.com/chahuadev-com/Chahuadev-Sentinel)
+
+- Speed is the only concern
+
+- Team prefers human-readable codes
+
+- Memory usage is not a constraint
+
+- Quick prototyping**Don't like it?** Pre-generate and commit - faster but harder to maintain
+
+
+
+---
+
+
+
+## The 3 Pillars---```javascript**Solution:** Use 64-bit integers instead - instant comparison
+
+
+
+```
+
+1. BLANK PAPER     → No hardcoding - everything from config/grammar files
+
+2. BINARY FIRST    → Numbers for memory efficiency (not speed in JS)## The Real Power: Instant Filtering & Categorization// Old way - manual (error-prone)
+
+3. ZERO FALLBACK   → Explicit errors - no silent failures
+
+```
+
+
+
+**Note:** If you disagree with these principles, this project isn't for you  This is where binary codes shine - **instant pattern matching** instead of slow string operations.reportError(code, {> ถ้าไม่ชอบก็ fork ไปแก้ได้ - MIT License
+
+Use ESLint, Prettier, or other established tools instead
+
+
+
+---
+
+### String-Based Filtering (Traditional Way)    file: 'auth.js',      // might typo
+
+## Quick Start
+
+```javascript
+
+```bash
+
+git clone https://github.com/chahuadev-com/Chahuadev-Sentinel.git// Slow: O(n) character comparison for EACH error    method: 'login',      // might forget```javascript
+
+cd Chahuadev-Sentinel
+
+node cli.js --helpconst securityErrors = allErrors.filter(err => 
+
+```
+
+    err.code.startsWith('ERR_SECURITY')  // iterates through "ERR_SECURITY" chars    line: 42              // might be wrong
+
+No `npm install` needed - works out of the box
+
+);
+
+---
+
+});// Old way (string) - slow comparison> Binary-First Code Intelligence Platform  [![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
+
+## Core Systems
+
+// Slower: Multiple string operations
+
+### Universal Error Reporting
+
+const criticalSecurityErrors = allErrors.filter(err =>
+
+**What it does:** Report errors with auto-captured file, method, line, column
+
+    err.code.startsWith('ERR_SECURITY') &&   // O(n)
+
+```javascript
+
+import { report } from './src/error-handler/universal-reporter.js';    err.code.includes('CRITICAL')            // O(n*m)// New way - auto-captureif (errorCode === "ERR_SECURITY_5001") { ... }
+
+import BinaryCodes from './src/error-handler/binary-codes.js';
+
+);
+
+report(BinaryCodes.SECURITY.PERMISSION(5001), { error });
+
+// Auto-captures: file, method, line, column, timestamp```report(code, { error }); // extracts everything from stack trace
+
+```
+
+
+
+**Performance:** 0.162ms per report
+
+### Binary-Based Filtering (Our Way)```</div>
+
+**Alternative:** If you don't like auto-capture, use manual:
+
+```javascript```javascript
+
+report(code, { file: 'x.js', method: 'y', line: 10, error });
+
+```import { filterByPattern, matchBinaryCode } from './src/error-handler/binary-code-utils.js';
+
+
+
+---import { binaryErrorGrammar } from './src/error-handler/binary-error.grammar.js';
+
+
+
+### Binary Error System**Don't like it?** Write context manually - system doesn't forbid it:// New way (binary) - instant comparison
+
+
+
+**What it does:** Error codes as 64-bit integers instead of strings// Fast: O(1) bitwise comparison for EACH error
+
+
+
+**Structure:** `[Domain 16-bit][Category 16-bit][Severity 8-bit][Source 8-bit][Offset 16-bit]`const securityErrors = filterByPattern(allErrors, binaryErrorGrammar, {```javascript
+
+
+
+```javascript    domain: 'SECURITY'  // instant bitwise mask check
+
+BinaryCodes.SECURITY.PERMISSION(5001)
+
+// → 4503874773783433 (internal representation)});report(code, { file: 'x.js', method: 'y', line: 10, error });const targetCode = BinaryCodes.SECURITY.PERMISSION(5001);> Where every error speaks in numbers, every token carries meaning[![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen?style=flat-square)]()
+
+
+
+// But you use it like this:
+
+const code = BinaryCodes.SECURITY.PERMISSION(5001);
+
+if (errorCode === code) { ... }// Still O(1): Multiple bitwise operations```
+
+```
+
+const criticalSecurityErrors = filterByPattern(allErrors, binaryErrorGrammar, {
+
+**Pros:**
+
+- **Memory: 8 bytes vs 70 bytes (88% smaller)** ← Primary reason    domain: 'SECURITY',if (errorCode === targetCode) { ... }
+
+- Structured data (domain/category/severity embedded)
+
+- Type safety (no string parsing)    severity: 'CRITICAL'
+
+- Cross-language compatibility
+
+- Collision detection});### 3. Grammar-Based Tokenizer
+
+
+
+**Cons:**
+
+- Harder to read than strings
+
+- Requires decoder// Manual matching - same speed**Problem:** Hardcoded keywords in code = hard to maintain  ---
+
+- **Slower than strings in JavaScript** (but faster in C++/Rust)
+
+if (matchBinaryCode(errorCode, binaryErrorGrammar, 'SECURITY', 'PERMISSION')) {
+
+**Alternative:** If you prefer strings:
+
+```javascript    console.log('This is a SECURITY.PERMISSION error');**Solution:** Store in grammar files - change one file, done
+
+// Create your own wrapper
+
+const ErrorCodes = {}
+
+    SECURITY_PERMISSION: "SEC_PERM_5001"
+
+};```// Or use pattern matching
+
+```
+
+
+
+---
+
+### How Bitwise Filtering Works```javascript
+
+### Pattern Matching & Filtering
+
+
+
+**What it does:** Filter errors by domain/category/severity
+
+**Binary Code Structure:**// Hardcoded (hard to maintain)if (matchBinaryCode(errorCode, 'SECURITY', 'PERMISSION')) { ... }
+
+```javascript
+
+import { filterByPattern, matchBinaryCode } from './src/error-handler/binary-code-utils.js';```
+
+
+
+// Filter by domain64-bit: [Domain 16][Category 16][Severity 8][Source 8][Offset 16]const keywords = { if: true, const: true, async: true };
+
+const securityErrors = filterByPattern(allErrors, {
+
+    domain: 'SECURITY'Example: 0x0001000400001389
+
+});
 
          ^^^^ ^^^^ ^^ ^^ ^^^^```
 
-         │    │    │  │  └─ Offset: 5001
+// Filter by domain + category
 
-         │    │    │  └──── Source: 1// Grammar-based (easy to maintain)
+const permErrors = filterByPattern(allErrors, {         │    │    │  │  └─ Offset: 5001
+
+    domain: 'SECURITY',
+
+    category: 'PERMISSION'         │    │    │  └──── Source: 1// Grammar-based (easy to maintain)
+
+});
 
          │    │    └─────── Severity: 16 (ERROR)
 
-         │    └──────────── Category: 4 (PERMISSION)const keywords = grammar.keywords; // from javascript.grammar.js## สิ่งที่ทำ (ตรงๆ)
+// Manual matching
 
-         └───────────────── Domain: 1 (SECURITY)
+if (matchBinaryCode(errorCode, 'SECURITY', 'PERMISSION')) {         │    └──────────── Category: 4 (PERMISSION)const keywords = grammar.keywords; // from javascript.grammar.js## สิ่งที่ทำ (ตรงๆ)
+
+    console.log('This is a SECURITY.PERMISSION error');
+
+}         └───────────────── Domain: 1 (SECURITY)
+
+```
+
+``````
+
+**Performance Note:** In JavaScript, this is slower than string filtering  
+
+**Use because:** Structured filtering, not speed
+
+
+
+---**Instant Domain Check:****Truth:** You never write `0x0001000400001389n` by hand - you use `BinaryCodes` API  
+
+
+
+### Smart Grammar Index```javascript
+
+
+
+**What it does:** Load multi-language grammars with binary tokenization// Extract domain using bitwise shift + mask (CPU single instruction)**Don't like it?** Hardcode it - just means editing multiple places when changes needed
+
+
+
+```javascriptconst domain = (errorCode >> 48n) & 0xFFFFn;  // O(1)
+
+const index = new SmartGrammarIndex('javascript');
+
+await index.loadGrammar();**Don't like it?** Keep using strings - slower but fine for small codebases[![Version](https://img.shields.io/badge/version-3.0.0--beta-blue)](https://github.com/chahuadev-com/Chahuadev-Sentinel)> **Pure Binary Code Analysis** - Revolutionary error reporting system with auto-context capture and 64-bit binary error codes
+
+
+
+index.getBinary('if', 'keyword');         // → 0x01c7// Compare (integer comparison - instant)
+
+index.identifyToken('async');             // → { type, category, binary }
+
+```if (domain === SECURITY_DOMAIN) { ... }  // O(1)### 4. Runtime Binary Generation
+
+
+
+**Supports:** 14 languages (JavaScript, TypeScript, Python, Java, Go, Rust, C++, C, PHP, Ruby, C#, Swift, Kotlin, JSX)
+
+
+
+**Pros:**// vs String comparison**Problem:** Build-time generation = rebuild every change  
+
+- Auto-detect token types
+
+- Runtime binary generationif (errorCode.startsWith('ERR_SECURITY')) { ... }  // O(n) - iterates chars
+
+- Smart caching (126 items)
+
+```**Solution:** Runtime generation - change grammar, use immediately
+
+**Alternative:** For single language, hardcoding is simpler:
+
+```javascript
+
+const jsKeywords = ['if', 'const', 'async', 'function'];
+
+```### Performance Comparison### 2. Auto-Capture Context### 1. Error Reporting แบบ Binary
+
+
+
+---
+
+
+
+### Offset Registry| Operation | String-Based | Binary-Based | Speedup |```javascript
+
+
+
+**What it does:** Prevent binary code collisions|-----------|--------------|--------------|---------|
+
+
+
+```bash| Single comparison | O(n) | O(1) | ~10-50x |// No build needed**Problem:** Manual context writing is error-prone  
+
+node tools/offset-scanner.js scan    # scan all offsets
+
+node tools/fix-collisions.js --apply # fix duplicates| Filter 1,000 errors | O(n*m) | O(n) | ~100x |
+
+```
+
+| Filter + categorize | O(n*m*k) | O(n) | ~1000x |const binary = generateBinary('if', 'keyword'); // generates on-the-fly
+
+**Output:** 
+
+- `offset-registry.json` - database
+
+- `docs/OFFSET_REGISTRY.md` - documentation
+
+Where:```**Solution:** Extract context from stack traces automatically**ปัญหา:** Error code แบบ string (`"ERR_SECURITY_5001"`) ช้า เปรียบเทียบยาก  [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
+**Alternative:** Not using binary system? Don't need this tool
+
+- n = number of errors
+
+---
+
+- m = average string length
+
+## Project Structure
+
+- k = number of filter criteria
+
+```
+
+Chahuadev-Sentinel/**Don't like it?** Pre-generate and commit - faster but harder to maintain
+
+├── src/
+
+│   ├── error-handler/### Real-World Example
+
+│   │   ├── universal-reporter.js      # Auto-capture API
+
+│   │   ├── binary-codes.js            # 64-bit error codes
+
+│   │   ├── binary-code-utils.js       # Bitwise operations
+
+│   │   └── context-capture.js         # Stack trace parser```javascript
+
+│   │
+
+│   ├── grammars/shared/// Scenario: Find all critical security permission errors in 10,000 error logs---```javascript**แก้ไข:** ใช้ตัวเลข 64-bit (`0x0001000400001389`) แทน - เร็วกว่า instant
+
+│   │   ├── grammar-index.js           # Multi-language loader
+
+│   │   ├── binary-generator.js        # Runtime binary gen
+
+│   │   └── grammars/                  # 14 languages
+
+│   │// String-based (slow)
+
+│   └── security/
+
+│       └── security-manager.js        # Security layerconst results = logs.filter(log => 
+
+│
+
+├── tools/    log.errorCode.startsWith('ERR_SECURITY') &&      // ~12 char comparisons## The 3 Pillars// Old way - manual (error-prone)
+
+│   ├── offset-scanner.js              # Scan offsets
+
+│   └── fix-collisions.js              # Fix collisions    log.errorCode.includes('PERMISSION') &&          // ~40 char scans
+
+│
+
+└── cli.js                             # CLI entry point    log.severity === 'CRITICAL'                      // ~8 char comparisons
+
+```
+
+);
+
+---
+
+// Total: 10,000 × (12 + 40 + 8) = 600,000 character comparisons```reportError(code, {[![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen)]()FROM CHAOS TO CODE
+
+## Usage Examples
+
+
+
+### 1. Error Reporting
+
+```javascript// Binary-based (instant)1. BLANK PAPER     → No hardcoding - everything from config/grammar files
+
+try {
+
+    validateUser(data);const results = filterByPattern(logs.map(l => l.binaryCode), binaryErrorGrammar, {
+
+} catch (error) {
+
+    report(BinaryCodes.VALIDATOR.VALIDATION(2001), { error, data });    domain: 'SECURITY',      // 1 bitwise shift + 1 comparison2. BINARY FIRST    → Numbers instead of strings for speed    file: 'auth.js',      // might typo
+
+}
+
+```    category: 'PERMISSION',  // 1 bitwise shift + 1 comparison
+
+
+
+### 2. Token Analysis    severity: 'CRITICAL'     // 1 bitwise shift + 1 comparison3. ZERO FALLBACK   → Explicit errors - no silent failures
+
+```javascript
+
+const jsIndex = new SmartGrammarIndex('javascript');});
+
+await jsIndex.loadGrammar();
+
+// Total: 10,000 × 3 = 30,000 bitwise operations (CPU single-cycle instructions)```    method: 'login',      // might forget```javascript
+
+const token = jsIndex.identifyToken('async');
+
+// → { type: 'keyword', category: 'modifier', binary: 0x0a2e }// Result: ~20x faster
+
+```
+
+```
+
+### 3. Security Check
+
+```javascript
+
+import { SecurityManager } from './src/security/security-manager.js';
+
+### Advanced Pattern Matching**Note:** If you disagree with these principles, this project isn't for you      line: 42              // might be wrong
+
+const security = new SecurityManager();
+
+if (!security.validatePath(userPath)) {
+
+    report(BinaryCodes.SECURITY.VALIDATION(5200), { path: userPath });
+
+}```javascriptUse ESLint, Prettier, or other established tools instead
+
+```
+
+// Get all errors from specific domain
+
+### 4. Batch Error Filtering
+
+```javascriptconst allSecurityErrors = filterByPattern(errors, binaryErrorGrammar, {});// แบบเก่า (string)
+
+import { filterByPattern } from './src/error-handler/binary-code-utils.js';
+
+    domain: 'SECURITY'
+
+// Filter 10,000 errors by domain
+
+const securityErrors = filterByPattern(allErrors, {});---
+
+    domain: 'SECURITY'
+
+});
+
+
+
+const criticalErrors = filterByPattern(allErrors, {// Get all permission-related errors (any domain)
+
+    severity: 'CRITICAL'
+
+});const allPermissionErrors = filterByPattern(errors, binaryErrorGrammar, {
+
+```
+
+    category: 'PERMISSION'## Quick Start
+
+---
+
+});
+
+## CLI
+
+// New way - auto-captureif (errorCode === "ERR_SECURITY_5001") { ... }
+
+```bash
+
+# Scan file// Get all critical errors (any domain/category)
+
+node cli.js src/file.js
+
+const allCriticalErrors = filterByPattern(errors, binaryErrorGrammar, {```bash
+
+# Scan directory with rules
+
+node cli.js src/ --rules NO_CONSOLE,NO_EMOJI    severity: 'CRITICAL'
+
+
+
+# Output format});git clone https://github.com/chahuadev-com/Chahuadev-Sentinel.gitreport(code, { error }); // extracts everything from stack trace
+
+node cli.js src/ --format json
+
+```
+
+
+
+**Available Rules:**// Combine: Critical security permission errorscd Chahuadev-Sentinel
+
+- `NO_CONSOLE` - No console.log
+
+- `NO_EMOJI` - No emoji in codeconst specific = filterByPattern(errors, binaryErrorGrammar, {
+
+- `NO_HARDCODE` - No hardcoded values
+
+- `NO_SILENT_FALLBACKS` - No silent fallbacks    domain: 'SECURITY',node cli.js --help```</div></div>
+
+- `MUST_HANDLE_ERRORS` - Force error handling
+
+    category: 'PERMISSION',
+
+---
+
+    severity: 'CRITICAL'```
+
+## Performance Reality
+
+});
+
+**Honest Benchmarks (test-bitwise-filtering.js):**
+
+```
+
+```
+
+Dataset: 40,000 error codes
+
+
+
+Test 1: RAW Bitwise (Pure O(1))### Why This MattersNo `npm install` needed - works out of the box
+
+  Time: 22.651ms
+
+  
+
+Test 2: String Filtering (V8-optimized)
+
+  Time: 5.180ms  ← WINNER**Small codebase:** Difference negligible  **Don't like it?** Write context manually - system doesn't forbid it:// แบบใหม่ (binary)
+
+  
+
+Test 3: Bitwise + Grammar Lookup**Large codebase:** 10,000+ errors/day → **binary filtering is 20-100x faster**
+
+  Time: 13.346ms
+
+```---
+
+
+
+**Why String is Faster:****Memory:** Binary codes = 8 bytes, Strings = 20-50 bytes → **60-80% smaller**
+
+- V8 engine heavily optimizes strings
+
+- `startsWith()` is native C++ code```javascript
+
+- BigInt operations have overhead in JavaScript
+
+**This is the architectural advantage** - not just "optimization"
+
+**Why We Still Use Binary:**
+
+- **Primary: Memory efficiency (88% smaller)**## Core Systems
+
+- Secondary: Structured data, type safety, cross-language
+
+---
+
+| Aspect | String | Binary |
+
+|--------|--------|--------|report(code, { file: 'x.js', method: 'y', line: 10, error });if (errorCode === 0x0001000400001389n) { ... }
+
+| Speed (JavaScript) | Faster | Slower |
+
+| Memory | 70 bytes | 8 bytes |## The 3 Pillars
+
+| Readability | Better | Harder |
+
+| Structure | Parse needed | Embedded |### Universal Error Reporting
+
+| Type Safety | No | Yes |
+
+| Cross-Language | Encoding issues | Universal |```
+
+
+
+---1. BLANK PAPER     → No hardcoding - everything from config/grammar files```
+
+
+
+## Limitations (Honest Talk)2. BINARY FIRST    → Numbers instead of strings for speed
+
+
+
+1. **Not for beginners** - requires understanding of binary, stack traces, grammars3. ZERO FALLBACK   → Explicit errors - no silent failures**What it does:** Report errors with auto-captured file, method, line, column
+
+2. **High learning curve** - concepts differ from typical tools
+
+3. **Not stable yet** - version 3.0.0-beta```
+
+4. **Solo project** - bugs likely exist
+
+5. **Incomplete docs** - still writing```
+
+6. **Slower than strings in JavaScript** - use for memory, not speed
+
+**Note:** If you disagree with these principles, this project isn't for you  
+
+---
+
+Use ESLint, Prettier, or other established tools instead```javascript
+
+## Why Not Use Existing Tools?
+
+
+
+**Q: Why not use Babel parser?**  
+
+A: Babel has many "extras" (dependencies, unwanted features). We want 100% control.---import { report } from './src/error-handler/universal-reporter.js';### 3. Grammar-Based Tokenizer
+
+
+
+**Q: Why not use Winston/Bunyan for logging?**  
+
+A: We need to enforce binary codes + auto-capture, not just logging.
+
+## Quick Startimport BinaryCodes from './src/error-handler/binary-codes.js';
+
+**Q: Why not use ESLint?**  
+
+A: ESLint is a linter. We're a code intelligence platform. Different purposes.
+
+
+
+**Q: Why binary if strings are faster?**  ```bash**Problem:** Hardcoded keywords in code = hard to maintain  ------
+
+A: **Memory efficiency is the primary reason.** 88% smaller memory footprint matters at scale.
+
+git clone https://github.com/chahuadev-com/Chahuadev-Sentinel.git
+
+---
+
+cd Chahuadev-Sentinelreport(BinaryCodes.SECURITY.PERMISSION(5001), { error });
+
+## Who Should Use This
+
+node cli.js --help
+
+**Good fit:**
+
+- Large-scale systems (millions of errors/day)```// Auto-captures: file, method, line, column, timestamp**Solution:** Store in grammar files - change one file, done
+
+- Memory-constrained environments
+
+- Multi-language codebases (C++, Rust, Go, JavaScript)
+
+- Teams needing structured error data
+
+- Projects prioritizing memory over speedNo `npm install` needed - works out of the box```
+
+
+
+**Not good fit:**
+
+- Beginner developers
+
+- Pure JavaScript projects (strings are faster)---**ถ้าไม่ชอบ:** ใช้ string ต่อก็ได้ แค่ช้ากว่า แต่ถ้าโค้ดไม่ใหญ่ไม่มีปัญหา
+
+- Small projects with low error volume
+
+- Teams wanting ready-to-use tools
+
+- Projects prioritizing speed over memory
+
+## Core Systems**Performance:** 0.162ms per report
+
+---
+
+
+
+## Change What You Don't Like
+
+### Universal Error Reporting```javascript
+
+### Don't Like Binary Error Codes?
+
+```javascript
+
+// Create your own wrapper
+
+const MyErrorCodes = {**What it does:** Report errors with auto-captured file, method, line, column**Alternative:** If you don't like auto-capture, use manual:
+
+    SECURITY_PERMISSION: "SEC_PERM_5001",
+
+    // ... define as strings
+
+};
+
+``````javascript```javascript// Hardcoded (hard to maintain)
+
+
+
+### Don't Like Auto-Capture?import { report } from './src/error-handler/universal-reporter.js';
+
+```javascript
+
+// Provide all context manuallyimport BinaryCodes from './src/error-handler/binary-codes.js';report(code, { file: 'x.js', method: 'y', line: 10, error });
+
+report(code, {
+
+    file: 'my-file.js',
+
+    method: 'myMethod',
+
+    line: 10,report(BinaryCodes.SECURITY.PERMISSION(5001), { error });```const keywords = { if: true, const: true, async: true };
+
+    error
+
+});// Auto-captures: file, method, line, column, timestamp
+
+```
+
+```
+
+### Don't Like Grammar System?
+
+```javascript
+
+// Hardcode your keywords
+
+const myKeywords = {**Performance:** 0.162ms per report---### 2. Auto-Capture Context
+
+    if: { type: 'control' },
+
+    const: { type: 'variable' }
+
+};
+
+```**Alternative:** If you don't like auto-capture, use manual:
+
+
+
+### Don't Like Any of This?```javascript
+
+```bash
+
+# Use other toolsreport(code, { file: 'x.js', method: 'y', line: 10, error });### Binary Error System// Grammar-based (easy to maintain)
+
+npm install eslint prettier
 
 ``````
 
 
 
-**Instant Domain Check:****Truth:** You never write `0x0001000400001389n` by hand - you use `BinaryCodes` API  
-
-```javascript
-
-// Extract domain using bitwise shift + mask (CPU single instruction)**Don't like it?** Hardcode it - just means editing multiple places when changes needed
-
-const domain = (errorCode >> 48n) & 0xFFFFn;  // O(1)
-
-**Don't like it?** Keep using strings - slower but fine for small codebases[![Version](https://img.shields.io/badge/version-3.0.0--beta-blue)](https://github.com/chahuadev-com/Chahuadev-Sentinel)> **Pure Binary Code Analysis** - Revolutionary error reporting system with auto-context capture and 64-bit binary error codes
-
-// Compare (integer comparison - instant)
-
-if (domain === SECURITY_DOMAIN) { ... }  // O(1)### 4. Runtime Binary Generation
-
-
-
-// vs String comparison**Problem:** Build-time generation = rebuild every change  
-
-if (errorCode.startsWith('ERR_SECURITY')) { ... }  // O(n) - iterates chars
-
-```**Solution:** Runtime generation - change grammar, use immediately
-
-
-
-### Performance Comparison### 2. Auto-Capture Context### 1. Error Reporting แบบ Binary
-
-
-
-| Operation | String-Based | Binary-Based | Speedup |```javascript
-
-|-----------|--------------|--------------|---------|
-
-| Single comparison | O(n) | O(1) | ~10-50x |// No build needed**Problem:** Manual context writing is error-prone  
-
-| Filter 1,000 errors | O(n*m) | O(n) | ~100x |
-
-| Filter + categorize | O(n*m*k) | O(n) | ~1000x |const binary = generateBinary('if', 'keyword'); // generates on-the-fly
-
-
-
-Where:```**Solution:** Extract context from stack traces automatically**ปัญหา:** Error code แบบ string (`"ERR_SECURITY_5001"`) ช้า เปรียบเทียบยาก  [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-
-- n = number of errors
-
-- m = average string length
-
-- k = number of filter criteria
-
-**Don't like it?** Pre-generate and commit - faster but harder to maintain
-
-### Real-World Example
-
-
-
-```javascript
-
-// Scenario: Find all critical security permission errors in 10,000 error logs---```javascript**แก้ไข:** ใช้ตัวเลข 64-bit (`0x0001000400001389`) แทน - เร็วกว่า instant
-
-
-
-// String-based (slow)
-
-const results = logs.filter(log => 
-
-    log.errorCode.startsWith('ERR_SECURITY') &&      // ~12 char comparisons## The 3 Pillars// Old way - manual (error-prone)
-
-    log.errorCode.includes('PERMISSION') &&          // ~40 char scans
-
-    log.severity === 'CRITICAL'                      // ~8 char comparisons
-
-);
-
-// Total: 10,000 × (12 + 40 + 8) = 600,000 character comparisons```reportError(code, {[![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen)]()FROM CHAOS TO CODE
-
-
-
-// Binary-based (instant)1. BLANK PAPER     → No hardcoding - everything from config/grammar files
-
-const results = filterByPattern(logs.map(l => l.binaryCode), binaryErrorGrammar, {
-
-    domain: 'SECURITY',      // 1 bitwise shift + 1 comparison2. BINARY FIRST    → Numbers instead of strings for speed    file: 'auth.js',      // might typo
-
-    category: 'PERMISSION',  // 1 bitwise shift + 1 comparison
-
-    severity: 'CRITICAL'     // 1 bitwise shift + 1 comparison3. ZERO FALLBACK   → Explicit errors - no silent failures
-
-});
-
-// Total: 10,000 × 3 = 30,000 bitwise operations (CPU single-cycle instructions)```    method: 'login',      // might forget```javascript
-
-// Result: ~20x faster
-
-```
-
-
-
-### Advanced Pattern Matching**Note:** If you disagree with these principles, this project isn't for you      line: 42              // might be wrong
-
-
-
-```javascriptUse ESLint, Prettier, or other established tools instead
-
-// Get all errors from specific domain
-
-const allSecurityErrors = filterByPattern(errors, binaryErrorGrammar, {});// แบบเก่า (string)
-
-    domain: 'SECURITY'
-
-});---
-
-
-
-// Get all permission-related errors (any domain)
-
-const allPermissionErrors = filterByPattern(errors, binaryErrorGrammar, {
-
-    category: 'PERMISSION'## Quick Start
-
-});
-
-// New way - auto-captureif (errorCode === "ERR_SECURITY_5001") { ... }
-
-// Get all critical errors (any domain/category)
-
-const allCriticalErrors = filterByPattern(errors, binaryErrorGrammar, {```bash
-
-    severity: 'CRITICAL'
-
-});git clone https://github.com/chahuadev-com/Chahuadev-Sentinel.gitreport(code, { error }); // extracts everything from stack trace
-
-
-
-// Combine: Critical security permission errorscd Chahuadev-Sentinel
-
-const specific = filterByPattern(errors, binaryErrorGrammar, {
-
-    domain: 'SECURITY',node cli.js --help```</div></div>
-
-    category: 'PERMISSION',
-
-    severity: 'CRITICAL'```
-
-});
-
-```
-
-
-
-### Why This MattersNo `npm install` needed - works out of the box
-
-
-
-**Small codebase:** Difference negligible  **Don't like it?** Write context manually - system doesn't forbid it:// แบบใหม่ (binary)
-
-**Large codebase:** 10,000+ errors/day → **binary filtering is 20-100x faster**
-
 ---
 
-**Memory:** Binary codes = 8 bytes, Strings = 20-50 bytes → **60-80% smaller**
 
-```javascript
 
-**This is the architectural advantage** - not just "optimization"
+## Current Status---
 
-## Core Systems
 
----
 
-report(code, { file: 'x.js', method: 'y', line: 10, error });if (errorCode === 0x0001000400001389n) { ... }
+**Version:** 3.0.0-beta  **What it does:** Error codes as 64-bit integers instead of stringsconst keywords = grammar.keywords; // from javascript.grammar.js**ปัญหา:** เขียน context ด้วยมือผิดพลาดได้ ลืมได้  ##  Core Philosophy## What is Sentinel?
 
-## The 3 Pillars
+**Status:** Not production-ready  
 
-### Universal Error Reporting
+**Team:** Solo developer  ### Binary Error System
 
-```
+**Time invested:** ~1 month  
 
-1. BLANK PAPER     → No hardcoding - everything from config/grammar files```
 
-2. BINARY FIRST    → Numbers instead of strings for speed
 
-3. ZERO FALLBACK   → Explicit errors - no silent failures**What it does:** Report errors with auto-captured file, method, line, column
+**Completed:**
 
-```
+- Universal Error Reporting**What it does:** Error codes as 64-bit integers instead of strings
 
-```
+- Binary Error System (optimized for memory, not speed)
 
-**Note:** If you disagree with these principles, this project isn't for you  
+- Bitwise Filtering & Pattern Matching**Structure:** `[Domain 16-bit][Category 16-bit][Offset 32-bit]````
 
-Use ESLint, Prettier, or other established tools instead```javascript
+- Smart Grammar Index (14 languages)
 
+- Offset Registry**Structure:** `[Domain 16-bit][Category 16-bit][Severity 8-bit][Source 8-bit][Offset 16-bit]`
 
 
----import { report } from './src/error-handler/universal-reporter.js';### 3. Grammar-Based Tokenizer
 
+**In Progress:**
 
+- Full documentation
 
-## Quick Startimport BinaryCodes from './src/error-handler/binary-codes.js';
+- 100% test coverage```javascript
 
+- VS Code Extension
 
+- NPM packageBinaryCodes.SECURITY.PERMISSION(5001)```javascript**แก้ไข:** ดึง context จาก stack trace อัตโนมัติ
 
-```bash**Problem:** Hardcoded keywords in code = hard to maintain  ------
 
-git clone https://github.com/chahuadev-com/Chahuadev-Sentinel.git
 
-cd Chahuadev-Sentinelreport(BinaryCodes.SECURITY.PERMISSION(5001), { error });
+---// → 0x0001000400001389 (internal representation)
 
-node cli.js --help
 
-```// Auto-captures: file, method, line, column, timestamp**Solution:** Store in grammar files - change one file, done
 
+## DocumentationBinaryCodes.SECURITY.PERMISSION(5001)
 
 
-No `npm install` needed - works out of the box```
 
+- [Universal Error Reporting](./docs/UNIVERSAL_ERROR_REPORTING.md)// But you use it like this:
 
+- [Offset Registry](./docs/OFFSET_REGISTRY.md)
 
----**ถ้าไม่ชอบ:** ใช้ string ต่อก็ได้ แค่ช้ากว่า แต่ถ้าโค้ดไม่ใหญ่ไม่มีปัญหา
+- [Contributing Guide](./docs/en/CONTRIBUTING.md)const code = BinaryCodes.SECURITY.PERMISSION(5001);// → 0x0001000400001389 (internal representation)**Don't like it?** Hardcode it - just means editing multiple places when changes needed
 
-
-
-## Core Systems**Performance:** 0.162ms per report
-
-
-
-### Universal Error Reporting```javascript
-
-
-
-**What it does:** Report errors with auto-captured file, method, line, column**Alternative:** If you don't like auto-capture, use manual:
-
-
-
-```javascript```javascript// Hardcoded (hard to maintain)
-
-import { report } from './src/error-handler/universal-reporter.js';
-
-import BinaryCodes from './src/error-handler/binary-codes.js';report(code, { file: 'x.js', method: 'y', line: 10, error });
-
-
-
-report(BinaryCodes.SECURITY.PERMISSION(5001), { error });```const keywords = { if: true, const: true, async: true };
-
-// Auto-captures: file, method, line, column, timestamp
-
-```
-
-
-
-**Performance:** 0.162ms per report---### 2. Auto-Capture Context
-
-
-
-**Alternative:** If you don't like auto-capture, use manual:
-
-```javascript
-
-report(code, { file: 'x.js', method: 'y', line: 10, error });### Binary Error System// Grammar-based (easy to maintain)
-
-```
-
-
-
----
-
-**What it does:** Error codes as 64-bit integers instead of stringsconst keywords = grammar.keywords; // from javascript.grammar.js**ปัญหา:** เขียน context ด้วยมือผิดพลาดได้ ลืมได้  ##  Core Philosophy## What is Sentinel?
-
-### Binary Error System
-
-
-
-**What it does:** Error codes as 64-bit integers instead of strings
-
-**Structure:** `[Domain 16-bit][Category 16-bit][Offset 32-bit]````
-
-**Structure:** `[Domain 16-bit][Category 16-bit][Severity 8-bit][Source 8-bit][Offset 16-bit]`
-
-
-
-```javascript
-
-BinaryCodes.SECURITY.PERMISSION(5001)```javascript**แก้ไข:** ดึง context จาก stack trace อัตโนมัติ
-
-// → 0x0001000400001389 (internal representation)
-
-BinaryCodes.SECURITY.PERMISSION(5001)
-
-// But you use it like this:
-
-const code = BinaryCodes.SECURITY.PERMISSION(5001);// → 0x0001000400001389 (internal representation)**Don't like it?** Hardcode it - just means editing multiple places when changes needed
+- [Performance Benchmarks](./test-bitwise-filtering.js)
 
 if (errorCode === code) { ... }
 
+---
+
 ```
 
+## License
 
+
+
+MIT - Use free, modify free, fork free, no permission needed
 
 **Pros:**// But you use it like this:
 
+---
+
 - Fast comparison (integer comparison)
+
+## Contact
 
 - Low memory (8 bytes)const code = BinaryCodes.SECURITY.PERMISSION(5001);
 
-- Collision detection
+**Author:** Chahua Development Co., Ltd.  
+
+**Email:** chahuadev@gmail.com  - Collision detection
+
+**Philosophy:** Binary-First (for memory), Blank Paper, Zero Fallback
 
 - Instant filtering (bitwise operations)if (errorCode === code) { ... }### 4. Runtime Binary Generation
 
+**Warning:** If you disagree with these philosophies, don't use this project  
 
-
-**Cons:**```
-
-- Harder to read than strings
-
-- Requires decoder**Problem:** Build-time generation = rebuild every change  ```javascript
+There are many better tools available (ESLint, Prettier, Husky, etc.)
 
 
 
-**Alternative:** If you prefer strings:**Pros:**
+---**Cons:**```
 
-```javascript
 
-// Create your own wrapper- Fast comparison (integer comparison)**Solution:** Runtime generation - change grammar, use immediately
 
-const ErrorCodes = {
+## The Bottom Line- Harder to read than strings
+
+
+
+**This project uses binary error codes NOT because they're faster in JavaScript (they're not), but because:**- Requires decoder**Problem:** Build-time generation = rebuild every change  ```javascript
+
+
+
+1. **Memory efficiency: 88% smaller** (8 bytes vs 70 bytes)
+
+2. Structured data (domain/category/severity embedded)
+
+3. Type safety (no string parsing errors)**Alternative:** If you prefer strings:**Pros:**
+
+4. Cross-language compatibility
+
+5. Collision detection```javascript
+
+
+
+**In JavaScript, strings are faster. We use binary anyway because memory matters at scale.**// Create your own wrapper- Fast comparison (integer comparison)**Solution:** Runtime generation - change grammar, use immediately
+
+
+
+If you're building a small JavaScript-only project and speed is your only concern, use strings.  const ErrorCodes = {
+
+If you're building a large-scale, multi-language system where memory efficiency matters, binary is worth it.
 
     SECURITY_PERMISSION: "SEC_PERM_5001"- Low memory (8 bytes)
 
+Choose wisely. 🎯
+
 };
-
-```- Collision detection// แบบเก่า - เขียนเอง (ผิดพลาดได้)### The Three Pillars**Chahuadev Sentinel** is a next-generation code quality and security analysis tool built on three revolutionary principles:
-
-
 
 ---
 
+```- Collision detection// แบบเก่า - เขียนเอง (ผิดพลาดได้)### The Three Pillars**Chahuadev Sentinel** is a next-generation code quality and security analysis tool built on three revolutionary principles:
 
+<div align="center">
+
+
+
+**Built with precision, not perfection**
+
+---
+
+[GitHub](https://github.com/chahuadev-com) • [Docs](./docs/) • [Benchmarks](./test-bitwise-filtering.js)
+
+
+
+</div>
 
 ### Smart Grammar Index**Cons:**```javascript
 
