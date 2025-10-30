@@ -37,6 +37,20 @@ export const binaryErrorGrammar = {
     },
 
     // ═══════════════════════════════════════════════════════════════════════════
+    // SECTION 00.2: Bitwise Masks - Component Extraction Constants
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    "masks": {
+        "DOMAIN_MASK": "0xFFFF000000000000",
+        "CATEGORY_MASK": "0x0000FFFF00000000",
+        "SEVERITY_MASK": "0x00000000FF000000",
+        "SOURCE_MASK": "0x0000000000FF0000",
+        "OFFSET_MASK": "0x000000000000FFFF",
+        "__comment": "Bitwise masks for extracting components from 64-bit binary code",
+        "__structure": "Domain(16) | Category(16) | Severity(8) | Source(8) | Offset(16)"
+    },
+
+    // ═══════════════════════════════════════════════════════════════════════════
     // SECTION 00.5: Meta Error Codes - Reserved Codes for System Errors
     // ═══════════════════════════════════════════════════════════════════════════
     

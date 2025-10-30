@@ -4,6 +4,8 @@
 // หน้าที่: ประกอบ Binary Code จาก Domain/Category/Severity/Source/Offset
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import { binaryErrorGrammar } from './binary-error.grammar.js';
+
 /**
  * ประกอบ 64-bit Binary Error Code จาก Components
  * Structure: Domain(16) | Category(16) | Severity(8) | Source(8) | Offset(16)
@@ -193,10 +195,232 @@ export function createErrorCodeBuilder(binaryErrorGrammar, domainName, categoryN
     };
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// BITWISE EXTRACTION UTILITIES - Extract Components from 64-bit Binary Code
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Bitwise Masks for Component Extraction (from Grammar)
+ * Structure: Domain(16) | Category(16) | Severity(8) | Source(8) | Offset(16)
+ */
+export const DOMAIN_MASK = BigInt(binaryErrorGrammar.masks.DOMAIN_MASK);
+export const CATEGORY_MASK = BigInt(binaryErrorGrammar.masks.CATEGORY_MASK);
+export const SEVERITY_MASK = BigInt(binaryErrorGrammar.masks.SEVERITY_MASK);
+export const SOURCE_MASK = BigInt(binaryErrorGrammar.masks.SOURCE_MASK);
+export const OFFSET_MASK = BigInt(binaryErrorGrammar.masks.OFFSET_MASK);
+
+/**
+ * Extract Domain (16-bit) from Binary Code
+ * 
+ * @param {string|bigint} binaryCode - Binary error code
+ * @returns {number} Domain code (0-65535)
+ * 
+ * @example
+ * const domain = extractDomain("281479288520681");
+ * // Returns: 1 (SECURITY domain)
+ */
+export function extractDomain(binaryCode) {
+    const bigCode = typeof binaryCode === 'string' ? BigInt(binaryCode) : BigInt(binaryCode);
+    return Number((bigCode >> 48n) & 0xFFFFn);
+}
+
+/**
+ * Extract Category (16-bit) from Binary Code
+ * 
+ * @param {string|bigint} binaryCode - Binary error code
+ * @returns {number} Category code (0-65535)
+ * 
+ * @example
+ * const category = extractCategory("281479288520681");
+ * // Returns: 4 (PERMISSION category)
+ */
+export function extractCategory(binaryCode) {
+    const bigCode = typeof binaryCode === 'string' ? BigInt(binaryCode) : BigInt(binaryCode);
+    return Number((bigCode >> 32n) & 0xFFFFn);
+}
+
+/**
+ * Extract Severity (8-bit) from Binary Code
+ * 
+ * @param {string|bigint} binaryCode - Binary error code
+ * @returns {number} Severity code (0-255)
+ * 
+ * @example
+ * const severity = extractSeverity("281479288520681");
+ * // Returns: 16 (ERROR severity)
+ */
+export function extractSeverity(binaryCode) {
+    const bigCode = typeof binaryCode === 'string' ? BigInt(binaryCode) : BigInt(binaryCode);
+    return Number((bigCode >> 24n) & 0xFFn);
+}
+
+/**
+ * Extract Source (8-bit) from Binary Code
+ * 
+ * @param {string|bigint} binaryCode - Binary error code
+ * @returns {number} Source code (0-255)
+ * 
+ * @example
+ * const source = extractSource("281479288520681");
+ * // Returns: 1 (SYSTEM source)
+ */
+export function extractSource(binaryCode) {
+    const bigCode = typeof binaryCode === 'string' ? BigInt(binaryCode) : BigInt(binaryCode);
+    return Number((bigCode >> 16n) & 0xFFn);
+}
+
+/**
+ * Extract Offset (16-bit) from Binary Code
+ * 
+ * @param {string|bigint} binaryCode - Binary error code
+ * @returns {number} Offset code (0-65535)
+ * 
+ * @example
+ * const offset = extractOffset("281479288520681");
+ * // Returns: 5001
+ */
+export function extractOffset(binaryCode) {
+    const bigCode = typeof binaryCode === 'string' ? BigInt(binaryCode) : BigInt(binaryCode);
+    return Number(bigCode & 0xFFFFn);
+}
+
+/**
+ * Decompose Binary Code into All Components
+ * 
+ * @param {string|bigint} binaryCode - Binary error code
+ * @returns {object} All components { domain, category, severity, source, offset }
+ * 
+ * @example
+ * const parts = decomposeBinaryCode("281479288520681");
+ * // Returns: { domain: 1, category: 4, severity: 16, source: 1, offset: 5001 }
+ */
+export function decomposeBinaryCode(binaryCode) {
+    return {
+        domain: extractDomain(binaryCode),
+        category: extractCategory(binaryCode),
+        severity: extractSeverity(binaryCode),
+        source: extractSource(binaryCode),
+        offset: extractOffset(binaryCode)
+    };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PATTERN MATCHING - Instant Error Filtering with Bitwise Operations
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Match Binary Code against Domain/Category/Severity Pattern
+ * Uses bitwise comparison for instant O(1) filtering
+ * 
+ * @param {string|bigint} binaryCode - Binary error code to match
+ * @param {string} domainName - Domain name to match (e.g., 'SECURITY')
+ * @param {string} categoryName - Category name to match (optional)
+ * @param {string} severityName - Severity name to match (optional)
+ * @returns {boolean} True if matches pattern
+ * 
+ * @example
+ * // Filter by domain only
+ * if (matchBinaryCode(errorCode, 'SECURITY')) {
+ *     console.log('This is a SECURITY error');
+ * }
+ * 
+ * // Filter by domain + category
+ * if (matchBinaryCode(errorCode, 'SECURITY', 'PERMISSION')) {
+ *     console.log('This is a SECURITY.PERMISSION error');
+ * }
+ * 
+ * // Filter by domain + category + severity
+ * if (matchBinaryCode(errorCode, 'SECURITY', 'PERMISSION', 'ERROR')) {
+ *     console.log('This is a SECURITY.PERMISSION.ERROR');
+ * }
+ */
+export function matchBinaryCode(binaryCode, domainName, categoryName = null, severityName = null) {
+    const actualDomain = extractDomain(binaryCode);
+    
+    // Match domain
+    const expectedDomain = binaryErrorGrammar?.domains?.[domainName];
+    if (!expectedDomain || actualDomain !== expectedDomain.code) {
+        return false;
+    }
+    
+    // Match category (if specified)
+    if (categoryName !== null) {
+        const actualCategory = extractCategory(binaryCode);
+        const expectedCategory = binaryErrorGrammar?.categories?.[categoryName];
+        if (!expectedCategory || actualCategory !== expectedCategory.code) {
+            return false;
+        }
+    }
+    
+    // Match severity (if specified)
+    if (severityName !== null) {
+        const actualSeverity = extractSeverity(binaryCode);
+        const expectedSeverity = binaryErrorGrammar?.severities?.[severityName];
+        if (!expectedSeverity || actualSeverity !== expectedSeverity.code) {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+/**
+ * Filter Multiple Binary Codes by Pattern
+ * Batch filtering with bitwise operations - instant for large datasets
+ * 
+ * @param {Array<string|bigint>} binaryCodes - Array of binary error codes
+ * @param {object} pattern - Pattern to match { domain?, category?, severity? }
+ * @returns {Array<string|bigint>} Filtered codes matching pattern
+ * 
+ * @example
+ * const allErrors = [code1, code2, code3, code4];
+ * 
+ * // Get all SECURITY errors
+ * const securityErrors = filterByPattern(allErrors, { domain: 'SECURITY' });
+ * 
+ * // Get all SECURITY.PERMISSION errors
+ * const permErrors = filterByPattern(allErrors, {
+ *     domain: 'SECURITY',
+ *     category: 'PERMISSION'
+ * });
+ * 
+ * // Get all critical SECURITY errors
+ * const criticalErrors = filterByPattern(allErrors, {
+ *     domain: 'SECURITY',
+ *     severity: 'CRITICAL'
+ * });
+ */
+export function filterByPattern(binaryCodes, pattern) {
+    return binaryCodes.filter(code => {
+        return matchBinaryCode(
+            code,
+            pattern.domain,
+            pattern.category || null,
+            pattern.severity || null
+        );
+    });
+}
+
 export default {
     composeBinaryCode,
     composeBinaryCodeByName,
     toHexString,
     toBinaryString,
-    createErrorCodeBuilder
+    createErrorCodeBuilder,
+    // Bitwise extraction
+    extractDomain,
+    extractCategory,
+    extractSeverity,
+    extractSource,
+    extractOffset,
+    decomposeBinaryCode,
+    // Pattern matching
+    matchBinaryCode,
+    filterByPattern,
+    // Masks
+    DOMAIN_MASK,
+    CATEGORY_MASK,
+    SEVERITY_MASK,
+    SOURCE_MASK,
+    OFFSET_MASK
 };
