@@ -1,140 +1,513 @@
-// JSX Grammar - ES Module
-// Auto-generated from jsx.grammar.json
-// Binary-First Architecture: Grammar as Code
+// JSX Grammar - ES Module// JSX Grammar - ES Module// JSX Grammar - ES Module// JSX Grammar - ES Module
+
+// Extends JavaScript grammar with JSX/React syntax
+
+// Binary-First Architecture: Grammar as Code// Generated from JavaScript grammar (includes JSX tokens)
+
+
+
+import { javascriptGrammar } from './javascript.grammar.js';// Binary-First Architecture: Grammar as Code// Generated from JavaScript grammar (includes JSX tokens)// Auto-generated from jsx.grammar.json
+
+
 
 export const jsxGrammar = {
-  "__grammar_name": "JSX Grammar",
-  "__grammar_language": "JSX/React",
-  "__grammar_version": "React 18.x",
-  "__grammar_spec": "JSX Specification + React Extensions",
-  "__grammar_purpose": "กำหนด grammar สำหรับ JSX syntax ที่ใช้ใน React และ frameworks อื่นๆ ครอบคลุม elements, expressions, attributes, hooks, และ transforms",
-  "__grammar_sections": 14,
-  "__grammar_description": "Complete JSX/React grammar with elements, expressions, attributes, built-in components, namespaces, hooks patterns, component patterns, children types, special props, transforms, babel options, TSX modes, patterns, and escaping rules",
-  "__grammar_used_by": "JSXParser, ReactTransformer, BabelCompiler, TypeScriptCompiler",
-  "__grammar_header": "════════════════════════════════════════════════════════════════════════════════════════════════════════",
-  "__section_01_number": 1,
-  "__section_01_name": "elements",
-  "__section_01_title": " Section 01: JSX Elements & Tags",
-  "__section_01_language": "JSX",
-  "__section_01_total_items": 8,
-  "__section_01_description": "Core JSX element syntax including opening/closing tags, self-closing tags, fragments, and tag delimiters",
-  "__section_01_purpose": "เก็บ syntax พื้นฐานของ JSX elements รวมถึง opening tags (<), closing tags (>), self-closing (/), fragments (<>), และ disambiguation rules",
-  "__section_01_responsibility": "Provides JSX element syntax: <, >, />, <Fragment>, </>, tag opening/closing, self-closing elements, HTML vs Component disambiguation",
-  "__section_01_used_by": "JSXParser, JSXElementParser, ReactTransformer",
-  "__section_01_footer": "════════════════════════════════════════════════════════════════════════════════════════════════════════",
-  "elements": {
-    "<": {
-      "type": "tag-start",
-      "source": "ANTLR",
+
+  "__grammar_header": "══════════════════════════════════════════════════════════════════════════════",
+
+  "__grammar_language": "JSX",import { javascriptGrammar } from './javascript.grammar.js';// Binary-First Architecture: Grammar as Code// Binary-First Architecture: Grammar as Code
+
+  "__grammar_version": "React 18+",
+
+  "__grammar_title": "JSX Language Grammar Definition",
+
+  "__grammar_description": "JSX extends JavaScript with XML-like syntax",
+
+  "__grammar_purpose": "Grammar for JSX tokenization and parsing",// JSX inherits all JavaScript grammar + adds JSX-specific tokens
+
+  "__grammar_total_sections": 4,
+
+  "__grammar_sections": ["keywords", "operators", "punctuation", "jsxElements"],export const jsxGrammar = {
+
+  "__grammar_used_by": ["GrammarIndex", "BlankPaperTokenizer", "BinaryParser"],
+
+  "__grammar_footer": "══════════════════════════════════════════════════════════════════════════════",  "__grammar_header": "══════════════════════════════════════════════════════════════════════════════",import { javascriptGrammar } from './javascript.grammar.js';export const jsxGrammar = {
+
+  
+
+  "__section_01": "══════════════════════════════════════════════════════════════════════════════",  "__grammar_language": "JSX",
+
+  "__section_01_number": "01",
+
+  "__section_01_name": "keywords",  "__grammar_version": "React 18+",  "__grammar_name": "JSX Grammar",
+
+  "__section_01_title": "【SECTION 01】JSX Keywords",
+
+  "__section_01_language": "JSX",  "__grammar_title": "JSX Language Grammar Definition",
+
+  "__section_01_total_items": Object.keys(javascriptGrammar.keywords || {}).length,
+
+  "__section_01_description": "JavaScript keywords",  "__grammar_description": "JSX grammar extends JavaScript with XML-like syntax for React",// JSX inherits all JavaScript grammar + adds JSX-specific tokens  "__grammar_language": "JSX/React",
+
+  "__section_01_purpose": "Define keywords for JSX",
+
+  "__section_01_responsibility": "Handle keywords",  "__grammar_purpose": "Grammar definition for JSX (JavaScript + XML) tokenization and parsing",
+
+  "__section_01_used_by": ["BlankPaperTokenizer", "GrammarIndex"],
+
+  "__section_01_footer": "══════════════════════════════════════════════════════════════════════════════",  "__grammar_total_sections": 4,export const jsxGrammar = {  "__grammar_version": "React 18.x",
+
+  "keywords": javascriptGrammar.keywords,
+
+    "__grammar_sections": [
+
+  "__section_02": "══════════════════════════════════════════════════════════════════════════════",
+
+  "__section_02_number": "02",    "keywords",  "__grammar_header": "══════════════════════════════════════════════════════════════════════════════",  "__grammar_spec": "JSX Specification + React Extensions",
+
+  "__section_02_name": "operators",
+
+  "__section_02_title": "【SECTION 02】JSX Operators",    "operators",
+
+  "__section_02_language": "JSX",
+
+  "__section_02_total_items": Object.keys(javascriptGrammar.operators || {}).length,    "punctuation",  "__grammar_language": "JSX",  "__grammar_purpose": "กำหนด grammar สำหรับ JSX syntax ที่ใช้ใน React และ frameworks อื่นๆ ครอบคลุม elements, expressions, attributes, hooks, และ transforms",
+
+  "__section_02_description": "JavaScript operators",
+
+  "__section_02_purpose": "Define operators",    "jsxElements"
+
+  "__section_02_responsibility": "Handle operators",
+
+  "__section_02_used_by": ["BlankPaperTokenizer", "GrammarIndex"],  ],  "__grammar_version": "React 18+",  "__grammar_sections": 14,
+
+  "__section_02_footer": "══════════════════════════════════════════════════════════════════════════════",
+
+  "operators": javascriptGrammar.operators,  "__grammar_used_by": [
+
+  
+
+  "__section_03": "══════════════════════════════════════════════════════════════════════════════",    "GrammarIndex",  "__grammar_title": "JSX Language Grammar Definition",  "__grammar_description": "Complete JSX/React grammar with elements, expressions, attributes, built-in components, namespaces, hooks patterns, component patterns, children types, special props, transforms, babel options, TSX modes, patterns, and escaping rules",
+
+  "__section_03_number": "03",
+
+  "__section_03_name": "punctuation",    "BlankPaperTokenizer",
+
+  "__section_03_title": "【SECTION 03】JSX Punctuation",
+
+  "__section_03_language": "JSX",    "BinaryParser"  "__grammar_description": "JSX grammar extends JavaScript with XML-like syntax for React",  "__grammar_used_by": "JSXParser, ReactTransformer, BabelCompiler, TypeScriptCompiler",
+
+  "__section_03_total_items": Object.keys(javascriptGrammar.punctuation || {}).length,
+
+  "__section_03_description": "JavaScript punctuation",  ],
+
+  "__section_03_purpose": "Define punctuation",
+
+  "__section_03_responsibility": "Handle punctuation",  "__grammar_footer": "══════════════════════════════════════════════════════════════════════════════",  "__grammar_purpose": "Grammar definition for JSX (JavaScript + XML) tokenization and parsing",  "__grammar_header": "════════════════════════════════════════════════════════════════════════════════════════════════════════",
+
+  "__section_03_used_by": ["BlankPaperTokenizer", "GrammarIndex"],
+
+  "__section_03_footer": "══════════════════════════════════════════════════════════════════════════════",  
+
+  "punctuation": javascriptGrammar.punctuation,
+
+    // Section 01: Keywords (inherit from JavaScript)  "__grammar_total_sections": 4,  "__section_01_number": 1,
+
+  "__section_04": "══════════════════════════════════════════════════════════════════════════════",
+
+  "__section_04_number": "04",  "__section_01": "══════════════════════════════════════════════════════════════════════════════",
+
+  "__section_04_name": "jsxElements",
+
+  "__section_04_title": "【SECTION 04】JSX Elements",  "__section_01_number": "01",  "__grammar_sections": [  "__section_01_name": "elements",
+
+  "__section_04_language": "JSX",
+
+  "__section_04_total_items": 5,  "__section_01_name": "keywords",
+
+  "__section_04_description": "JSX-specific syntax",
+
+  "__section_04_purpose": "Define JSX elements",  "__section_01_title": "【SECTION 01】JSX Keywords",    "keywords",  "__section_01_title": " Section 01: JSX Elements & Tags",
+
+  "__section_04_responsibility": "Handle JSX parsing",
+
+  "__section_04_used_by": ["JSXParser", "ReactTransformer"],  "__section_01_language": "JSX",
+
+  "__section_04_footer": "══════════════════════════════════════════════════════════════════════════════",
+
+  "jsxElements": {  "__section_01_total_items": Object.keys(javascriptGrammar.keywords || {}).length,    "operators",  "__section_01_language": "JSX",
+
+    "<>": {
+
+      "type": "jsx-fragment-open",  "__section_01_description": "JavaScript keywords (JSX inherits all JS keywords)",
+
+      "category": "jsx-fragment",
+
+      "source": "react",  "__section_01_purpose": "Define all keywords for JSX tokenization",    "punctuation",  "__section_01_total_items": 8,
+
+      "description": "JSX fragment opening"
+
+    },  "__section_01_responsibility": "Handle keywords for tokenization",
+
+    "</>": {
+
+      "type": "jsx-fragment-close",  "__section_01_used_by": [    "jsxElements"  "__section_01_description": "Core JSX element syntax including opening/closing tags, self-closing tags, fragments, and tag delimiters",
+
+      "category": "jsx-fragment",
+
+      "source": "react",    "BlankPaperTokenizer",
+
+      "description": "JSX fragment closing"
+
+    },    "GrammarIndex"  ],  "__section_01_purpose": "เก็บ syntax พื้นฐานของ JSX elements รวมถึง opening tags (<), closing tags (>), self-closing (/), fragments (<>), และ disambiguation rules",
+
+    "/>": {
+
+      "type": "jsx-self-closing",  ],
+
       "category": "jsx-element",
-      "description": "JSX opening tag start",
-      "followedBy": [
-        "IDENTIFIER",
-        "UPPERCASE_IDENTIFIER",
-        "DOT",
-        "Fragment"
-      ],
-      "precededBy": [
-        "NEWLINE",
-        "PAREN_OPEN",
-        "BRACE_OPEN",
-        "RETURN",
-        "ASSIGN"
-      ],
-      "parentContext": [
-        "JSXElement",
-        "JSXFragment",
-        "ReturnStatement",
-        "Expression"
-      ],
-      "startsExpr": true,
-      "beforeExpr": false,
-      "mustBeFollowedByIdentifier": true,
-      "isJSXToken": true,
-      "startsJSXElement": true,
-      "requiresClosing": true,
-      "canBeComponent": true,
-      "canBeHTMLTag": true,
-      "disambiguation": [
-        {
-          "language": "JSX",
-          "rule": "JSX vs generic type parameter",
-          "jsx": "return <Component />",
-          "typescript": "const fn = <T>() => {}",
-          "context": "JSX in .jsx/.tsx files",
-          "note": "TypeScript: < after = is generic, not JSX"
-        }
-      ],
-      "errorMessage": "JSX opening tag must be followed by element name.",
-      "commonTypos": [
-        "<<",
-        "<-"
-      ],
-      "notes": "Must be followed by valid identifier or Fragment syntax. Uppercase = Component, lowercase = HTML.",
-      "quirks": [
-        "Uppercase starts with capital = Component",
-        "Lowercase = HTML/SVG element",
-        "Can conflict with TypeScript generics",
-        "Must match closing tag name",
-        "Fragment shorthand: <>"
-      ],
-      "stage": "stable",
-      "jsxVersion": "JSX 1.0",
-      "spec": "ANTLR JSX Grammar",
-      "bestPractice": "Use Fragment <> instead of <div> wrappers when possible.",
-      "useCases": [
-        "Opening JSX element",
-        "Component rendering",
-        "HTML element rendering",
-        "Fragment shorthand"
-      ],
-      "examples": [
-        "<div>",
-        "<Component>",
-        "<Component.Child>",
-        "<>",
-        "<ns:element>"
-      ]
-    },
-    ">": {
-      "type": "tag-end",
-      "source": "ANTLR",
+
+      "source": "react",  "__section_01_footer": "══════════════════════════════════════════════════════════════════════════════",  "__grammar_used_by": [  "__section_01_responsibility": "Provides JSX element syntax: <, >, />, <Fragment>, </>, tag opening/closing, self-closing elements, HTML vs Component disambiguation",
+
+      "description": "JSX self-closing tag"
+
+    },  "keywords": javascriptGrammar.keywords,
+
+    "className": {
+
+      "type": "jsx-attribute",      "GrammarIndex",  "__section_01_used_by": "JSXParser, JSXElementParser, ReactTransformer",
+
+      "category": "jsx-prop",
+
+      "source": "react",  // Section 02: Operators (inherit from JavaScript)
+
+      "description": "React className prop"
+
+    },  "__section_02": "══════════════════════════════════════════════════════════════════════════════",    "BlankPaperTokenizer",  "__section_01_footer": "════════════════════════════════════════════════════════════════════════════════════════════════════════",
+
+    "htmlFor": {
+
+      "type": "jsx-attribute",  "__section_02_number": "02",
+
+      "category": "jsx-prop",
+
+      "source": "react",  "__section_02_name": "operators",    "BinaryParser"  "elements": {
+
+      "description": "React htmlFor prop"
+
+    }  "__section_02_title": "【SECTION 02】JSX Operators",
+
+  },
+
+    "__section_02_language": "JSX",  ],    "<": {
+
+  "literals": {}
+
+};  "__section_02_total_items": Object.keys(javascriptGrammar.operators || {}).length,
+
+
+
+export default jsxGrammar;  "__section_02_description": "JavaScript operators (JSX inherits all JS operators)",  "__grammar_footer": "══════════════════════════════════════════════════════════════════════════════",      "type": "tag-start",
+
+
+  "__section_02_purpose": "Define operators for expression parsing",
+
+  "__section_02_responsibility": "Handle operators for tokenization",        "source": "ANTLR",
+
+  "__section_02_used_by": [
+
+    "BlankPaperTokenizer",  // Section 01: Keywords (inherit from JavaScript)      "category": "jsx-element",
+
+    "GrammarIndex"
+
+  ],  "__section_01": "══════════════════════════════════════════════════════════════════════════════",      "description": "JSX opening tag start",
+
+  "__section_02_footer": "══════════════════════════════════════════════════════════════════════════════",
+
+  "operators": javascriptGrammar.operators,  "__section_01_number": "01",      "followedBy": [
+
+  
+
+  // Section 03: Punctuation (inherit from JavaScript + JSX-specific)  "__section_01_name": "keywords",        "IDENTIFIER",
+
+  "__section_03": "══════════════════════════════════════════════════════════════════════════════",
+
+  "__section_03_number": "03",  "__section_01_title": "【SECTION 01】JSX Keywords",        "UPPERCASE_IDENTIFIER",
+
+  "__section_03_name": "punctuation",
+
+  "__section_03_title": "【SECTION 03】JSX Punctuation",  "__section_01_language": "JSX",        "DOT",
+
+  "__section_03_language": "JSX",
+
+  "__section_03_total_items": Object.keys(javascriptGrammar.punctuation || {}).length,  "__section_01_total_items": Object.keys(javascriptGrammar.keywords || {}).length,        "Fragment"
+
+  "__section_03_description": "JavaScript punctuation + JSX brackets",
+
+  "__section_03_purpose": "Define punctuation for code structure",  "__section_01_description": "JavaScript keywords (JSX inherits all JS keywords)",      ],
+
+  "__section_03_responsibility": "Handle punctuation for tokenization",
+
+  "__section_03_used_by": [  "__section_01_purpose": "Define all keywords for JSX tokenization",      "precededBy": [
+
+    "BlankPaperTokenizer",
+
+    "GrammarIndex"  "__section_01_responsibility": "Handle keywords for tokenization",        "NEWLINE",
+
+  ],
+
+  "__section_03_footer": "══════════════════════════════════════════════════════════════════════════════",  "__section_01_used_by": [        "PAREN_OPEN",
+
+  "punctuation": javascriptGrammar.punctuation,
+
+      "BlankPaperTokenizer",        "BRACE_OPEN",
+
+  // Section 04: JSX-Specific Elements
+
+  "__section_04": "══════════════════════════════════════════════════════════════════════════════",    "GrammarIndex"        "RETURN",
+
+  "__section_04_number": "04",
+
+  "__section_04_name": "jsxElements",  ],        "ASSIGN"
+
+  "__section_04_title": "【SECTION 04】JSX Elements",
+
+  "__section_04_language": "JSX",  "__section_01_footer": "══════════════════════════════════════════════════════════════════════════════",      ],
+
+  "__section_04_total_items": 5,
+
+  "__section_04_description": "JSX-specific syntax: tags, fragments, expressions",  "keywords": javascriptGrammar.keywords,      "parentContext": [
+
+  "__section_04_purpose": "Define JSX XML-like syntax elements",
+
+  "__section_04_responsibility": "Handle JSX element parsing",          "JSXElement",
+
+  "__section_04_used_by": [
+
+    "JSXParser",  // Section 02: Operators (inherit from JavaScript)        "JSXFragment",
+
+    "ReactTransformer"
+
+  ],  "__section_02": "══════════════════════════════════════════════════════════════════════════════",        "ReturnStatement",
+
+  "__section_04_footer": "══════════════════════════════════════════════════════════════════════════════",
+
+  "jsxElements": {  "__section_02_number": "02",        "Expression"
+
+    "<>": {
+
+      "type": "jsx-fragment-open",  "__section_02_name": "operators",      ],
+
+      "category": "jsx-fragment",
+
+      "source": "react",  "__section_02_title": "【SECTION 02】JSX Operators",      "startsExpr": true,
+
+      "description": "JSX fragment opening"
+
+    },  "__section_02_language": "JSX",      "beforeExpr": false,
+
+    "</>": {
+
+      "type": "jsx-fragment-close",  "__section_02_total_items": Object.keys(javascriptGrammar.operators || {}).length,      "mustBeFollowedByIdentifier": true,
+
+      "category": "jsx-fragment",
+
+      "source": "react",  "__section_02_description": "JavaScript operators (JSX inherits all JS operators)",      "isJSXToken": true,
+
+      "description": "JSX fragment closing"
+
+    },  "__section_02_purpose": "Define operators for expression parsing",      "startsJSXElement": true,
+
+    "/>": {
+
+      "type": "jsx-self-closing",  "__section_02_responsibility": "Handle operators for tokenization",      "requiresClosing": true,
+
       "category": "jsx-element",
-      "description": "JSX opening tag end",
-      "followedBy": [
-        "JSXText",
-        "JSXElement",
-        "JSXExpression",
-        "NEWLINE"
-      ],
-      "precededBy": [
-        "IDENTIFIER",
-        "ATTRIBUTE",
-        "STRING",
-        "JSXExpression"
-      ],
-      "parentContext": [
-        "JSXOpeningElement"
-      ],
-      "startsExpr": false,
-      "beforeExpr": false,
-      "endsOpeningTag": true,
-      "isJSXToken": true,
-      "endsJSXOpeningTag": true,
-      "requiresClosing": true,
-      "allowsChildren": true,
-      "disambiguation": [
-        {
-          "language": "JSX",
-          "rule": "> vs /> vs comparison",
-          "openingTag": "<Component>",
-          "selfClosing": "<Component />",
-          "comparison": "x > y",
-          "note": "Context-dependent"
-        }
-      ],
+
+      "source": "react",  "__section_02_used_by": [      "canBeComponent": true,
+
+      "description": "JSX self-closing tag"
+
+    },    "BlankPaperTokenizer",      "canBeHTMLTag": true,
+
+    "className": {
+
+      "type": "jsx-attribute",    "GrammarIndex"      "disambiguation": [
+
+      "category": "jsx-prop",
+
+      "source": "react",  ],        {
+
+      "description": "React className prop (replaces HTML class)"
+
+    },  "__section_02_footer": "══════════════════════════════════════════════════════════════════════════════",          "language": "JSX",
+
+    "htmlFor": {
+
+      "type": "jsx-attribute",  "operators": javascriptGrammar.operators,          "rule": "JSX vs generic type parameter",
+
+      "category": "jsx-prop",
+
+      "source": "react",            "jsx": "return <Component />",
+
+      "description": "React htmlFor prop (replaces HTML for)"
+
+    }  // Section 03: Punctuation (inherit from JavaScript + JSX-specific)          "typescript": "const fn = <T>() => {}",
+
+  },
+
+    "__section_03": "══════════════════════════════════════════════════════════════════════════════",          "context": "JSX in .jsx/.tsx files",
+
+  "literals": {}
+
+};  "__section_03_number": "03",          "note": "TypeScript: < after = is generic, not JSX"
+
+
+
+export default jsxGrammar;  "__section_03_name": "punctuation",        }
+
+
+  "__section_03_title": "【SECTION 03】JSX Punctuation",      ],
+
+  "__section_03_language": "JSX",      "errorMessage": "JSX opening tag must be followed by element name.",
+
+  "__section_03_total_items": Object.keys(javascriptGrammar.punctuation || {}).length,      "commonTypos": [
+
+  "__section_03_description": "JavaScript punctuation + JSX brackets",        "<<",
+
+  "__section_03_purpose": "Define punctuation for code structure",        "<-"
+
+  "__section_03_responsibility": "Handle punctuation for tokenization",      ],
+
+  "__section_03_used_by": [      "notes": "Must be followed by valid identifier or Fragment syntax. Uppercase = Component, lowercase = HTML.",
+
+    "BlankPaperTokenizer",      "quirks": [
+
+    "GrammarIndex"        "Uppercase starts with capital = Component",
+
+  ],        "Lowercase = HTML/SVG element",
+
+  "__section_03_footer": "══════════════════════════════════════════════════════════════════════════════",        "Can conflict with TypeScript generics",
+
+  "punctuation": javascriptGrammar.punctuation,        "Must match closing tag name",
+
+          "Fragment shorthand: <>"
+
+  // Section 04: JSX-Specific Elements      ],
+
+  "__section_04": "══════════════════════════════════════════════════════════════════════════════",      "stage": "stable",
+
+  "__section_04_number": "04",      "jsxVersion": "JSX 1.0",
+
+  "__section_04_name": "jsxElements",      "spec": "ANTLR JSX Grammar",
+
+  "__section_04_title": "【SECTION 04】JSX Elements",      "bestPractice": "Use Fragment <> instead of <div> wrappers when possible.",
+
+  "__section_04_language": "JSX",      "useCases": [
+
+  "__section_04_total_items": 6,        "Opening JSX element",
+
+  "__section_04_description": "JSX-specific syntax: tags, fragments, expressions",        "Component rendering",
+
+  "__section_04_purpose": "Define JSX XML-like syntax elements",        "HTML element rendering",
+
+  "__section_04_responsibility": "Handle JSX element parsing",        "Fragment shorthand"
+
+  "__section_04_used_by": [      ],
+
+    "JSXParser",      "examples": [
+
+    "ReactTransformer"        "<div>",
+
+  ],        "<Component>",
+
+  "__section_04_footer": "══════════════════════════════════════════════════════════════════════════════",        "<Component.Child>",
+
+  "jsxElements": {        "<>",
+
+    "<": {        "<ns:element>"
+
+      "type": "jsx-tag-open",      ]
+
+      "category": "jsx-element",    },
+
+      "source": "tree-sitter",    ">": {
+
+      "description": "JSX opening tag"      "type": "tag-end",
+
+    },      "source": "ANTLR",
+
+    ">": {      "category": "jsx-element",
+
+      "type": "jsx-tag-close",      "description": "JSX opening tag end",
+
+      "category": "jsx-element",      "followedBy": [
+
+      "source": "tree-sitter",        "JSXText",
+
+      "description": "JSX closing tag"        "JSXElement",
+
+    },        "JSXExpression",
+
+    "<>": {        "NEWLINE"
+
+      "type": "jsx-fragment-open",      ],
+
+      "category": "jsx-fragment",      "precededBy": [
+
+      "source": "tree-sitter",        "IDENTIFIER",
+
+      "description": "JSX fragment opening"        "ATTRIBUTE",
+
+    },        "STRING",
+
+    "</>": {        "JSXExpression"
+
+      "type": "jsx-fragment-close",      ],
+
+      "category": "jsx-fragment",      "parentContext": [
+
+      "source": "tree-sitter",        "JSXOpeningElement"
+
+      "description": "JSX fragment closing"      ],
+
+    },      "startsExpr": false,
+
+    "/>": {      "beforeExpr": false,
+
+      "type": "jsx-self-closing",      "endsOpeningTag": true,
+
+      "category": "jsx-element",      "isJSXToken": true,
+
+      "source": "tree-sitter",      "endsJSXOpeningTag": true,
+
+      "description": "JSX self-closing tag"      "requiresClosing": true,
+
+    },      "allowsChildren": true,
+
+    "{": {      "disambiguation": [
+
+      "type": "jsx-expression-open",        {
+
+      "category": "jsx-expression",          "language": "JSX",
+
+      "source": "tree-sitter",          "rule": "> vs /> vs comparison",
+
+      "description": "JSX expression container opening"          "openingTag": "<Component>",
+
+    }          "selfClosing": "<Component />",
+
+  },          "comparison": "x > y",
+
+            "note": "Context-dependent"
+
+  "literals": {}        }
+
+};      ],
+
       "errorMessage": "JSX tag closed. Expects children or closing tag.",
-      "commonTypos": [
+
+export default jsxGrammar;      "commonTypos": [
+
         ">>"
       ],
       "notes": "After >, element expects children or closing tag. Self-closing uses />.",

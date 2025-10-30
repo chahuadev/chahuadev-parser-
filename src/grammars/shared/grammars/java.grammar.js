@@ -1,1872 +1,744 @@
 // Java Grammar - ES Module
-// Auto-generated from java.grammar.json
+// Auto-generated from external grammar source
 // Binary-First Architecture: Grammar as Code
 
 export const javaGrammar = {
   "__grammar_header": "══════════════════════════════════════════════════════════════════════════════",
   "__grammar_language": "Java",
-  "__grammar_version": "SE 21 (LTS)",
+  "__grammar_version": "1.0.0",
   "__grammar_title": "Java Language Grammar Definition",
-  "__grammar_description": "Complete grammar rules for Java language - Keywords, Types, Operators, Annotations",
-  "__grammar_purpose": "ให้ GrammarIndex (Brain) รู้จักทุก syntax elements ของภาษา Java เพื่อ classify tokens อย่างถูกต้อง",
-  "__grammar_total_sections": 7,
+  "__grammar_description": "Complete grammar rules for Java - Auto-converted from Tree-sitter",
+  "__grammar_purpose": "Grammar definition for Java language tokenization and parsing",
+  "__grammar_total_sections": 3,
   "__grammar_sections": [
     "keywords",
-    "primitiveTypes",
-    "literals",
     "operators",
-    "separators",
-    "annotations",
-    "generics"
+    "punctuation"
   ],
   "__grammar_used_by": [
     "GrammarIndex",
-    "JavaParser",
-    "TokenClassifier"
+    "BlankPaperTokenizer",
+    "BinaryParser"
   ],
   "__grammar_footer": "══════════════════════════════════════════════════════════════════════════════",
   "__section_01": "══════════════════════════════════════════════════════════════════════════════",
   "__section_01_number": "01",
   "__section_01_name": "keywords",
-  "__section_01_title": "【SECTION 01】Java Keywords & Modifiers",
+  "__section_01_title": "【SECTION 01】Java Keywords",
   "__section_01_language": "Java",
-  "__section_01_total_items": 68,
-  "__section_01_description": "All Java reserved keywords including modifiers, control flow, and contextual keywords",
-  "__section_01_purpose": "กำหนด keywords ทั้งหมดของ Java เช่น abstract, class, if, for พร้อม context และ disambiguation rules",
-  "__section_01_responsibility": "ให้ Brain รู้ว่า keyword แต่ละตัวใช้ใน context ไหน, ตามหลังด้วยอะไร, combine กับ modifier อื่นได้ไหม",
+  "__section_01_total_items": 77,
+  "__section_01_description": "Reserved keywords in Java",
+  "__section_01_purpose": "Define all keywords for Java tokenization",
+  "__section_01_responsibility": "Handle keywords for tokenization",
   "__section_01_used_by": [
-    "KeywordRecognizer",
-    "ContextAnalyzer",
-    "ModifierValidator"
+    "BlankPaperTokenizer",
+    "GrammarIndex"
   ],
   "__section_01_footer": "══════════════════════════════════════════════════════════════════════════════",
   "keywords": {
+    "0B": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "0B keyword"
+    },
+    "0O": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "0O keyword"
+    },
+    "0X": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "0X keyword"
+    },
+    "0b": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "0b keyword"
+    },
+    "0o": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "0o keyword"
+    },
+    "0x": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "0x keyword"
+    },
+    "@interface": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "@interface keyword"
+    },
+    "L": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "L keyword"
+    },
+    "_": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "_ keyword"
+    },
     "abstract": {
       "category": "modifier",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0",
-      "description": "Abstract class or method modifier",
-      "followedBy": [
-        "class",
-        "interface",
-        "IDENTIFIER"
-      ],
-      "precededBy": [
-        "public",
-        "protected",
-        "private",
-        "NEWLINE"
-      ],
-      "parentContext": [
-        "ClassDeclaration",
-        "MethodDeclaration",
-        "InterfaceDeclaration"
-      ],
-      "startsExpr": false,
-      "beforeExpr": false,
-      "isModifier": true,
-      "isAbstract": true,
-      "canCombineWith": [
-        "public",
-        "protected",
-        "static"
-      ],
-      "mutuallyExclusive": [
-        "final",
-        "private",
-        "native",
-        "synchronized"
-      ],
-      "requiresImplementation": true,
-      "disambiguation": [
-        {
-          "language": "Java",
-          "rule": "abstract class vs abstract method",
-          "contexts": [
-            "abstract class X {} // Abstract class",
-            "abstract void method(); // Abstract method (no body)"
-          ]
-        }
-      ],
-      "errorMessage": "Abstract methods cannot have a body. Abstract classes cannot be instantiated.",
-      "commonTypos": [
-        "abstact",
-        "absract",
-        "abstarct",
-        "abstrac"
-      ],
-      "notes": "Cannot be final or private. Abstract methods require subclass implementation.",
-      "quirks": [
-        "Abstract class can have concrete methods",
-        "Abstract method has no body",
-        "Cannot instantiate abstract class",
-        "Cannot be final (contradiction)",
-        "Cannot be private (must be overridden)"
-      ],
-      "stage": "stable",
-      "deprecated": false,
-      "bestPractice": "Use for incomplete implementations that require subclass completion.",
-      "useCases": [
-        "Abstract base classes",
-        "Template method pattern",
-        "Enforcing subclass implementation"
-      ],
-      "example": "public abstract class Shape { abstract void draw(); }",
-      "incompatibleWith": [
-        "final",
-        "private",
-        "native",
-        "synchronized"
-      ]
+      "source": "tree-sitter",
+      "description": "abstract keyword"
     },
-    "class": {
-      "category": "declaration",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0",
-      "description": "Class declaration keyword",
-      "followedBy": [
-        "IDENTIFIER"
-      ],
-      "precededBy": [
-        "public",
-        "abstract",
-        "final",
-        "static",
-        "NEWLINE"
-      ],
-      "parentContext": [
-        "CompilationUnit",
-        "ClassBody"
-      ],
-      "startsExpr": false,
-      "beforeExpr": false,
-      "isDeclaration": true,
-      "isType": true,
-      "canHaveModifiers": true,
-      "canExtend": true,
-      "canImplement": true,
-      "canBeNested": true,
-      "disambiguation": [
-        {
-          "language": "Java",
-          "rule": "class vs .class literal",
-          "contexts": [
-            "class MyClass {} // Declaration",
-            "Class<?> c = String.class; // Class literal"
-          ]
-        }
-      ],
-      "errorMessage": "Class must have a name and body.",
-      "commonTypos": [
-        "clas",
-        "calss",
-        "clss",
-        "claass"
-      ],
-      "notes": "Single inheritance only. Can implement multiple interfaces.",
-      "quirks": [
-        "Only one public class per file",
-        "Filename must match public class name",
-        "Single inheritance (extends one class)",
-        "Multiple interface implementation",
-        "Inner classes have access to outer class"
-      ],
-      "stage": "stable",
-      "deprecated": false,
-      "bestPractice": "One public class per file. Use clear, descriptive names.",
-      "classTypes": [
-        "Top-level class",
-        "Inner class",
-        "Static nested class",
-        "Local class",
-        "Anonymous class"
-      ],
-      "useCases": [
-        "Object blueprints",
-        "Encapsulation",
-        "Inheritance hierarchies"
-      ],
-      "example": "public class User extends Person implements Serializable {}",
-      "nestedClass": "class Outer { class Inner {} }",
-      "staticNestedClass": "class Outer { static class Nested {} }"
+    "assert": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "assert keyword"
     },
-    "interface": {
-      "category": "declaration",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0",
-      "description": "Interface declaration keyword",
-      "followedBy": [
-        "IDENTIFIER"
-      ],
-      "precededBy": [
-        "public",
-        "@interface",
-        "NEWLINE"
-      ],
-      "parentContext": [
-        "CompilationUnit",
-        "ClassBody"
-      ],
-      "startsExpr": false,
-      "beforeExpr": false,
-      "isDeclaration": true,
-      "isInterface": true,
-      "isContract": true,
-      "canExtendMultiple": true,
-      "implicitlyAbstract": true,
-      "disambiguation": [
-        {
-          "language": "Java",
-          "rule": "interface vs @interface (annotation)",
-          "contexts": [
-            "interface MyInterface {} // Interface",
-            "@interface MyAnnotation {} // Annotation type"
-          ]
-        }
-      ],
-      "errorMessage": "Interface cannot have instance fields or constructors.",
-      "commonTypos": [
-        "interace",
-        "interfce",
-        "intrface",
-        "interfac"
-      ],
-      "notes": "All methods implicitly public abstract. Fields implicitly public static final.",
-      "quirks": [
-        "Multiple inheritance (extends multiple interfaces)",
-        "All fields are public static final",
-        "Methods are public abstract (pre-Java 8)",
-        "Default methods since Java 8",
-        "Static methods since Java 8",
-        "Private methods since Java 9"
-      ],
-      "stage": "stable",
-      "deprecated": false,
-      "bestPractice": "Use for defining contracts. Prefer default methods over abstract classes when possible.",
-      "evolution": [
-        "SE1.0: Abstract methods only",
-        "SE8: Default and static methods",
-        "SE9: Private methods",
-        "SE16: sealed interfaces"
-      ],
-      "useCases": [
-        "API contracts",
-        "Multiple inheritance",
-        "Callback interfaces",
-        "Functional interfaces (SAM)"
-      ],
-      "example": "public interface Drawable { void draw(); }",
-      "defaultMethod": "default void log() { System.out.println(\"Logging\"); }",
-      "functionalInterface": "@FunctionalInterface interface Predicate<T> { boolean test(T t); }"
-    },
-    "enum": {
-      "category": "declaration",
-      "source": "ANTLR",
-      "javaVersion": "SE5",
-      "description": "Enum type declaration (Java 5+)",
-      "followedBy": [
-        "IDENTIFIER"
-      ],
-      "precededBy": [
-        "public",
-        "private",
-        "protected",
-        "static"
-      ],
-      "parentContext": [
-        "CompilationUnit",
-        "ClassBody"
-      ],
-      "startsExpr": false,
-      "beforeExpr": false,
-      "isDeclaration": true,
-      "isEnum": true,
-      "isType": true,
-      "implicitlyFinal": true,
-      "implicitlyStatic": true,
-      "disambiguation": [
-        {
-          "language": "Java",
-          "rule": "enum is special class type",
-          "note": "Extends java.lang.Enum implicitly"
-        }
-      ],
-      "errorMessage": "Enum cannot extend other classes (implicitly extends Enum).",
-      "commonTypos": [
-        "enmum",
-        "enm",
-        "enu",
-        "enumm"
-      ],
-      "notes": "Type-safe enums. Can have fields, methods, constructors.",
-      "quirks": [
-        "Implicitly extends java.lang.Enum",
-        "Cannot extend other classes",
-        "Can implement interfaces",
-        "Constants are public static final",
-        "Can have constructors (private/package)",
-        "Singleton pattern by default"
-      ],
-      "stage": "stable",
-      "deprecated": false,
-      "bestPractice": "Use enum for fixed sets of constants. Add methods for behavior.",
-      "useCases": [
-        "Named constants",
-        "Finite state machines",
-        "Strategy pattern",
-        "Command pattern"
-      ],
-      "example": "enum Day { MONDAY, TUESDAY, WEDNESDAY }",
-      "withFields": "enum Planet { EARTH(5.976e24, 6.37814e6); }",
-      "withMethods": "enum Operation { PLUS { int apply(int x, int y) { return x + y; } } }"
-    },
-    "record": {
-      "category": "declaration",
-      "source": "ANTLR",
-      "javaVersion": "SE16",
-      "description": "Record class declaration (Java 16+)",
-      "followedBy": [
-        "IDENTIFIER"
-      ],
-      "precededBy": [
-        "public",
-        "private",
-        "protected",
-        "static",
-        "final"
-      ],
-      "parentContext": [
-        "CompilationUnit",
-        "ClassBody"
-      ],
-      "startsExpr": false,
-      "beforeExpr": false,
-      "isDeclaration": true,
-      "isRecord": true,
-      "implicitlyFinal": true,
-      "immutableClass": true,
-      "autoGeneratesCode": true,
-      "disambiguation": [
-        {
-          "language": "Java",
-          "rule": "record is special immutable class",
-          "note": "Generates constructor, getters, equals, hashCode, toString"
-        }
-      ],
-      "errorMessage": "Records are implicitly final and cannot be extended.",
-      "commonTypos": [
-        "recod",
-        "reord",
-        "recrd",
-        "recor"
-      ],
-      "notes": "Immutable data carriers. Auto-generates boilerplate code.",
-      "quirks": [
-        "Implicitly final (cannot be extended)",
-        "Cannot extend other classes",
-        "All fields are final",
-        "Auto-generates: constructor, getters, equals, hashCode, toString",
-        "Can implement interfaces",
-        "Can have static members and methods"
-      ],
-      "stage": "stable",
-      "deprecated": false,
-      "preview": "SE14, SE15",
-      "bestPractice": "Use for immutable data transfer objects. Prefer over POJOs.",
-      "useCases": [
-        "Data transfer objects (DTO)",
-        "Immutable value objects",
-        "Return types for multiple values",
-        "Pattern matching targets"
-      ],
-      "example": "record Point(int x, int y) {}",
-      "withMethods": "record Person(String name, int age) { String greeting() { return \"Hi\"; } }",
-      "compactConstructor": "record Range(int min, int max) { public Range { if (min > max) throw new IllegalArgumentException(); } }"
-    },
-    "sealed": {
-      "category": "modifier",
-      "source": "ANTLR",
-      "javaVersion": "SE17",
-      "description": "Sealed class/interface modifier (Java 17+)",
-      "followedBy": [
-        "class",
-        "interface"
-      ],
-      "precededBy": [
-        "public",
-        "abstract",
-        "NEWLINE"
-      ],
-      "parentContext": [
-        "ClassDeclaration",
-        "InterfaceDeclaration"
-      ],
-      "startsExpr": false,
-      "beforeExpr": false,
-      "isModifier": true,
-      "isSealed": true,
-      "requiresPermits": true,
-      "restrictInheritance": true,
-      "disambiguation": [
-        {
-          "language": "Java",
-          "rule": "sealed restricts which classes can extend/implement",
-          "note": "Requires permits clause to list allowed subtypes"
-        }
-      ],
-      "errorMessage": "Sealed classes must specify permitted subclasses with 'permits' clause.",
-      "commonTypos": [
-        "seled",
-        "selaed",
-        "seald",
-        "seaeld"
-      ],
-      "notes": "Restricts inheritance hierarchy. Subclasses must be final, sealed, or non-sealed.",
-      "quirks": [
-        "Requires permits clause",
-        "Permitted subtypes must be: final, sealed, or non-sealed",
-        "Subtypes must be in same package or module",
-        "Enables exhaustiveness in pattern matching",
-        "Permits clause can be inferred in same file"
-      ],
-      "stage": "stable",
-      "deprecated": false,
-      "preview": "SE15, SE16",
-      "bestPractice": "Use for controlled inheritance hierarchies and pattern matching.",
-      "useCases": [
-        "Algebraic data types",
-        "Controlled inheritance",
-        "Pattern matching exhaustiveness",
-        "Domain modeling"
-      ],
-      "example": "sealed class Shape permits Circle, Rectangle, Triangle {}",
-      "withInference": "sealed class Shape { final class Circle extends Shape {} }",
-      "patternMatching": "Enables exhaustive switch over sealed type hierarchy"
-    },
-    "non-sealed": {
-      "category": "modifier",
-      "source": "ANTLR",
-      "javaVersion": "SE17",
-      "description": "Non-sealed subclass modifier (Java 17+)",
-      "followedBy": [
-        "class",
-        "interface"
-      ],
-      "precededBy": [
-        "public",
-        "NEWLINE"
-      ],
-      "parentContext": [
-        "ClassDeclaration",
-        "InterfaceDeclaration"
-      ],
-      "startsExpr": false,
-      "beforeExpr": false,
-      "isModifier": true,
-      "isNonSealed": true,
-      "reopensHierarchy": true,
-      "requiresSealedParent": true,
-      "disambiguation": [
-        {
-          "language": "Java",
-          "rule": "non-sealed reopens sealed hierarchy",
-          "note": "Allows unrestricted subclassing of sealed parent"
-        }
-      ],
-      "errorMessage": "'non-sealed' can only be applied to permitted subtypes of sealed classes.",
-      "commonTypos": [
-        "nonsealed",
-        "non-selaed",
-        "nonseald",
-        "non sealed"
-      ],
-      "notes": "Reopens sealed hierarchy for extension. Must be direct subtype of sealed class.",
-      "quirks": [
-        "Hyphenated keyword (non-sealed)",
-        "Must extend/implement sealed type",
-        "Allows unrestricted further subclassing",
-        "Alternative to final or sealed",
-        "Only for sealed hierarchies"
-      ],
-      "stage": "stable",
-      "deprecated": false,
-      "preview": "SE15, SE16",
-      "bestPractice": "Use sparingly. Reopening hierarchy defeats purpose of sealed.",
-      "useCases": [
-        "Allowing extension at specific points",
-        "Plugin architectures",
-        "Framework extensibility"
-      ],
-      "example": "non-sealed class ExtensibleShape extends Shape {}",
-      "hierarchy": "sealed Shape  non-sealed ExtensibleShape  any subclass",
-      "alternatives": "final (no extension) or sealed (controlled extension)"
-    },
-    "public": {
-      "category": "access",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0",
-      "description": "Public access modifier - accessible from anywhere",
-      "followedBy": [
-        "class",
-        "interface",
-        "enum",
-        "record",
-        "abstract",
-        "final",
-        "static",
-        "IDENTIFIER"
-      ],
-      "precededBy": [
-        "NEWLINE",
-        "SEMICOLON",
-        "BRACE_CLOSE"
-      ],
-      "parentContext": [
-        "ClassDeclaration",
-        "FieldDeclaration",
-        "MethodDeclaration",
-        "ConstructorDeclaration"
-      ],
-      "startsExpr": false,
-      "beforeExpr": false,
-      "isModifier": true,
-      "isAccessModifier": true,
-      "mutuallyExclusive": [
-        "private",
-        "protected"
-      ],
-      "accessLevel": "Accessible from any class in any package",
-      "disambiguation": [
-        {
-          "language": "Java",
-          "rule": "public = accessible everywhere",
-          "accessLevels": "public > protected > package-private > private"
-        }
-      ],
-      "errorMessage": "Only one public top-level class allowed per file.",
-      "commonTypos": [
-        "pubilc",
-        "publc",
-        "pubic",
-        "publci"
-      ],
-      "notes": "Broadest access. Only one public top-level class per file.",
-      "quirks": [
-        "One public top-level class per file",
-        "Filename must match public class name",
-        "Cannot combine with private/protected",
-        "Default for interface methods",
-        "Most permissive access level"
-      ],
-      "stage": "stable",
-      "deprecated": false,
-      "bestPractice": "Use for APIs. Minimize public surface for encapsulation.",
-      "useCases": [
-        "Public APIs",
-        "Entry points",
-        "Library interfaces"
-      ],
-      "example": "public class User {}",
-      "accessMatrix": "public = everywhere, protected = package + subclasses, package = package, private = class"
-    },
-    "private": {
-      "category": "access",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0",
-      "description": "Private access modifier - accessible only within class",
-      "followedBy": [
-        "class",
-        "IDENTIFIER",
-        "static",
-        "final"
-      ],
-      "precededBy": [
-        "NEWLINE",
-        "SEMICOLON",
-        "BRACE_OPEN"
-      ],
-      "parentContext": [
-        "FieldDeclaration",
-        "MethodDeclaration",
-        "ConstructorDeclaration",
-        "InnerClassDeclaration"
-      ],
-      "startsExpr": false,
-      "beforeExpr": false,
-      "isModifier": true,
-      "isAccessModifier": true,
-      "mutuallyExclusive": [
-        "public",
-        "protected"
-      ],
-      "mutuallyExclusiveWithAbstract": true,
-      "accessLevel": "Accessible only within the same class",
-      "disambiguation": [
-        {
-          "language": "Java",
-          "rule": "private = accessible only within declaring class",
-          "note": "Most restrictive access level"
-        }
-      ],
-      "errorMessage": "Private members cannot be accessed outside declaring class.",
-      "commonTypos": [
-        "privte",
-        "pivate",
-        "priavte",
-        "privat"
-      ],
-      "notes": "Most restrictive access. Cannot be abstract.",
-      "quirks": [
-        "Most restrictive access level",
-        "Cannot be abstract (contradiction)",
-        "Can be applied to inner classes",
-        "Not visible to subclasses",
-        "Used for encapsulation"
-      ],
-      "stage": "stable",
-      "deprecated": false,
-      "bestPractice": "Default to private. Open up access as needed.",
-      "useCases": [
-        "Implementation details",
-        "Helper methods",
-        "Internal state",
-        "Encapsulation"
-      ],
-      "example": "private int age;",
-      "privateMethod": "private void helper() {}",
-      "innerClass": "private class Helper {}"
-    },
-    "protected": {
-      "category": "access",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0",
-      "description": "Protected access modifier - package + subclasses",
-      "followedBy": [
-        "class",
-        "IDENTIFIER",
-        "abstract",
-        "static",
-        "final"
-      ],
-      "precededBy": [
-        "NEWLINE",
-        "SEMICOLON",
-        "BRACE_OPEN"
-      ],
-      "parentContext": [
-        "FieldDeclaration",
-        "MethodDeclaration",
-        "ConstructorDeclaration",
-        "InnerClassDeclaration"
-      ],
-      "startsExpr": false,
-      "beforeExpr": false,
-      "isModifier": true,
-      "isAccessModifier": true,
-      "mutuallyExclusive": [
-        "public",
-        "private"
-      ],
-      "accessLevel": "Accessible in same package + subclasses in any package",
-      "disambiguation": [
-        {
-          "language": "Java",
-          "rule": "protected = package access + subclass access",
-          "note": "Accessible in subclasses even in different packages"
-        }
-      ],
-      "errorMessage": "Protected members accessible to subclasses and same package.",
-      "commonTypos": [
-        "protcted",
-        "proected",
-        "prtoected",
-        "proteted"
-      ],
-      "notes": "Package access plus subclass access (even across packages).",
-      "quirks": [
-        "Accessible in same package",
-        "Accessible in subclasses (any package)",
-        "More permissive than package-private",
-        "Less permissive than public",
-        "Common for template method pattern"
-      ],
-      "stage": "stable",
-      "deprecated": false,
-      "bestPractice": "Use for inheritance-based APIs and template methods.",
-      "useCases": [
-        "Template method pattern",
-        "Hook methods",
-        "Inheritance-based extension",
-        "Framework design"
-      ],
-      "example": "protected void init() {}",
-      "inheritance": "Base class protected methods accessible in derived classes",
-      "vsPackagePrivate": "protected = package + subclasses, package-private = package only"
-    },
-    "static": {
-      "category": "modifier",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0",
-      "description": "Static modifier - belongs to class, not instance",
-      "followedBy": [
-        "class",
-        "interface",
-        "IDENTIFIER",
-        "void",
-        "final"
-      ],
-      "precededBy": [
-        "public",
-        "private",
-        "protected",
-        "NEWLINE",
-        "BRACE_OPEN"
-      ],
-      "parentContext": [
-        "FieldDeclaration",
-        "MethodDeclaration",
-        "InnerClassDeclaration",
-        "InitializerBlock"
-      ],
-      "startsExpr": false,
-      "beforeExpr": false,
-      "isModifier": true,
-      "isStatic": true,
-      "classLevel": true,
-      "noInstanceAccess": true,
-      "disambiguation": [
-        {
-          "language": "Java",
-          "rule": "static = class-level, non-static = instance-level",
-          "differences": [
-            "static: One copy per class",
-            "instance: One copy per object",
-            "static methods: Cannot access instance members",
-            "instance methods: Can access static members"
-          ]
-        }
-      ],
-      "errorMessage": "Static members belong to class, not instances. Cannot access instance members from static context.",
-      "commonTypos": [
-        "statc",
-        "staic",
-        "sttaic",
-        "stati"
-      ],
-      "notes": "Class-level member. No instance access. Cannot be abstract.",
-      "quirks": [
-        "One copy shared by all instances",
-        "Cannot access instance members directly",
-        "Can be called without object",
-        "Static initializer blocks",
-        "Static imports",
-        "Cannot be abstract"
-      ],
-      "stage": "stable",
-      "deprecated": false,
-      "bestPractice": "Use for utility methods, constants, factory methods.",
-      "useCases": [
-        "Utility methods",
-        "Constants",
-        "Factory methods",
-        "Singleton pattern",
-        "Static initializers"
-      ],
-      "example": "public static final int MAX_VALUE = 100;",
-      "staticMethod": "public static void main(String[] args) {}",
-      "staticBlock": "static { // initialization }"
-    },
-    "final": {
-      "category": "modifier",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0",
-      "description": "Final modifier - cannot be changed/overridden",
-      "followedBy": [
-        "class",
-        "IDENTIFIER",
-        "static"
-      ],
-      "precededBy": [
-        "public",
-        "private",
-        "protected",
-        "static",
-        "NEWLINE"
-      ],
-      "parentContext": [
-        "ClassDeclaration",
-        "MethodDeclaration",
-        "FieldDeclaration",
-        "ParameterDeclaration",
-        "LocalVariableDeclaration"
-      ],
-      "startsExpr": false,
-      "beforeExpr": false,
-      "isModifier": true,
-      "isFinal": true,
-      "preventModification": true,
-      "mutuallyExclusiveWithAbstract": true,
-      "disambiguation": [
-        {
-          "language": "Java",
-          "rule": "final meaning depends on context",
-          "contexts": [
-            "final class: Cannot be extended",
-            "final method: Cannot be overridden",
-            "final field: Cannot be reassigned (must initialize)",
-            "final variable: Cannot be reassigned",
-            "final parameter: Cannot be reassigned"
-          ]
-        }
-      ],
-      "errorMessage": "Final class cannot be extended. Final method cannot be overridden. Final variable must be initialized and cannot be reassigned.",
-      "commonTypos": [
-        "fianl",
-        "finl",
-        "fnial",
-        "fina"
-      ],
-      "notes": "Prevents modification. Context-dependent meaning (class/method/variable).",
-      "quirks": [
-        "final class: No subclasses",
-        "final method: No override",
-        "final field: Must initialize, no reassignment",
-        "final parameter: No reassignment",
-        "final local variable: No reassignment",
-        "Cannot be abstract (contradiction)"
-      ],
-      "stage": "stable",
-      "deprecated": false,
-      "bestPractice": "Use for immutability, preventing inheritance/override, effectively final for lambdas.",
-      "useCases": [
-        "Immutable values",
-        "Constants",
-        "Preventing extension",
-        "Thread safety",
-        "Lambda capture"
-      ],
-      "example": "public final class String {}",
-      "finalMethod": "public final void compute() {}",
-      "finalVariable": "final int x = 10;"
-    },
-    "strictfp": {
-      "category": "modifier",
-      "source": "ANTLR",
-      "javaVersion": "SE1.2",
-      "description": "Strict floating-point modifier (Java 1.2+)",
-      "followedBy": [
-        "class",
-        "interface",
-        "IDENTIFIER"
-      ],
-      "precededBy": [
-        "public",
-        "abstract",
-        "NEWLINE"
-      ],
-      "parentContext": [
-        "ClassDeclaration",
-        "InterfaceDeclaration",
-        "MethodDeclaration"
-      ],
-      "startsExpr": false,
-      "beforeExpr": false,
-      "isModifier": true,
-      "isStrictfp": true,
-      "floatingPointPrecision": true,
-      "disambiguation": [
-        {
-          "language": "Java",
-          "rule": "strictfp ensures consistent floating-point across platforms",
-          "note": "Deprecated in Java 17+ (default behavior)"
-        }
-      ],
-      "errorMessage": "'strictfp' is deprecated in Java 17+. Strict floating-point is now default.",
-      "commonTypos": [
-        "stricfp",
-        "strictp",
-        "stirctfp"
-      ],
-      "notes": "Deprecated in Java 17+. Ensures IEEE 754 compliance.",
-      "quirks": [
-        "Ensures IEEE 754 floating-point standard",
-        "Platform-independent results",
-        "Deprecated in Java 17+",
-        "Now default behavior",
-        "Can apply to class, interface, method"
-      ],
-      "stage": "deprecated",
-      "deprecated": true,
-      "deprecatedVersion": "SE17",
-      "bestPractice": "No longer needed. Strict FP is default in Java 17+.",
-      "useCases": [
-        "Legacy code",
-        "Platform-independent floating-point (pre-Java 17)"
-      ],
-      "example": "strictfp class Calculator {}",
-      "deprecationNote": "Deprecated in Java 17. Strict FP now default."
-    },
-    "synchronized": {
-      "category": "modifier",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0",
-      "description": "Synchronized modifier - thread-safe method/block",
-      "followedBy": [
-        "IDENTIFIER",
-        "void",
-        "PAREN_OPEN"
-      ],
-      "precededBy": [
-        "public",
-        "private",
-        "protected",
-        "static",
-        "NEWLINE"
-      ],
-      "parentContext": [
-        "MethodDeclaration",
-        "Statement"
-      ],
-      "startsExpr": false,
-      "beforeExpr": false,
-      "isModifier": true,
-      "dualUsage": true,
-      "isSynchronized": true,
-      "threadSafe": true,
-      "acquiresLock": true,
-      "disambiguation": [
-        {
-          "language": "Java",
-          "rule": "synchronized method vs synchronized block",
-          "contexts": [
-            "synchronized void method() {} // Synchronized method",
-            "synchronized(obj) { ... } // Synchronized block"
-          ]
-        }
-      ],
-      "errorMessage": "Synchronized provides thread safety but can cause performance overhead.",
-      "commonTypos": [
-        "syncronized",
-        "sychronized",
-        "synchronzied",
-        "syncrhonized"
-      ],
-      "notes": "Thread synchronization. Monitor lock on object. Performance overhead.",
-      "quirks": [
-        "Acquires intrinsic lock",
-        "synchronized method: locks this (or Class for static)",
-        "synchronized block: locks specified object",
-        "Can cause deadlock",
-        "Performance overhead",
-        "Cannot be abstract"
-      ],
-      "stage": "stable",
-      "deprecated": false,
-      "bestPractice": "Use for simple thread safety. Consider java.util.concurrent for complex cases.",
-      "useCases": [
-        "Thread-safe methods",
-        "Critical sections",
-        "Protecting shared state",
-        "Monitor pattern"
-      ],
-      "example": "public synchronized void increment() {}",
-      "synchronizedBlock": "synchronized(lock) { count++; }",
-      "alternatives": "ReentrantLock, AtomicInteger, concurrent collections"
-    },
-    "transient": {
-      "category": "modifier",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0",
-      "description": "Transient modifier - skip serialization",
-      "followedBy": [
-        "IDENTIFIER"
-      ],
-      "precededBy": [
-        "private",
-        "protected",
-        "static",
-        "NEWLINE"
-      ],
-      "parentContext": [
-        "FieldDeclaration"
-      ],
-      "startsExpr": false,
-      "beforeExpr": false,
-      "isModifier": true,
-      "isTransient": true,
-      "skipSerialization": true,
-      "fieldOnly": true,
-      "disambiguation": [
-        {
-          "language": "Java",
-          "rule": "transient = skip field during serialization",
-          "note": "Only for Serializable classes"
-        }
-      ],
-      "errorMessage": "'transient' only applies to fields. Skips serialization.",
-      "commonTypos": [
-        "transient",
-        "transeint",
-        "trasient",
-        "transiet"
-      ],
-      "notes": "Serialization modifier. Field not serialized. Only for fields.",
-      "quirks": [
-        "Only for fields",
-        "Skipped during serialization",
-        "Useful for derived/cached values",
-        "Sensitive data (passwords)",
-        "Non-serializable references",
-        "static fields not serialized anyway"
-      ],
-      "stage": "stable",
-      "deprecated": false,
-      "bestPractice": "Use for sensitive data, caches, derived fields, non-serializable references.",
-      "useCases": [
-        "Sensitive data (passwords)",
-        "Cached/derived values",
-        "Non-serializable references",
-        "Temporary state"
-      ],
-      "example": "private transient String password;",
-      "serialization": "Field excluded from serialization",
-      "alternatives": "Custom serialization with writeObject/readObject"
-    },
-    "volatile": {
-      "category": "modifier",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0",
-      "description": "Volatile modifier - thread-visible field",
-      "followedBy": [
-        "IDENTIFIER"
-      ],
-      "precededBy": [
-        "private",
-        "protected",
-        "static",
-        "NEWLINE"
-      ],
-      "parentContext": [
-        "FieldDeclaration"
-      ],
-      "startsExpr": false,
-      "beforeExpr": false,
-      "isModifier": true,
-      "isVolatile": true,
-      "threadVisible": true,
-      "memoryBarrier": true,
-      "fieldOnly": true,
-      "disambiguation": [
-        {
-          "language": "Java",
-          "rule": "volatile = visibility guarantee, not atomicity",
-          "note": "Prevents caching, ensures visibility across threads"
-        }
-      ],
-      "errorMessage": "'volatile' ensures visibility but not atomicity. Use for simple flags.",
-      "commonTypos": [
-        "volatil",
-        "volatie",
-        "volaitile",
-        "volatlie"
-      ],
-      "notes": "Memory visibility. No caching. No reordering. Not atomic for compound operations.",
-      "quirks": [
-        "Only for fields",
-        "Prevents CPU caching",
-        "Ensures visibility across threads",
-        "Not atomic for compound operations (++)",
-        "Happens-before guarantee",
-        "Cannot be final"
-      ],
-      "stage": "stable",
-      "deprecated": false,
-      "bestPractice": "Use for simple flags. Use AtomicInteger for counters.",
-      "useCases": [
-        "Boolean flags",
-        "Status indicators",
-        "Double-checked locking",
-        "Simple publisher-subscriber"
-      ],
-      "example": "private volatile boolean running = true;",
-      "notAtomic": "volatile int count; count++; // Not atomic!",
-      "alternatives": "AtomicInteger, AtomicBoolean, AtomicReference for atomic operations"
-    },
-    "native": {
-      "category": "modifier",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0",
-      "description": "Native modifier - JNI method implementation",
-      "followedBy": [
-        "IDENTIFIER",
-        "void"
-      ],
-      "precededBy": [
-        "public",
-        "private",
-        "protected",
-        "static",
-        "NEWLINE"
-      ],
-      "parentContext": [
-        "MethodDeclaration"
-      ],
-      "startsExpr": false,
-      "beforeExpr": false,
-      "isModifier": true,
-      "isNative": true,
-      "jniMethod": true,
-      "noBody": true,
-      "methodOnly": true,
-      "disambiguation": [
-        {
-          "language": "Java",
-          "rule": "native = implemented in C/C++ via JNI",
-          "note": "No Java method body"
-        }
-      ],
-      "errorMessage": "'native' methods have no Java body. Implemented via JNI.",
-      "commonTypos": [
-        "natvie",
-        "natie",
-        "nativ",
-        "ntaive"
-      ],
-      "notes": "JNI method. No Java implementation. Platform-dependent.",
-      "quirks": [
-        "Only for methods",
-        "No Java method body",
-        "Implemented in C/C++",
-        "Requires JNI",
-        "Platform-dependent",
-        "Cannot be abstract"
-      ],
-      "stage": "stable",
-      "deprecated": false,
-      "bestPractice": "Use sparingly. Prefer pure Java. JNI for performance-critical or system calls.",
-      "useCases": [
-        "System calls",
-        "Hardware access",
-        "Legacy C/C++ libraries",
-        "Performance-critical code"
-      ],
-      "example": "public native void nativeMethod();",
-      "jni": "Implemented via Java Native Interface (JNI)",
-      "alternatives": "Project Panama (Foreign Function & Memory API) for modern native access"
-    },
-    "if": {
-      "category": "control",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0"
-    },
-    "else": {
-      "category": "control",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0"
-    },
-    "switch": {
-      "category": "control",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0"
-    },
-    "case": {
-      "category": "control",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0"
-    },
-    "default": {
-      "category": "control",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0"
-    },
-    "for": {
-      "category": "iteration",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0"
-    },
-    "while": {
-      "category": "iteration",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0"
-    },
-    "do": {
-      "category": "iteration",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0"
+    "boolean": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "boolean keyword"
     },
     "break": {
       "category": "iteration",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0"
+      "source": "tree-sitter",
+      "description": "break keyword"
     },
-    "continue": {
-      "category": "iteration",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0"
+    "byte": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "byte keyword"
     },
-    "try": {
-      "category": "exception",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0"
+    "case": {
+      "category": "control",
+      "source": "tree-sitter",
+      "description": "case keyword"
     },
     "catch": {
       "category": "exception",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0"
+      "source": "tree-sitter",
+      "description": "catch keyword"
+    },
+    "char": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "char keyword"
+    },
+    "class": {
+      "category": "class",
+      "source": "tree-sitter",
+      "description": "class keyword"
+    },
+    "continue": {
+      "category": "iteration",
+      "source": "tree-sitter",
+      "description": "continue keyword"
+    },
+    "default": {
+      "category": "control",
+      "source": "tree-sitter",
+      "description": "default keyword"
+    },
+    "do": {
+      "category": "iteration",
+      "source": "tree-sitter",
+      "description": "do keyword"
+    },
+    "double": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "double keyword"
+    },
+    "else": {
+      "category": "control",
+      "source": "tree-sitter",
+      "description": "else keyword"
+    },
+    "enum": {
+      "category": "type",
+      "source": "tree-sitter",
+      "description": "enum keyword"
+    },
+    "exports": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "exports keyword"
+    },
+    "extends": {
+      "category": "class",
+      "source": "tree-sitter",
+      "description": "extends keyword"
+    },
+    "false": {
+      "category": "literal",
+      "source": "tree-sitter",
+      "description": "false keyword"
+    },
+    "final": {
+      "category": "modifier",
+      "source": "tree-sitter",
+      "description": "final keyword"
     },
     "finally": {
       "category": "exception",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0"
+      "source": "tree-sitter",
+      "description": "finally keyword"
     },
-    "throw": {
-      "category": "exception",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0"
+    "float": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "float keyword"
     },
-    "throws": {
-      "category": "exception",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0"
+    "for": {
+      "category": "iteration",
+      "source": "tree-sitter",
+      "description": "for keyword"
     },
-    "extends": {
-      "category": "inheritance",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0"
+    "if": {
+      "category": "control",
+      "source": "tree-sitter",
+      "description": "if keyword"
     },
     "implements": {
-      "category": "inheritance",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0"
-    },
-    "new": {
-      "category": "operator",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0"
-    },
-    "this": {
-      "category": "reference",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0"
-    },
-    "super": {
-      "category": "reference",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0"
-    },
-    "package": {
-      "category": "module",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0"
+      "category": "class",
+      "source": "tree-sitter",
+      "description": "implements keyword"
     },
     "import": {
       "category": "module",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0"
-    },
-    "return": {
-      "category": "control",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0"
-    },
-    "void": {
-      "category": "type",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0"
-    },
-    "assert": {
-      "category": "statement",
-      "source": "ANTLR",
-      "javaVersion": "SE1.4"
+      "source": "tree-sitter",
+      "description": "import keyword"
     },
     "instanceof": {
-      "category": "operator",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0"
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "instanceof keyword"
     },
-    "const": {
-      "category": "reserved",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0",
-      "unused": true
+    "int": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "int keyword"
     },
-    "goto": {
-      "category": "reserved",
-      "source": "ANTLR",
-      "javaVersion": "SE1.0",
-      "unused": true
+    "interface": {
+      "category": "class",
+      "source": "tree-sitter",
+      "description": "interface keyword"
+    },
+    "l": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "l keyword"
+    },
+    "long": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "long keyword"
     },
     "module": {
       "category": "module",
-      "source": "ANTLR",
-      "javaVersion": "SE9",
-      "contextual": true
+      "source": "tree-sitter",
+      "description": "module keyword"
     },
-    "requires": {
-      "category": "module",
-      "source": "ANTLR",
-      "javaVersion": "SE9",
-      "contextual": true
+    "native": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "native keyword"
     },
-    "exports": {
-      "category": "module",
-      "source": "ANTLR",
-      "javaVersion": "SE9",
-      "contextual": true
+    "new": {
+      "category": "class",
+      "source": "tree-sitter",
+      "description": "new keyword"
     },
-    "opens": {
-      "category": "module",
-      "source": "ANTLR",
-      "javaVersion": "SE9",
-      "contextual": true
+    "non-sealed": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "non-sealed keyword"
     },
-    "uses": {
-      "category": "module",
-      "source": "ANTLR",
-      "javaVersion": "SE9",
-      "contextual": true
-    },
-    "provides": {
-      "category": "module",
-      "source": "ANTLR",
-      "javaVersion": "SE9",
-      "contextual": true
-    },
-    "with": {
-      "category": "module",
-      "source": "ANTLR",
-      "javaVersion": "SE9",
-      "contextual": true
-    },
-    "to": {
-      "category": "module",
-      "source": "ANTLR",
-      "javaVersion": "SE9",
-      "contextual": true
-    },
-    "transitive": {
-      "category": "module",
-      "source": "ANTLR",
-      "javaVersion": "SE9",
-      "contextual": true
+    "null": {
+      "category": "literal",
+      "source": "tree-sitter",
+      "description": "null keyword"
     },
     "open": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "open keyword"
+    },
+    "opens": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "opens keyword"
+    },
+    "package": {
       "category": "module",
-      "source": "ANTLR",
-      "javaVersion": "SE9",
-      "contextual": true
-    },
-    "var": {
-      "category": "type",
-      "source": "ANTLR",
-      "javaVersion": "SE10",
-      "contextual": true
-    },
-    "yield": {
-      "category": "control",
-      "source": "ANTLR",
-      "javaVersion": "SE14",
-      "contextual": true
+      "source": "tree-sitter",
+      "description": "package keyword"
     },
     "permits": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "permits keyword"
+    },
+    "private": {
       "category": "modifier",
-      "source": "ANTLR",
-      "javaVersion": "SE17",
-      "contextual": true
+      "source": "tree-sitter",
+      "description": "private keyword"
+    },
+    "protected": {
+      "category": "modifier",
+      "source": "tree-sitter",
+      "description": "protected keyword"
+    },
+    "provides": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "provides keyword"
+    },
+    "public": {
+      "category": "modifier",
+      "source": "tree-sitter",
+      "description": "public keyword"
+    },
+    "record": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "record keyword"
+    },
+    "requires": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "requires keyword"
+    },
+    "return": {
+      "category": "function",
+      "source": "tree-sitter",
+      "description": "return keyword"
+    },
+    "sealed": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "sealed keyword"
+    },
+    "short": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "short keyword"
+    },
+    "static": {
+      "category": "modifier",
+      "source": "tree-sitter",
+      "description": "static keyword"
+    },
+    "strictfp": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "strictfp keyword"
+    },
+    "super": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "super keyword"
+    },
+    "switch": {
+      "category": "control",
+      "source": "tree-sitter",
+      "description": "switch keyword"
+    },
+    "synchronized": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "synchronized keyword"
+    },
+    "this": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "this keyword"
+    },
+    "throw": {
+      "category": "exception",
+      "source": "tree-sitter",
+      "description": "throw keyword"
+    },
+    "throws": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "throws keyword"
+    },
+    "to": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "to keyword"
+    },
+    "transient": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "transient keyword"
+    },
+    "transitive": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "transitive keyword"
+    },
+    "true": {
+      "category": "literal",
+      "source": "tree-sitter",
+      "description": "true keyword"
+    },
+    "try": {
+      "category": "exception",
+      "source": "tree-sitter",
+      "description": "try keyword"
+    },
+    "uses": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "uses keyword"
+    },
+    "void": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "void keyword"
+    },
+    "volatile": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "volatile keyword"
+    },
+    "when": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "when keyword"
+    },
+    "while": {
+      "category": "iteration",
+      "source": "tree-sitter",
+      "description": "while keyword"
+    },
+    "with": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "with keyword"
+    },
+    "yield": {
+      "category": "function",
+      "source": "tree-sitter",
+      "description": "yield keyword"
     }
   },
   "__section_02": "══════════════════════════════════════════════════════════════════════════════",
   "__section_02_number": "02",
-  "__section_02_name": "primitiveTypes",
-  "__section_02_title": "【SECTION 02】Java Primitive Types",
+  "__section_02_name": "operators",
+  "__section_02_title": "【SECTION 02】Java Operators",
   "__section_02_language": "Java",
-  "__section_02_total_items": 8,
-  "__section_02_description": "All 8 primitive data types in Java: boolean, byte, short, int, long, float, double, char",
-  "__section_02_purpose": "กำหนด primitive types ทั้งหมดพร้อมข้อมูล size, default value, range เพื่อ type checking",
-  "__section_02_responsibility": "ให้ Brain รู้จัก primitive types และสามารถ validate type assignments ได้ถูกต้อง",
+  "__section_02_total_items": 41,
+  "__section_02_description": "All operators in Java",
+  "__section_02_purpose": "Define operators for expression parsing",
+  "__section_02_responsibility": "Handle operators for tokenization",
   "__section_02_used_by": [
-    "TypeChecker",
-    "TypeInferencer",
-    "VariableDeclarationParser"
+    "BlankPaperTokenizer",
+    "GrammarIndex"
   ],
   "__section_02_footer": "══════════════════════════════════════════════════════════════════════════════",
-  "primitiveTypes": {
-    "boolean": {
-      "category": "type",
-      "size": "1-bit",
-      "source": "ANTLR"
+  "operators": {
+    "!": {
+      "type": "logical",
+      "source": "tree-sitter",
+      "description": "! operator"
     },
-    "byte": {
-      "category": "type",
-      "size": "8-bit",
-      "source": "ANTLR"
+    "!=": {
+      "type": "comparison",
+      "source": "tree-sitter",
+      "description": "!= operator"
     },
-    "char": {
-      "category": "type",
-      "size": "16-bit",
-      "source": "ANTLR"
+    "%": {
+      "type": "arithmetic",
+      "source": "tree-sitter",
+      "description": "% operator"
     },
-    "short": {
-      "category": "type",
-      "size": "16-bit",
-      "source": "ANTLR"
+    "%=": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": "%= operator"
     },
-    "int": {
-      "category": "type",
-      "size": "32-bit",
-      "source": "ANTLR"
+    "&": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": "& operator"
     },
-    "long": {
-      "category": "type",
-      "size": "64-bit",
-      "source": "ANTLR"
+    "&&": {
+      "type": "logical",
+      "source": "tree-sitter",
+      "description": "&& operator"
     },
-    "float": {
-      "category": "type",
-      "size": "32-bit",
-      "source": "ANTLR"
+    "&=": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": "&= operator"
     },
-    "double": {
-      "category": "type",
-      "size": "64-bit",
-      "source": "ANTLR"
+    "*": {
+      "type": "arithmetic",
+      "source": "tree-sitter",
+      "description": "* operator"
+    },
+    "*=": {
+      "type": "assignment",
+      "source": "tree-sitter",
+      "description": "*= operator"
+    },
+    "+": {
+      "type": "arithmetic",
+      "source": "tree-sitter",
+      "description": "+ operator"
+    },
+    "++": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": "++ operator"
+    },
+    "+=": {
+      "type": "assignment",
+      "source": "tree-sitter",
+      "description": "+= operator"
+    },
+    "-": {
+      "type": "arithmetic",
+      "source": "tree-sitter",
+      "description": "- operator"
+    },
+    "--": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": "-- operator"
+    },
+    "-=": {
+      "type": "assignment",
+      "source": "tree-sitter",
+      "description": "-= operator"
+    },
+    "->": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": "-> operator"
+    },
+    "/": {
+      "type": "arithmetic",
+      "source": "tree-sitter",
+      "description": "/ operator"
+    },
+    "/*": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": "/* operator"
+    },
+    "//": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": "// operator"
+    },
+    "/=": {
+      "type": "assignment",
+      "source": "tree-sitter",
+      "description": "/= operator"
+    },
+    ":": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": ": operator"
+    },
+    "::": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": ":: operator"
+    },
+    "<": {
+      "type": "comparison",
+      "source": "tree-sitter",
+      "description": "< operator"
+    },
+    "<<": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": "<< operator"
+    },
+    "<<=": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": "<<= operator"
+    },
+    "<=": {
+      "type": "comparison",
+      "source": "tree-sitter",
+      "description": "<= operator"
+    },
+    "=": {
+      "type": "assignment",
+      "source": "tree-sitter",
+      "description": "= operator"
+    },
+    "==": {
+      "type": "comparison",
+      "source": "tree-sitter",
+      "description": "== operator"
+    },
+    ">": {
+      "type": "comparison",
+      "source": "tree-sitter",
+      "description": "> operator"
+    },
+    ">=": {
+      "type": "comparison",
+      "source": "tree-sitter",
+      "description": ">= operator"
+    },
+    ">>": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": ">> operator"
+    },
+    ">>=": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": ">>= operator"
+    },
+    ">>>": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": ">>> operator"
+    },
+    ">>>=": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": ">>>= operator"
+    },
+    "?": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": "? operator"
+    },
+    "^": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": "^ operator"
+    },
+    "^=": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": "^= operator"
+    },
+    "|": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": "| operator"
+    },
+    "|=": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": "|= operator"
+    },
+    "||": {
+      "type": "logical",
+      "source": "tree-sitter",
+      "description": "|| operator"
+    },
+    "~": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": "~ operator"
     }
   },
   "__section_03": "══════════════════════════════════════════════════════════════════════════════",
   "__section_03_number": "03",
-  "__section_03_name": "literals",
-  "__section_03_title": "【SECTION 03】Java Literals",
+  "__section_03_name": "punctuation",
+  "__section_03_title": "【SECTION 03】Java Punctuation",
   "__section_03_language": "Java",
-  "__section_03_total_items": 3,
-  "__section_03_description": "Java literal values: true, false, null",
-  "__section_03_purpose": "กำหนด literal values ที่เป็น reserved keywords ใน Java",
-  "__section_03_responsibility": "ให้ Brain รู้จัก boolean literals และ null literal เพื่อ classify เป็น LITERAL token แทน IDENTIFIER",
+  "__section_03_total_items": 16,
+  "__section_03_description": "Punctuation marks and separators",
+  "__section_03_purpose": "Define punctuation for code structure",
+  "__section_03_responsibility": "Handle punctuation for tokenization",
   "__section_03_used_by": [
-    "LiteralRecognizer",
-    "ConstantEvaluator"
+    "BlankPaperTokenizer",
+    "GrammarIndex"
   ],
   "__section_03_footer": "══════════════════════════════════════════════════════════════════════════════",
-  "literals": {
-    "true": {
-      "type": "boolean",
-      "value": true,
-      "source": "ANTLR"
+  "punctuation": {
+    "\"": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": "\" punctuation"
     },
-    "false": {
-      "type": "boolean",
-      "value": false,
-      "source": "ANTLR"
+    "\"\"\"": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": "\"\"\" punctuation"
     },
-    "null": {
-      "type": "null",
-      "value": null,
-      "source": "ANTLR"
+    "'": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": "' punctuation"
     },
-    "decimal": {
-      "type": "int",
-      "format": "decimal",
-      "source": "ANTLR"
-    },
-    "hexadecimal": {
-      "type": "int",
-      "format": "0x",
-      "source": "ANTLR"
-    },
-    "octal": {
-      "type": "int",
-      "format": "0",
-      "source": "ANTLR"
-    },
-    "binary": {
-      "type": "int",
-      "format": "0b",
-      "source": "ANTLR",
-      "javaVersion": "SE7"
-    },
-    "floatLiteral": {
-      "type": "float",
-      "suffix": "f/F",
-      "source": "ANTLR"
-    },
-    "doubleLiteral": {
-      "type": "double",
-      "suffix": "d/D",
-      "source": "ANTLR"
-    },
-    "charLiteral": {
-      "type": "char",
-      "format": "'...'",
-      "source": "ANTLR"
-    },
-    "stringLiteral": {
-      "type": "string",
-      "format": "\"...\"",
-      "source": "ANTLR"
-    },
-    "textBlock": {
-      "type": "string",
-      "format": "\"\"\"....\"\"\"",
-      "source": "ANTLR",
-      "javaVersion": "SE15"
-    }
-  },
-  "__section_04": "══════════════════════════════════════════════════════════════════════════════",
-  "__section_04_number": "04",
-  "__section_04_name": "operators",
-  "__section_04_title": "【SECTION 04】Java Operators",
-  "__section_04_language": "Java",
-  "__section_04_total_items": 50,
-  "__section_04_description": "All Java operators: arithmetic, relational, logical, bitwise, assignment, ternary, etc.",
-  "__section_04_purpose": "กำหนด operators ทั้งหมดใน Java พร้อมประเภท precedence และ associativity",
-  "__section_04_responsibility": "ให้ Brain รู้จัก operator แต่ละตัว เพื่อ parse expressions และตรวจสอบ precedence ได้ถูกต้อง",
-  "__section_04_used_by": [
-    "OperatorMatcher",
-    "ExpressionParser",
-    "PrecedenceResolver"
-  ],
-  "__section_04_footer": "══════════════════════════════════════════════════════════════════════════════",
-  "operators": {
-    "+": {
-      "type": "arithmetic",
-      "source": "ANTLR"
-    },
-    "-": {
-      "type": "arithmetic",
-      "source": "ANTLR"
-    },
-    "*": {
-      "type": "arithmetic",
-      "source": "ANTLR"
-    },
-    "/": {
-      "type": "arithmetic",
-      "source": "ANTLR"
-    },
-    "%": {
-      "type": "arithmetic",
-      "source": "ANTLR"
-    },
-    "++": {
-      "type": "unary",
-      "source": "ANTLR"
-    },
-    "--": {
-      "type": "unary",
-      "source": "ANTLR"
-    },
-    "!": {
-      "type": "unary",
-      "source": "ANTLR"
-    },
-    "~": {
-      "type": "unary",
-      "source": "ANTLR"
-    },
-    "==": {
-      "type": "relational",
-      "source": "ANTLR"
-    },
-    "!=": {
-      "type": "relational",
-      "source": "ANTLR"
-    },
-    "<": {
-      "type": "relational",
-      "source": "ANTLR"
-    },
-    ">": {
-      "type": "relational",
-      "source": "ANTLR"
-    },
-    "<=": {
-      "type": "relational",
-      "source": "ANTLR"
-    },
-    ">=": {
-      "type": "relational",
-      "source": "ANTLR"
-    },
-    "&&": {
-      "type": "logical",
-      "source": "ANTLR"
-    },
-    "||": {
-      "type": "logical",
-      "source": "ANTLR"
-    },
-    "&": {
-      "type": "bitwise",
-      "source": "ANTLR"
-    },
-    "|": {
-      "type": "bitwise",
-      "source": "ANTLR"
-    },
-    "^": {
-      "type": "bitwise",
-      "source": "ANTLR"
-    },
-    "<<": {
-      "type": "bitwise",
-      "source": "ANTLR"
-    },
-    ">>": {
-      "type": "bitwise",
-      "source": "ANTLR"
-    },
-    ">>>": {
-      "type": "bitwise",
-      "source": "ANTLR"
-    },
-    "=": {
-      "type": "assignment",
-      "source": "ANTLR"
-    },
-    "+=": {
-      "type": "assignment",
-      "source": "ANTLR"
-    },
-    "-=": {
-      "type": "assignment",
-      "source": "ANTLR"
-    },
-    "*=": {
-      "type": "assignment",
-      "source": "ANTLR"
-    },
-    "/=": {
-      "type": "assignment",
-      "source": "ANTLR"
-    },
-    "%=": {
-      "type": "assignment",
-      "source": "ANTLR"
-    },
-    "&=": {
-      "type": "assignment",
-      "source": "ANTLR"
-    },
-    "|=": {
-      "type": "assignment",
-      "source": "ANTLR"
-    },
-    "^=": {
-      "type": "assignment",
-      "source": "ANTLR"
-    },
-    "<<=": {
-      "type": "assignment",
-      "source": "ANTLR"
-    },
-    ">>=": {
-      "type": "assignment",
-      "source": "ANTLR"
-    },
-    ">>>=": {
-      "type": "assignment",
-      "source": "ANTLR"
-    },
-    "?": {
-      "type": "ternary",
-      "source": "ANTLR"
-    },
-    ":": {
-      "type": "ternary",
-      "source": "ANTLR"
-    },
-    "::": {
-      "type": "reference",
-      "source": "ANTLR",
-      "javaVersion": "SE8"
-    },
-    "->": {
-      "type": "lambda",
-      "source": "ANTLR",
-      "javaVersion": "SE8"
-    },
-    "@": {
-      "type": "annotation",
-      "source": "ANTLR",
-      "javaVersion": "SE5"
-    },
-    "...": {
-      "type": "varargs",
-      "source": "ANTLR",
-      "javaVersion": "SE5"
-    }
-  },
-  "__section_05": "══════════════════════════════════════════════════════════════════════════════",
-  "__section_05_number": "05",
-  "__section_05_name": "separators",
-  "__section_05_title": "【SECTION 05】Java Separators & Punctuation",
-  "__section_05_language": "Java",
-  "__section_05_total_items": 12,
-  "__section_05_description": "Java separators: parentheses, brackets, braces, semicolon, comma, period, etc.",
-  "__section_05_purpose": "กำหนด punctuation marks และ separators ที่ใช้ในการ structure code",
-  "__section_05_responsibility": "ให้ Brain รู้จัก separators เพื่อ parse statements, expressions, และ code blocks ได้ถูกต้อง",
-  "__section_05_used_by": [
-    "SeparatorMatcher",
-    "BlockParser",
-    "StatementParser"
-  ],
-  "__section_05_footer": "══════════════════════════════════════════════════════════════════════════════",
-  "separators": {
     "(": {
       "type": "paren",
-      "pair": ")",
-      "source": "ANTLR"
+      "source": "tree-sitter",
+      "description": "( punctuation"
     },
     ")": {
       "type": "paren",
-      "pair": "(",
-      "source": "ANTLR"
-    },
-    "{": {
-      "type": "brace",
-      "pair": "}",
-      "source": "ANTLR"
-    },
-    "}": {
-      "type": "brace",
-      "pair": "{",
-      "source": "ANTLR"
-    },
-    "[": {
-      "type": "bracket",
-      "pair": "]",
-      "source": "ANTLR"
-    },
-    "]": {
-      "type": "bracket",
-      "pair": "[",
-      "source": "ANTLR"
-    },
-    ";": {
-      "type": "delimiter",
-      "name": "semicolon",
-      "source": "ANTLR"
+      "source": "tree-sitter",
+      "description": ") punctuation"
     },
     ",": {
-      "type": "delimiter",
-      "name": "comma",
-      "source": "ANTLR"
+      "type": "separator",
+      "source": "tree-sitter",
+      "description": ", punctuation"
     },
     ".": {
       "type": "accessor",
-      "name": "dot",
-      "source": "ANTLR"
-    }
-  },
-  "__section_06": "══════════════════════════════════════════════════════════════════════════════",
-  "__section_06_number": "06",
-  "__section_06_name": "annotations",
-  "__section_06_title": "【SECTION 06】Java Annotations",
-  "__section_06_language": "Java",
-  "__section_06_total_items": 10,
-  "__section_06_description": "Built-in Java annotations: @Override, @Deprecated, @SuppressWarnings, @FunctionalInterface, etc.",
-  "__section_06_purpose": "กำหนด built-in annotations ของ Java พร้อม target elements และ Java version",
-  "__section_06_responsibility": "ให้ Brain รู้จัก annotations และ validate ว่าใช้กับ element ที่ถูกต้องหรือไม่",
-  "__section_06_used_by": [
-    "AnnotationParser",
-    "MetadataProcessor"
-  ],
-  "__section_06_footer": "══════════════════════════════════════════════════════════════════════════════",
-  "annotations": {
-    "@Override": {
-      "target": "METHOD",
-      "source": "ANTLR",
-      "javaVersion": "SE5"
+      "source": "tree-sitter",
+      "description": ". punctuation"
     },
-    "@Deprecated": {
-      "target": "ALL",
-      "source": "ANTLR",
-      "javaVersion": "SE5"
+    "...": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": "... punctuation"
     },
-    "@SuppressWarnings": {
-      "target": "ALL",
-      "source": "ANTLR",
-      "javaVersion": "SE5"
+    ";": {
+      "type": "statement-end",
+      "source": "tree-sitter",
+      "description": "; punctuation"
     },
-    "@SafeVarargs": {
-      "target": "METHOD,CONSTRUCTOR",
-      "source": "ANTLR",
-      "javaVersion": "SE7"
+    "@": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": "@ punctuation"
     },
-    "@FunctionalInterface": {
-      "target": "TYPE",
-      "source": "ANTLR",
-      "javaVersion": "SE8"
+    "[": {
+      "type": "bracket",
+      "source": "tree-sitter",
+      "description": "[ punctuation"
     },
-    "@Retention": {
-      "target": "ANNOTATION_TYPE",
-      "source": "ANTLR",
-      "javaVersion": "SE5"
+    "\\": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": "\\ punctuation"
     },
-    "@Target": {
-      "target": "ANNOTATION_TYPE",
-      "source": "ANTLR",
-      "javaVersion": "SE5"
+    "\\{": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": "\\{ punctuation"
     },
-    "@Documented": {
-      "target": "ANNOTATION_TYPE",
-      "source": "ANTLR",
-      "javaVersion": "SE5"
+    "]": {
+      "type": "bracket",
+      "source": "tree-sitter",
+      "description": "] punctuation"
     },
-    "@Inherited": {
-      "target": "ANNOTATION_TYPE",
-      "source": "ANTLR",
-      "javaVersion": "SE5"
+    "{": {
+      "type": "brace",
+      "source": "tree-sitter",
+      "description": "{ punctuation"
     },
-    "@Repeatable": {
-      "target": "ANNOTATION_TYPE",
-      "source": "ANTLR",
-      "javaVersion": "SE8"
-    }
-  },
-  "__section_07": "══════════════════════════════════════════════════════════════════════════════",
-  "__section_07_number": "07",
-  "__section_07_name": "generics",
-  "__section_07_title": "【SECTION 07】Java Generics Syntax",
-  "__section_07_language": "Java",
-  "__section_07_total_items": 5,
-  "__section_07_description": "Generics syntax elements: <, >, ?, extends, super for parameterized types",
-  "__section_07_purpose": "กำหนด syntax elements ที่ใช้ใน generics เช่น List<T>, ? extends Number",
-  "__section_07_responsibility": "ให้ Brain รู้จัก generics syntax และ parse type parameters ได้ถูกต้อง",
-  "__section_07_used_by": [
-    "GenericsParser",
-    "TypeParameterResolver"
-  ],
-  "__section_07_footer": "══════════════════════════════════════════════════════════════════════════════",
-  "generics": {
-    "<": {
-      "type": "generic",
-      "name": "type-parameter-start",
-      "source": "ANTLR",
-      "javaVersion": "SE5"
-    },
-    ">": {
-      "type": "generic",
-      "name": "type-parameter-end",
-      "source": "ANTLR",
-      "javaVersion": "SE5"
-    },
-    "?": {
-      "type": "wildcard",
-      "name": "type-wildcard",
-      "source": "ANTLR",
-      "javaVersion": "SE5"
-    },
-    "extends": {
-      "type": "bound",
-      "name": "upper-bound",
-      "source": "ANTLR",
-      "javaVersion": "SE5"
-    },
-    "super": {
-      "type": "bound",
-      "name": "lower-bound",
-      "source": "ANTLR",
-      "javaVersion": "SE5"
+    "}": {
+      "type": "brace",
+      "source": "tree-sitter",
+      "description": "} punctuation"
     }
   }
 };
+
+export default javaGrammar;

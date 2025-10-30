@@ -72,42 +72,46 @@ export function generateBinary(token, category) {
 /**
  * Generate complete binary map from grammar object
  * @param {Object} grammar - Grammar object (e.g., javascriptGrammar)
- * @returns {Object} - Binary map { keywords: {...}, operators: {...}, punctuation: {...} }
+ * @returns {Object} - Binary map with all metadata + binary values
  */
 export function generateBinaryMapFromGrammar(grammar) {
-    const binaryMap = {
-        keywords: {},
-        operators: {},
-        punctuation: {},
-        literals: {}
-    };
+    // Clone grammar to preserve all metadata (__grammar_*, __section_*)
+    const binaryMap = { ...grammar };
     
     // Generate binary for keywords
-    if (grammar.keywords) {
-        for (const keyword of Object.keys(grammar.keywords)) {
-            binaryMap.keywords[keyword] = generateBinary(keyword, 'keywords');
+    if (binaryMap.keywords) {
+        const keywordsWithBinary = {};
+        for (const keyword of Object.keys(binaryMap.keywords)) {
+            keywordsWithBinary[keyword] = generateBinary(keyword, 'keywords');
         }
+        binaryMap.keywords = keywordsWithBinary;
     }
     
     // Generate binary for operators
-    if (grammar.operators) {
-        for (const operator of Object.keys(grammar.operators)) {
-            binaryMap.operators[operator] = generateBinary(operator, 'operators');
+    if (binaryMap.operators) {
+        const operatorsWithBinary = {};
+        for (const operator of Object.keys(binaryMap.operators)) {
+            operatorsWithBinary[operator] = generateBinary(operator, 'operators');
         }
+        binaryMap.operators = operatorsWithBinary;
     }
     
     // Generate binary for punctuation
-    if (grammar.punctuation) {
-        for (const punct of Object.keys(grammar.punctuation)) {
-            binaryMap.punctuation[punct] = generateBinary(punct, 'punctuation');
+    if (binaryMap.punctuation) {
+        const punctuationWithBinary = {};
+        for (const punct of Object.keys(binaryMap.punctuation)) {
+            punctuationWithBinary[punct] = generateBinary(punct, 'punctuation');
         }
+        binaryMap.punctuation = punctuationWithBinary;
     }
     
     // Generate binary for literals (if exists)
-    if (grammar.literals) {
-        for (const literal of Object.keys(grammar.literals)) {
-            binaryMap.literals[literal] = generateBinary(literal, 'literals');
+    if (binaryMap.literals) {
+        const literalsWithBinary = {};
+        for (const literal of Object.keys(binaryMap.literals)) {
+            literalsWithBinary[literal] = generateBinary(literal, 'literals');
         }
+        binaryMap.literals = literalsWithBinary;
     }
     
     return binaryMap;

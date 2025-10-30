@@ -1,14 +1,14 @@
-// Javascript Grammar - ES Module
+// C Grammar - ES Module
 // Auto-generated from external grammar source
 // Binary-First Architecture: Grammar as Code
 
-export const javascriptGrammar = {
+export const cGrammar = {
   "__grammar_header": "══════════════════════════════════════════════════════════════════════════════",
-  "__grammar_language": "Javascript",
+  "__grammar_language": "C",
   "__grammar_version": "1.0.0",
-  "__grammar_title": "Javascript Language Grammar Definition",
-  "__grammar_description": "Complete grammar rules for Javascript - Auto-converted from Tree-sitter",
-  "__grammar_purpose": "Grammar definition for Javascript language tokenization and parsing",
+  "__grammar_title": "C Language Grammar Definition",
+  "__grammar_description": "Complete grammar rules for C - Auto-converted from Tree-sitter",
+  "__grammar_purpose": "Grammar definition for C language tokenization and parsing",
   "__grammar_total_sections": 3,
   "__grammar_sections": [
     "keywords",
@@ -24,11 +24,11 @@ export const javascriptGrammar = {
   "__section_01": "══════════════════════════════════════════════════════════════════════════════",
   "__section_01_number": "01",
   "__section_01_name": "keywords",
-  "__section_01_title": "【SECTION 01】Javascript Keywords",
-  "__section_01_language": "Javascript",
-  "__section_01_total_items": 60,
-  "__section_01_description": "Reserved keywords in Javascript",
-  "__section_01_purpose": "Define all keywords for Javascript tokenization",
+  "__section_01_title": "【SECTION 01】C Keywords",
+  "__section_01_language": "C",
+  "__section_01_total_items": 115,
+  "__section_01_description": "Reserved keywords in C",
+  "__section_01_purpose": "Define all keywords for C tokenization",
   "__section_01_responsibility": "Handle keywords for tokenization",
   "__section_01_used_by": [
     "BlankPaperTokenizer",
@@ -36,65 +36,255 @@ export const javascriptGrammar = {
   ],
   "__section_01_footer": "══════════════════════════════════════════════════════════════════════════════",
   "keywords": {
-    "0B": {
+    "FALSE": {
       "category": "keyword",
       "source": "tree-sitter",
-      "description": "0B keyword"
+      "description": "FALSE keyword"
     },
-    "0O": {
+    "L\"": {
       "category": "keyword",
       "source": "tree-sitter",
-      "description": "0O keyword"
+      "description": "L\" keyword"
     },
-    "0X": {
+    "L'": {
       "category": "keyword",
       "source": "tree-sitter",
-      "description": "0X keyword"
+      "description": "L' keyword"
     },
-    "0b": {
+    "NULL": {
       "category": "keyword",
       "source": "tree-sitter",
-      "description": "0b keyword"
+      "description": "NULL keyword"
     },
-    "0o": {
+    "TRUE": {
       "category": "keyword",
       "source": "tree-sitter",
-      "description": "0o keyword"
+      "description": "TRUE keyword"
     },
-    "0x": {
+    "U\"": {
       "category": "keyword",
       "source": "tree-sitter",
-      "description": "0x keyword"
+      "description": "U\" keyword"
     },
-    "?.": {
+    "U'": {
       "category": "keyword",
       "source": "tree-sitter",
-      "description": "?. keyword"
+      "description": "U' keyword"
     },
-    "E": {
+    "\\>": {
       "category": "keyword",
       "source": "tree-sitter",
-      "description": "E keyword"
+      "description": "\\> keyword"
     },
-    "_": {
+    "_Alignas": {
       "category": "keyword",
       "source": "tree-sitter",
-      "description": "_ keyword"
+      "description": "_Alignas keyword"
     },
-    "as": {
+    "_Alignof": {
       "category": "keyword",
       "source": "tree-sitter",
-      "description": "as keyword"
+      "description": "_Alignof keyword"
     },
-    "async": {
-      "category": "modifier",
+    "_Atomic": {
+      "category": "keyword",
       "source": "tree-sitter",
-      "description": "async keyword"
+      "description": "_Atomic keyword"
     },
-    "await": {
-      "category": "modifier",
+    "_Generic": {
+      "category": "keyword",
       "source": "tree-sitter",
-      "description": "await keyword"
+      "description": "_Generic keyword"
+    },
+    "_Nonnull": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "_Nonnull keyword"
+    },
+    "_Noreturn": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "_Noreturn keyword"
+    },
+    "__alignof": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "__alignof keyword"
+    },
+    "__alignof__": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "__alignof__ keyword"
+    },
+    "__asm": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "__asm keyword"
+    },
+    "__asm__": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "__asm__ keyword"
+    },
+    "__attribute": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "__attribute keyword"
+    },
+    "__attribute__": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "__attribute__ keyword"
+    },
+    "__based": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "__based keyword"
+    },
+    "__cdecl": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "__cdecl keyword"
+    },
+    "__clrcall": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "__clrcall keyword"
+    },
+    "__declspec": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "__declspec keyword"
+    },
+    "__except": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "__except keyword"
+    },
+    "__extension__": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "__extension__ keyword"
+    },
+    "__fastcall": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "__fastcall keyword"
+    },
+    "__finally": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "__finally keyword"
+    },
+    "__forceinline": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "__forceinline keyword"
+    },
+    "__inline": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "__inline keyword"
+    },
+    "__inline__": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "__inline__ keyword"
+    },
+    "__leave": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "__leave keyword"
+    },
+    "__restrict": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "__restrict keyword"
+    },
+    "__restrict__": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "__restrict__ keyword"
+    },
+    "__sptr": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "__sptr keyword"
+    },
+    "__stdcall": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "__stdcall keyword"
+    },
+    "__thiscall": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "__thiscall keyword"
+    },
+    "__thread": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "__thread keyword"
+    },
+    "__try": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "__try keyword"
+    },
+    "__unaligned": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "__unaligned keyword"
+    },
+    "__uptr": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "__uptr keyword"
+    },
+    "__vectorcall": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "__vectorcall keyword"
+    },
+    "__volatile__": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "__volatile__ keyword"
+    },
+    "_alignof": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "_alignof keyword"
+    },
+    "_unaligned": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "_unaligned keyword"
+    },
+    "alignas": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "alignas keyword"
+    },
+    "alignof": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "alignof keyword"
+    },
+    "asm": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "asm keyword"
+    },
+    "auto": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "auto keyword"
+    },
+    "bool": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "bool keyword"
     },
     "break": {
       "category": "iteration",
@@ -106,244 +296,329 @@ export const javascriptGrammar = {
       "source": "tree-sitter",
       "description": "case keyword"
     },
-    "catch": {
-      "category": "exception",
+    "char": {
+      "category": "keyword",
       "source": "tree-sitter",
-      "description": "catch keyword"
+      "description": "char keyword"
     },
-    "class": {
-      "category": "class",
+    "char16_t": {
+      "category": "keyword",
       "source": "tree-sitter",
-      "description": "class keyword"
+      "description": "char16_t keyword"
+    },
+    "char32_t": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "char32_t keyword"
+    },
+    "char64_t": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "char64_t keyword"
+    },
+    "char8_t": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "char8_t keyword"
+    },
+    "charptr_t": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "charptr_t keyword"
     },
     "const": {
       "category": "variable",
       "source": "tree-sitter",
       "description": "const keyword"
     },
+    "constexpr": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "constexpr keyword"
+    },
     "continue": {
       "category": "iteration",
       "source": "tree-sitter",
       "description": "continue keyword"
-    },
-    "debugger": {
-      "category": "keyword",
-      "source": "tree-sitter",
-      "description": "debugger keyword"
     },
     "default": {
       "category": "control",
       "source": "tree-sitter",
       "description": "default keyword"
     },
-    "delete": {
+    "defined": {
       "category": "keyword",
       "source": "tree-sitter",
-      "description": "delete keyword"
+      "description": "defined keyword"
     },
     "do": {
       "category": "iteration",
       "source": "tree-sitter",
       "description": "do keyword"
     },
-    "e": {
+    "double": {
       "category": "keyword",
       "source": "tree-sitter",
-      "description": "e keyword"
+      "description": "double keyword"
     },
     "else": {
       "category": "control",
       "source": "tree-sitter",
       "description": "else keyword"
     },
-    "export": {
-      "category": "module",
+    "enum": {
+      "category": "type",
       "source": "tree-sitter",
-      "description": "export keyword"
+      "description": "enum keyword"
     },
-    "extends": {
-      "category": "class",
+    "extern": {
+      "category": "keyword",
       "source": "tree-sitter",
-      "description": "extends keyword"
+      "description": "extern keyword"
     },
     "false": {
       "category": "literal",
       "source": "tree-sitter",
       "description": "false keyword"
     },
-    "finally": {
-      "category": "exception",
+    "float": {
+      "category": "keyword",
       "source": "tree-sitter",
-      "description": "finally keyword"
+      "description": "float keyword"
     },
     "for": {
       "category": "iteration",
       "source": "tree-sitter",
       "description": "for keyword"
     },
-    "from": {
-      "category": "module",
-      "source": "tree-sitter",
-      "description": "from keyword"
-    },
-    "function": {
-      "category": "function",
-      "source": "tree-sitter",
-      "description": "function keyword"
-    },
-    "get": {
+    "goto": {
       "category": "keyword",
       "source": "tree-sitter",
-      "description": "get keyword"
+      "description": "goto keyword"
     },
     "if": {
       "category": "control",
       "source": "tree-sitter",
       "description": "if keyword"
     },
-    "import": {
-      "category": "module",
-      "source": "tree-sitter",
-      "description": "import keyword"
-    },
-    "in": {
+    "inline": {
       "category": "keyword",
       "source": "tree-sitter",
-      "description": "in keyword"
+      "description": "inline keyword"
     },
-    "instanceof": {
+    "int": {
       "category": "keyword",
       "source": "tree-sitter",
-      "description": "instanceof keyword"
+      "description": "int keyword"
     },
-    "let": {
-      "category": "variable",
-      "source": "tree-sitter",
-      "description": "let keyword"
-    },
-    "meta": {
+    "int16_t": {
       "category": "keyword",
       "source": "tree-sitter",
-      "description": "meta keyword"
+      "description": "int16_t keyword"
     },
-    "n": {
+    "int32_t": {
       "category": "keyword",
       "source": "tree-sitter",
-      "description": "n keyword"
+      "description": "int32_t keyword"
     },
-    "new": {
-      "category": "class",
-      "source": "tree-sitter",
-      "description": "new keyword"
-    },
-    "null": {
-      "category": "literal",
-      "source": "tree-sitter",
-      "description": "null keyword"
-    },
-    "of": {
+    "int64_t": {
       "category": "keyword",
       "source": "tree-sitter",
-      "description": "of keyword"
+      "description": "int64_t keyword"
+    },
+    "int8_t": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "int8_t keyword"
+    },
+    "intptr_t": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "intptr_t keyword"
+    },
+    "long": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "long keyword"
+    },
+    "max_align_t": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "max_align_t keyword"
+    },
+    "noreturn": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "noreturn keyword"
+    },
+    "nullptr": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "nullptr keyword"
+    },
+    "nullptr_t": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "nullptr_t keyword"
+    },
+    "offsetof": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "offsetof keyword"
+    },
+    "ptrdiff_t": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "ptrdiff_t keyword"
+    },
+    "register": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "register keyword"
+    },
+    "restrict": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "restrict keyword"
     },
     "return": {
       "category": "function",
       "source": "tree-sitter",
       "description": "return keyword"
     },
-    "set": {
+    "short": {
       "category": "keyword",
       "source": "tree-sitter",
-      "description": "set keyword"
+      "description": "short keyword"
+    },
+    "signed": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "signed keyword"
+    },
+    "size_t": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "size_t keyword"
+    },
+    "sizeof": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "sizeof keyword"
+    },
+    "ssize_t": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "ssize_t keyword"
     },
     "static": {
       "category": "modifier",
       "source": "tree-sitter",
       "description": "static keyword"
     },
-    "super": {
-      "category": "keyword",
+    "struct": {
+      "category": "type",
       "source": "tree-sitter",
-      "description": "super keyword"
+      "description": "struct keyword"
     },
     "switch": {
       "category": "control",
       "source": "tree-sitter",
       "description": "switch keyword"
     },
-    "target": {
+    "thread_local": {
       "category": "keyword",
       "source": "tree-sitter",
-      "description": "target keyword"
-    },
-    "this": {
-      "category": "keyword",
-      "source": "tree-sitter",
-      "description": "this keyword"
-    },
-    "throw": {
-      "category": "exception",
-      "source": "tree-sitter",
-      "description": "throw keyword"
+      "description": "thread_local keyword"
     },
     "true": {
       "category": "literal",
       "source": "tree-sitter",
       "description": "true keyword"
     },
-    "try": {
-      "category": "exception",
+    "typedef": {
+      "category": "type",
       "source": "tree-sitter",
-      "description": "try keyword"
+      "description": "typedef keyword"
     },
-    "typeof": {
+    "u\"": {
       "category": "keyword",
       "source": "tree-sitter",
-      "description": "typeof keyword"
+      "description": "u\" keyword"
     },
-    "undefined": {
-      "category": "literal",
-      "source": "tree-sitter",
-      "description": "undefined keyword"
-    },
-    "using": {
+    "u'": {
       "category": "keyword",
       "source": "tree-sitter",
-      "description": "using keyword"
+      "description": "u' keyword"
     },
-    "var": {
-      "category": "variable",
+    "u8\"": {
+      "category": "keyword",
       "source": "tree-sitter",
-      "description": "var keyword"
+      "description": "u8\" keyword"
+    },
+    "u8'": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "u8' keyword"
+    },
+    "uint16_t": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "uint16_t keyword"
+    },
+    "uint32_t": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "uint32_t keyword"
+    },
+    "uint64_t": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "uint64_t keyword"
+    },
+    "uint8_t": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "uint8_t keyword"
+    },
+    "uintptr_t": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "uintptr_t keyword"
+    },
+    "union": {
+      "category": "type",
+      "source": "tree-sitter",
+      "description": "union keyword"
+    },
+    "unsigned": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "unsigned keyword"
     },
     "void": {
       "category": "keyword",
       "source": "tree-sitter",
       "description": "void keyword"
     },
+    "volatile": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "volatile keyword"
+    },
     "while": {
       "category": "iteration",
       "source": "tree-sitter",
       "description": "while keyword"
-    },
-    "with": {
-      "category": "keyword",
-      "source": "tree-sitter",
-      "description": "with keyword"
-    },
-    "yield": {
-      "category": "function",
-      "source": "tree-sitter",
-      "description": "yield keyword"
     }
   },
   "__section_02": "══════════════════════════════════════════════════════════════════════════════",
   "__section_02_number": "02",
   "__section_02_name": "operators",
-  "__section_02_title": "【SECTION 02】Javascript Operators",
-  "__section_02_language": "Javascript",
-  "__section_02_total_items": 49,
-  "__section_02_description": "All operators in Javascript",
+  "__section_02_title": "【SECTION 02】C Operators",
+  "__section_02_language": "C",
+  "__section_02_total_items": 39,
+  "__section_02_description": "All operators in C",
   "__section_02_purpose": "Define operators for expression parsing",
   "__section_02_responsibility": "Handle operators for tokenization",
   "__section_02_used_by": [
@@ -361,11 +636,6 @@ export const javascriptGrammar = {
       "type": "comparison",
       "source": "tree-sitter",
       "description": "!= operator"
-    },
-    "!==": {
-      "type": "other",
-      "source": "tree-sitter",
-      "description": "!== operator"
     },
     "%": {
       "type": "arithmetic",
@@ -387,11 +657,6 @@ export const javascriptGrammar = {
       "source": "tree-sitter",
       "description": "&& operator"
     },
-    "&&=": {
-      "type": "other",
-      "source": "tree-sitter",
-      "description": "&&= operator"
-    },
     "&=": {
       "type": "other",
       "source": "tree-sitter",
@@ -401,16 +666,6 @@ export const javascriptGrammar = {
       "type": "arithmetic",
       "source": "tree-sitter",
       "description": "* operator"
-    },
-    "**": {
-      "type": "other",
-      "source": "tree-sitter",
-      "description": "** operator"
-    },
-    "**=": {
-      "type": "other",
-      "source": "tree-sitter",
-      "description": "**= operator"
     },
     "*=": {
       "type": "assignment",
@@ -447,6 +702,11 @@ export const javascriptGrammar = {
       "source": "tree-sitter",
       "description": "-= operator"
     },
+    "->": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": "-> operator"
+    },
     "/": {
       "type": "arithmetic",
       "source": "tree-sitter",
@@ -467,25 +727,20 @@ export const javascriptGrammar = {
       "source": "tree-sitter",
       "description": "/= operator"
     },
-    "/>": {
-      "type": "other",
-      "source": "tree-sitter",
-      "description": "/> operator"
-    },
     ":": {
       "type": "other",
       "source": "tree-sitter",
       "description": ": operator"
     },
+    "::": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": ":: operator"
+    },
     "<": {
       "type": "comparison",
       "source": "tree-sitter",
       "description": "< operator"
-    },
-    "</": {
-      "type": "other",
-      "source": "tree-sitter",
-      "description": "</ operator"
     },
     "<<": {
       "type": "other",
@@ -512,16 +767,6 @@ export const javascriptGrammar = {
       "source": "tree-sitter",
       "description": "== operator"
     },
-    "===": {
-      "type": "other",
-      "source": "tree-sitter",
-      "description": "=== operator"
-    },
-    "=>": {
-      "type": "other",
-      "source": "tree-sitter",
-      "description": "=> operator"
-    },
     ">": {
       "type": "comparison",
       "source": "tree-sitter",
@@ -542,25 +787,10 @@ export const javascriptGrammar = {
       "source": "tree-sitter",
       "description": ">>= operator"
     },
-    ">>>": {
+    "?": {
       "type": "other",
       "source": "tree-sitter",
-      "description": ">>> operator"
-    },
-    ">>>=": {
-      "type": "other",
-      "source": "tree-sitter",
-      "description": ">>>= operator"
-    },
-    "??": {
-      "type": "other",
-      "source": "tree-sitter",
-      "description": "?? operator"
-    },
-    "??=": {
-      "type": "other",
-      "source": "tree-sitter",
-      "description": "??= operator"
+      "description": "? operator"
     },
     "^": {
       "type": "other",
@@ -587,11 +817,6 @@ export const javascriptGrammar = {
       "source": "tree-sitter",
       "description": "|| operator"
     },
-    "||=": {
-      "type": "other",
-      "source": "tree-sitter",
-      "description": "||= operator"
-    },
     "~": {
       "type": "other",
       "source": "tree-sitter",
@@ -601,9 +826,9 @@ export const javascriptGrammar = {
   "__section_03": "══════════════════════════════════════════════════════════════════════════════",
   "__section_03_number": "03",
   "__section_03_name": "punctuation",
-  "__section_03_title": "【SECTION 03】Javascript Punctuation",
-  "__section_03_language": "Javascript",
-  "__section_03_total_items": 17,
+  "__section_03_title": "【SECTION 03】C Punctuation",
+  "__section_03_language": "C",
+  "__section_03_total_items": 15,
   "__section_03_description": "Punctuation marks and separators",
   "__section_03_purpose": "Define punctuation for code structure",
   "__section_03_responsibility": "Handle punctuation for tokenization",
@@ -617,16 +842,6 @@ export const javascriptGrammar = {
       "type": "other",
       "source": "tree-sitter",
       "description": "\" punctuation"
-    },
-    "#": {
-      "type": "other",
-      "source": "tree-sitter",
-      "description": "# punctuation"
-    },
-    "${": {
-      "type": "other",
-      "source": "tree-sitter",
-      "description": "${ punctuation"
     },
     "'": {
       "type": "other",
@@ -663,15 +878,15 @@ export const javascriptGrammar = {
       "source": "tree-sitter",
       "description": "; punctuation"
     },
-    "@": {
-      "type": "other",
-      "source": "tree-sitter",
-      "description": "@ punctuation"
-    },
     "[": {
       "type": "bracket",
       "source": "tree-sitter",
       "description": "[ punctuation"
+    },
+    "[[": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": "[[ punctuation"
     },
     "\\": {
       "type": "other",
@@ -683,10 +898,10 @@ export const javascriptGrammar = {
       "source": "tree-sitter",
       "description": "] punctuation"
     },
-    "`": {
+    "]]": {
       "type": "other",
       "source": "tree-sitter",
-      "description": "` punctuation"
+      "description": "]] punctuation"
     },
     "{": {
       "type": "brace",
@@ -701,4 +916,4 @@ export const javascriptGrammar = {
   }
 };
 
-export default javascriptGrammar;
+export default cGrammar;

@@ -1,14 +1,14 @@
-// Javascript Grammar - ES Module
+// Python Grammar - ES Module
 // Auto-generated from external grammar source
 // Binary-First Architecture: Grammar as Code
 
-export const javascriptGrammar = {
+export const pythonGrammar = {
   "__grammar_header": "══════════════════════════════════════════════════════════════════════════════",
-  "__grammar_language": "Javascript",
+  "__grammar_language": "Python",
   "__grammar_version": "1.0.0",
-  "__grammar_title": "Javascript Language Grammar Definition",
-  "__grammar_description": "Complete grammar rules for Javascript - Auto-converted from Tree-sitter",
-  "__grammar_purpose": "Grammar definition for Javascript language tokenization and parsing",
+  "__grammar_title": "Python Language Grammar Definition",
+  "__grammar_description": "Complete grammar rules for Python - Auto-converted from Tree-sitter",
+  "__grammar_purpose": "Grammar definition for Python language tokenization and parsing",
   "__grammar_total_sections": 3,
   "__grammar_sections": [
     "keywords",
@@ -24,11 +24,11 @@ export const javascriptGrammar = {
   "__section_01": "══════════════════════════════════════════════════════════════════════════════",
   "__section_01_number": "01",
   "__section_01_name": "keywords",
-  "__section_01_title": "【SECTION 01】Javascript Keywords",
-  "__section_01_language": "Javascript",
-  "__section_01_total_items": 60,
-  "__section_01_description": "Reserved keywords in Javascript",
-  "__section_01_purpose": "Define all keywords for Javascript tokenization",
+  "__section_01_title": "【SECTION 01】Python Keywords",
+  "__section_01_language": "Python",
+  "__section_01_total_items": 49,
+  "__section_01_description": "Reserved keywords in Python",
+  "__section_01_purpose": "Define all keywords for Python tokenization",
   "__section_01_responsibility": "Handle keywords for tokenization",
   "__section_01_used_by": [
     "BlankPaperTokenizer",
@@ -66,25 +66,50 @@ export const javascriptGrammar = {
       "source": "tree-sitter",
       "description": "0x keyword"
     },
-    "?.": {
+    "@=": {
       "category": "keyword",
       "source": "tree-sitter",
-      "description": "?. keyword"
+      "description": "@= keyword"
     },
-    "E": {
-      "category": "keyword",
+    "False": {
+      "category": "literal",
       "source": "tree-sitter",
-      "description": "E keyword"
+      "description": "False keyword"
+    },
+    "None": {
+      "category": "literal",
+      "source": "tree-sitter",
+      "description": "None keyword"
+    },
+    "True": {
+      "category": "literal",
+      "source": "tree-sitter",
+      "description": "True keyword"
     },
     "_": {
       "category": "keyword",
       "source": "tree-sitter",
       "description": "_ keyword"
     },
+    "__future__": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "__future__ keyword"
+    },
+    "and": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "and keyword"
+    },
     "as": {
       "category": "keyword",
       "source": "tree-sitter",
       "description": "as keyword"
+    },
+    "assert": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "assert keyword"
     },
     "async": {
       "category": "modifier",
@@ -106,70 +131,45 @@ export const javascriptGrammar = {
       "source": "tree-sitter",
       "description": "case keyword"
     },
-    "catch": {
-      "category": "exception",
-      "source": "tree-sitter",
-      "description": "catch keyword"
-    },
     "class": {
       "category": "class",
       "source": "tree-sitter",
       "description": "class keyword"
-    },
-    "const": {
-      "category": "variable",
-      "source": "tree-sitter",
-      "description": "const keyword"
     },
     "continue": {
       "category": "iteration",
       "source": "tree-sitter",
       "description": "continue keyword"
     },
-    "debugger": {
-      "category": "keyword",
+    "def": {
+      "category": "function",
       "source": "tree-sitter",
-      "description": "debugger keyword"
+      "description": "def keyword"
     },
-    "default": {
+    "del": {
+      "category": "variable",
+      "source": "tree-sitter",
+      "description": "del keyword"
+    },
+    "elif": {
       "category": "control",
       "source": "tree-sitter",
-      "description": "default keyword"
-    },
-    "delete": {
-      "category": "keyword",
-      "source": "tree-sitter",
-      "description": "delete keyword"
-    },
-    "do": {
-      "category": "iteration",
-      "source": "tree-sitter",
-      "description": "do keyword"
-    },
-    "e": {
-      "category": "keyword",
-      "source": "tree-sitter",
-      "description": "e keyword"
+      "description": "elif keyword"
     },
     "else": {
       "category": "control",
       "source": "tree-sitter",
       "description": "else keyword"
     },
-    "export": {
-      "category": "module",
+    "except": {
+      "category": "exception",
       "source": "tree-sitter",
-      "description": "export keyword"
+      "description": "except keyword"
     },
-    "extends": {
-      "category": "class",
+    "exec": {
+      "category": "keyword",
       "source": "tree-sitter",
-      "description": "extends keyword"
-    },
-    "false": {
-      "category": "literal",
-      "source": "tree-sitter",
-      "description": "false keyword"
+      "description": "exec keyword"
     },
     "finally": {
       "category": "exception",
@@ -186,15 +186,10 @@ export const javascriptGrammar = {
       "source": "tree-sitter",
       "description": "from keyword"
     },
-    "function": {
-      "category": "function",
+    "global": {
+      "category": "variable",
       "source": "tree-sitter",
-      "description": "function keyword"
-    },
-    "get": {
-      "category": "keyword",
-      "source": "tree-sitter",
-      "description": "get keyword"
+      "description": "global keyword"
     },
     "if": {
       "category": "control",
@@ -211,115 +206,65 @@ export const javascriptGrammar = {
       "source": "tree-sitter",
       "description": "in keyword"
     },
-    "instanceof": {
+    "is": {
       "category": "keyword",
       "source": "tree-sitter",
-      "description": "instanceof keyword"
+      "description": "is keyword"
     },
-    "let": {
+    "lambda": {
+      "category": "function",
+      "source": "tree-sitter",
+      "description": "lambda keyword"
+    },
+    "match": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "match keyword"
+    },
+    "nonlocal": {
       "category": "variable",
       "source": "tree-sitter",
-      "description": "let keyword"
+      "description": "nonlocal keyword"
     },
-    "meta": {
+    "not": {
       "category": "keyword",
       "source": "tree-sitter",
-      "description": "meta keyword"
+      "description": "not keyword"
     },
-    "n": {
+    "or": {
       "category": "keyword",
       "source": "tree-sitter",
-      "description": "n keyword"
+      "description": "or keyword"
     },
-    "new": {
-      "category": "class",
-      "source": "tree-sitter",
-      "description": "new keyword"
-    },
-    "null": {
-      "category": "literal",
-      "source": "tree-sitter",
-      "description": "null keyword"
-    },
-    "of": {
+    "pass": {
       "category": "keyword",
       "source": "tree-sitter",
-      "description": "of keyword"
+      "description": "pass keyword"
+    },
+    "print": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "print keyword"
+    },
+    "raise": {
+      "category": "keyword",
+      "source": "tree-sitter",
+      "description": "raise keyword"
     },
     "return": {
       "category": "function",
       "source": "tree-sitter",
       "description": "return keyword"
     },
-    "set": {
-      "category": "keyword",
-      "source": "tree-sitter",
-      "description": "set keyword"
-    },
-    "static": {
-      "category": "modifier",
-      "source": "tree-sitter",
-      "description": "static keyword"
-    },
-    "super": {
-      "category": "keyword",
-      "source": "tree-sitter",
-      "description": "super keyword"
-    },
-    "switch": {
-      "category": "control",
-      "source": "tree-sitter",
-      "description": "switch keyword"
-    },
-    "target": {
-      "category": "keyword",
-      "source": "tree-sitter",
-      "description": "target keyword"
-    },
-    "this": {
-      "category": "keyword",
-      "source": "tree-sitter",
-      "description": "this keyword"
-    },
-    "throw": {
-      "category": "exception",
-      "source": "tree-sitter",
-      "description": "throw keyword"
-    },
-    "true": {
-      "category": "literal",
-      "source": "tree-sitter",
-      "description": "true keyword"
-    },
     "try": {
       "category": "exception",
       "source": "tree-sitter",
       "description": "try keyword"
     },
-    "typeof": {
-      "category": "keyword",
+    "type": {
+      "category": "type",
       "source": "tree-sitter",
-      "description": "typeof keyword"
-    },
-    "undefined": {
-      "category": "literal",
-      "source": "tree-sitter",
-      "description": "undefined keyword"
-    },
-    "using": {
-      "category": "keyword",
-      "source": "tree-sitter",
-      "description": "using keyword"
-    },
-    "var": {
-      "category": "variable",
-      "source": "tree-sitter",
-      "description": "var keyword"
-    },
-    "void": {
-      "category": "keyword",
-      "source": "tree-sitter",
-      "description": "void keyword"
+      "description": "type keyword"
     },
     "while": {
       "category": "iteration",
@@ -340,10 +285,10 @@ export const javascriptGrammar = {
   "__section_02": "══════════════════════════════════════════════════════════════════════════════",
   "__section_02_number": "02",
   "__section_02_name": "operators",
-  "__section_02_title": "【SECTION 02】Javascript Operators",
-  "__section_02_language": "Javascript",
-  "__section_02_total_items": 49,
-  "__section_02_description": "All operators in Javascript",
+  "__section_02_title": "【SECTION 02】Python Operators",
+  "__section_02_language": "Python",
+  "__section_02_total_items": 36,
+  "__section_02_description": "All operators in Python",
   "__section_02_purpose": "Define operators for expression parsing",
   "__section_02_responsibility": "Handle operators for tokenization",
   "__section_02_used_by": [
@@ -352,20 +297,10 @@ export const javascriptGrammar = {
   ],
   "__section_02_footer": "══════════════════════════════════════════════════════════════════════════════",
   "operators": {
-    "!": {
-      "type": "logical",
-      "source": "tree-sitter",
-      "description": "! operator"
-    },
     "!=": {
       "type": "comparison",
       "source": "tree-sitter",
       "description": "!= operator"
-    },
-    "!==": {
-      "type": "other",
-      "source": "tree-sitter",
-      "description": "!== operator"
     },
     "%": {
       "type": "arithmetic",
@@ -381,16 +316,6 @@ export const javascriptGrammar = {
       "type": "other",
       "source": "tree-sitter",
       "description": "& operator"
-    },
-    "&&": {
-      "type": "logical",
-      "source": "tree-sitter",
-      "description": "&& operator"
-    },
-    "&&=": {
-      "type": "other",
-      "source": "tree-sitter",
-      "description": "&&= operator"
     },
     "&=": {
       "type": "other",
@@ -422,11 +347,6 @@ export const javascriptGrammar = {
       "source": "tree-sitter",
       "description": "+ operator"
     },
-    "++": {
-      "type": "other",
-      "source": "tree-sitter",
-      "description": "++ operator"
-    },
     "+=": {
       "type": "assignment",
       "source": "tree-sitter",
@@ -437,55 +357,50 @@ export const javascriptGrammar = {
       "source": "tree-sitter",
       "description": "- operator"
     },
-    "--": {
-      "type": "other",
-      "source": "tree-sitter",
-      "description": "-- operator"
-    },
     "-=": {
       "type": "assignment",
       "source": "tree-sitter",
       "description": "-= operator"
+    },
+    "->": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": "-> operator"
     },
     "/": {
       "type": "arithmetic",
       "source": "tree-sitter",
       "description": "/ operator"
     },
-    "/*": {
-      "type": "other",
-      "source": "tree-sitter",
-      "description": "/* operator"
-    },
     "//": {
       "type": "other",
       "source": "tree-sitter",
       "description": "// operator"
+    },
+    "//=": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": "//= operator"
     },
     "/=": {
       "type": "assignment",
       "source": "tree-sitter",
       "description": "/= operator"
     },
-    "/>": {
-      "type": "other",
-      "source": "tree-sitter",
-      "description": "/> operator"
-    },
     ":": {
       "type": "other",
       "source": "tree-sitter",
       "description": ": operator"
     },
+    ":=": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": ":= operator"
+    },
     "<": {
       "type": "comparison",
       "source": "tree-sitter",
       "description": "< operator"
-    },
-    "</": {
-      "type": "other",
-      "source": "tree-sitter",
-      "description": "</ operator"
     },
     "<<": {
       "type": "other",
@@ -502,6 +417,11 @@ export const javascriptGrammar = {
       "source": "tree-sitter",
       "description": "<= operator"
     },
+    "<>": {
+      "type": "other",
+      "source": "tree-sitter",
+      "description": "<> operator"
+    },
     "=": {
       "type": "assignment",
       "source": "tree-sitter",
@@ -511,16 +431,6 @@ export const javascriptGrammar = {
       "type": "comparison",
       "source": "tree-sitter",
       "description": "== operator"
-    },
-    "===": {
-      "type": "other",
-      "source": "tree-sitter",
-      "description": "=== operator"
-    },
-    "=>": {
-      "type": "other",
-      "source": "tree-sitter",
-      "description": "=> operator"
     },
     ">": {
       "type": "comparison",
@@ -542,26 +452,6 @@ export const javascriptGrammar = {
       "source": "tree-sitter",
       "description": ">>= operator"
     },
-    ">>>": {
-      "type": "other",
-      "source": "tree-sitter",
-      "description": ">>> operator"
-    },
-    ">>>=": {
-      "type": "other",
-      "source": "tree-sitter",
-      "description": ">>>= operator"
-    },
-    "??": {
-      "type": "other",
-      "source": "tree-sitter",
-      "description": "?? operator"
-    },
-    "??=": {
-      "type": "other",
-      "source": "tree-sitter",
-      "description": "??= operator"
-    },
     "^": {
       "type": "other",
       "source": "tree-sitter",
@@ -582,16 +472,6 @@ export const javascriptGrammar = {
       "source": "tree-sitter",
       "description": "|= operator"
     },
-    "||": {
-      "type": "logical",
-      "source": "tree-sitter",
-      "description": "|| operator"
-    },
-    "||=": {
-      "type": "other",
-      "source": "tree-sitter",
-      "description": "||= operator"
-    },
     "~": {
       "type": "other",
       "source": "tree-sitter",
@@ -601,9 +481,9 @@ export const javascriptGrammar = {
   "__section_03": "══════════════════════════════════════════════════════════════════════════════",
   "__section_03_number": "03",
   "__section_03_name": "punctuation",
-  "__section_03_title": "【SECTION 03】Javascript Punctuation",
-  "__section_03_language": "Javascript",
-  "__section_03_total_items": 17,
+  "__section_03_title": "【SECTION 03】Python Punctuation",
+  "__section_03_language": "Python",
+  "__section_03_total_items": 13,
   "__section_03_description": "Punctuation marks and separators",
   "__section_03_purpose": "Define punctuation for code structure",
   "__section_03_responsibility": "Handle punctuation for tokenization",
@@ -613,25 +493,10 @@ export const javascriptGrammar = {
   ],
   "__section_03_footer": "══════════════════════════════════════════════════════════════════════════════",
   "punctuation": {
-    "\"": {
-      "type": "other",
-      "source": "tree-sitter",
-      "description": "\" punctuation"
-    },
     "#": {
       "type": "other",
       "source": "tree-sitter",
       "description": "# punctuation"
-    },
-    "${": {
-      "type": "other",
-      "source": "tree-sitter",
-      "description": "${ punctuation"
-    },
-    "'": {
-      "type": "other",
-      "source": "tree-sitter",
-      "description": "' punctuation"
     },
     "(": {
       "type": "paren",
@@ -683,11 +548,6 @@ export const javascriptGrammar = {
       "source": "tree-sitter",
       "description": "] punctuation"
     },
-    "`": {
-      "type": "other",
-      "source": "tree-sitter",
-      "description": "` punctuation"
-    },
     "{": {
       "type": "brace",
       "source": "tree-sitter",
@@ -701,4 +561,4 @@ export const javascriptGrammar = {
   }
 };
 
-export default javascriptGrammar;
+export default pythonGrammar;
