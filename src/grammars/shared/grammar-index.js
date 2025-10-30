@@ -27,7 +27,7 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { dirname, join } from 'path';
 import { report } from '../../error-handler/universal-reporter.js';
 import BinaryCodes from '../../error-handler/binary-codes.js';
-import { tokenizerBinaryConfig } from './tokenizer-binary-config.js';
+import { createPunctuationBinaryMap } from './binary-generator.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -69,25 +69,22 @@ export class GrammarIndex {
     }
     
     /**
-     * โหลด Punctuation Binary Map จาก tokenizer-binary-config.js (Synchronous via top-level import)
+     * โหลด Punctuation Binary Map จาก Grammar (Runtime Generation)
      * Brain ต้องมีความรู้เรื่อง Binary ของ Punctuation เพื่อให้บริการ Worker
      * @private
      */
     _loadPunctuationBinaryMapSync() {
         try {
-            // ! MIGRATION: Top-level import (already loaded when module loads)
-            // ! WHY: PureBinaryParser needs punctuation binary in constructor (synchronous)
-            // ! SOLUTION: import at top of file, use here synchronously
+            // ! NEW ARCHITECTURE: Generate binary from grammar (Zero-Maintenance)
+            // ! NO MORE tokenizer-binary-config.js dependency!
             
-            // ! NO_SILENT_FALLBACKS: ลบ || {} ออก - ต้อง FAIL ถ้าไม่มี map
-            const punctuationBinaryMapData = tokenizerBinaryConfig.punctuationBinaryMap?.map;
-            
-            if (!punctuationBinaryMapData || typeof punctuationBinaryMapData !== 'object') {
+            if (!this.grammar || !this.grammar.punctuation) {
                 report(BinaryCodes.PARSER.CONFIGURATION(1056));
                 return null;
             }
             
-            this.punctuationBinaryMap = punctuationBinaryMapData;
+            // Auto-generate binary map from grammar
+            this.punctuationBinaryMap = createPunctuationBinaryMap(this.grammar);
             
             // ! VALIDATION: ห้าม empty map - ถ้าไม่มี binary map = CRITICAL ERROR
             if (Object.keys(this.punctuationBinaryMap).length === 0) {

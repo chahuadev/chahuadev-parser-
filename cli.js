@@ -12,10 +12,7 @@
  * WITH SECURITY PROTECTION + CONSOLE FALLBACK LOGGER (กล้องวงจรปิด)
  */
 
-import { ABSOLUTE_RULES, ValidationEngine } from './src/rules/validator.js';
 import { SecurityManager } from './src/security/security-manager.js';
-import { coerceRuleId, resolveRuleSlug } from './src/constants/rule-constants.js';
-import { RULE_SEVERITY_FLAGS, coerceRuleSeverity, resolveRuleSeveritySlug } from './src/constants/severity-constants.js';
 import { report, setGlobalCollector } from './src/error-handler/universal-reporter.js';
 import BinaryCodes from './src/error-handler/binary-codes.js';
 import { ErrorCollector } from './src/error-handler/error-collector.js';
@@ -78,10 +75,9 @@ class ChahuadevCLI {
                 });
             }
             
-            // อ่านกฎจาก validator.js (หนังสือ) และส่งต่อให้ ValidationEngine
-            this.rules = ABSOLUTE_RULES;
-            this.engine = new ValidationEngine();
-            await this.engine.initializeParserStudy();
+            // Rules system DISABLED - no validation rules
+            this.rules = {};
+            this.engine = null;
             console.log(cliConfig.messages.cliInitialized);
             return true;
         } catch (error) {
@@ -140,7 +136,9 @@ ${cliConfig.helpText.footer}`);
             }
 
             const content = fs.readFileSync(filePath, 'utf8');
-            const results = await this.engine.validateCode(content, filePath);
+            
+            // Rules system DISABLED - return empty violations
+            const results = { fileName: filePath, violations: [], success: true };
             this.stats.totalViolations += results.violations.length;
 
             if (!options.quiet && options.verbose) {
@@ -156,10 +154,9 @@ ${cliConfig.helpText.footer}`);
         }
     }
 
+    // Rules system DISABLED - severity labels not used
     getSeverityLabel(severity) {
-        const severityCode = coerceRuleSeverity(severity, RULE_SEVERITY_FLAGS.INFO);
-        const level = resolveRuleSeveritySlug(severityCode);
-        return cliConfig.severityLabels[level] || cliConfig.severityLabels.INFO;
+        return 'INFO';
     }
 
     async scanPattern(pattern, options = {}) {
@@ -218,48 +215,8 @@ ${cliConfig.helpText.footer}`);
     }
 
     aggregateViolations(results) {
-        const grouped = {};
-
-        for (const entry of results) {
-            if (!entry || !entry.violations || entry.violations.length === 0) {
-                continue;
-            }
-
-            const fileKey = entry.file || entry.filePath || entry.fileName || 'unknown-file';
-            if (!grouped[fileKey]) {
-                grouped[fileKey] = [];
-            }
-
-            for (const violation of entry.violations) {
-                if (!violation) {
-                    continue;
-                }
-
-                const line = this.extractLineNumber(violation);
-                const column = this.extractColumnNumber(violation);
-                const ruleId = coerceRuleId(violation.ruleId) ?? coerceRuleId(violation.ruleMetadata?.id) ?? null;
-                const ruleSlug = violation.ruleMetadata?.slug || resolveRuleSlug(ruleId);
-                const severityCode = coerceRuleSeverity(
-                    violation.severity ?? violation.ruleMetadata?.severity,
-                    RULE_SEVERITY_FLAGS.ERROR
-                );
-                const severityLabel = resolveRuleSeveritySlug(severityCode);
-
-                grouped[fileKey].push({
-                    ruleId,
-                    ruleSlug,
-                    message: violation.message,
-                    severity: severityCode,
-                    severityLabel,
-                    line,
-                    column,
-                    ruleMetadata: violation.ruleMetadata || null,
-                    guidance: violation.guidance || null
-                });
-            }
-        }
-
-        return grouped;
+        // Rules system DISABLED - always returns empty
+        return {};
     }
 
     extractLineNumber(violation) {

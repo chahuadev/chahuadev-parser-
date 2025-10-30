@@ -8,7 +8,6 @@
 import { report } from './error-handler/universal-reporter.js';
 import BinaryCodes from './error-handler/binary-codes.js';
 import * as vscode from 'vscode';
-import { ABSOLUTE_RULES, ValidationEngine } from './rules/validator.js';
 import { SecurityMiddleware } from './security/security-middleware.js';
 import { createSecurityConfig } from './security/security-config.js';
 import { readFileSync } from 'fs';
@@ -23,7 +22,6 @@ const extensionConfig = JSON.parse(readFileSync(new URL('./extension-config.json
  // ! ══════════════════════════════════════════════════════════════════════════════
 
 let diagnosticCollection;
-let validationEngine;
 let securityMiddleware;
 
 function emitExtensionLog(message, method, severity = 'INFO', context = {}) {
@@ -74,12 +72,7 @@ function activate(context) {
             policies: Object.keys(policies)
         });
         
-        // ! Initialize validation engine
-        validationEngine = new ValidationEngine();
-        validationEngine.initializeParserStudy().catch(error => {
-            report(BinaryCodes.SYSTEM.CONFIGURATION(1046));
-            // ไม่ throw - ให้ extension ทำงานต่อแม้ parser ไม่สำเร็จ
-        });
+        // Rules system DISABLED - no validation engine
         
         // ! Create diagnostic collection for subtle blue notifications
         diagnosticCollection = vscode.languages.createDiagnosticCollection('chahuadev-sentinel');
@@ -263,7 +256,8 @@ async function scanDocument(document) {
             return { violations: [] };
         }
         
-        const results = await validationEngine.validateCode(code, document.fileName);
+        // Rules system DISABLED - return empty violations
+        const results = { violations: [] };
         
         const diagnostics = results.violations.map(violation => {
             // ! Explicit validation instead of silent fallback
