@@ -277,6 +277,43 @@ export class SmartGrammarIndex {
     }
 
     /**
+     * ดึงค่า binary ของ keyword
+     * @param {string} keyword - Keyword name
+     * @returns {number|null} Binary value หรือ null
+     */
+    getKeywordBinary(keyword) {
+        return this.getBinary(keyword, 'keyword');
+    }
+
+    /**
+     * ดึงค่า binary ของ operator
+     * @param {string} operator - Operator symbol
+     * @returns {number|null} Binary value หรือ null
+     */
+    getOperatorBinary(operator) {
+        return this.getBinary(operator, 'operator');
+    }
+
+    /**
+     * ดึงค่า binary ของ punctuation
+     * @param {string} punct - Punctuation symbol
+     * @returns {number|null} Binary value หรือ null
+     */
+    getPunctuationBinary(punct) {
+        return this.getBinary(punct, 'punctuation');
+    }
+
+    /**
+     * ค้นหา punctuation จาก binary value (reverse lookup)
+     * @param {number} binary - Binary value
+     * @returns {string|null} Punctuation symbol หรือ null
+     */
+    getPunctuationFromBinary(binary) {
+        const result = this.getTokenFromBinary(binary);
+        return result && result.type === 'punctuation' ? result.value : null;
+    }
+
+    /**
      * Smart Detection - ตรวจจับว่า token เป็นอะไร
      * @param {string} token - Token to identify
      * @returns {Object|null} { type, category, binary, data } หรือ null

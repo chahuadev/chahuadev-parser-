@@ -15,15 +15,15 @@
 import { report } from '../../error-handler/universal-reporter.js';
 import BinaryCodes from '../../error-handler/binary-codes.js';
 import { BinaryScout } from './binary-scout.js';
-import PureBinaryParser from './pure-binary-parser.js';
+import BinaryParser from './binary-parser.js';
 import BinaryProphet from './binary-prophet.js';
 
 /**
  * Enhanced Binary Parser with Structure Map awareness
  * @class EnhancedBinaryParser
- * @extends PureBinaryParser
+ * @extends BinaryParser
  */
-class EnhancedBinaryParser extends PureBinaryParser {
+class EnhancedBinaryParser extends BinaryParser {
     /**
      * @param {Array} tokens - Token array
      * @param {string} source - Source code
@@ -81,9 +81,6 @@ class EnhancedBinaryParser extends PureBinaryParser {
 
                     this.stats.scoutTime = performance.now() - scoutStartTime;
                 } catch (scoutError) {
-                    // ! Scout ต้องรายงานข้อผิดพลาดแต่อย่าหยุดระบบ
-                    // FIX: Universal Reporter - Auto-collect
-                    scoutError.isOperational = true;
                     report(BinaryCodes.PARSER.VALIDATION(1018));
                     this.structureMap = new Map();
                 }
@@ -100,10 +97,7 @@ class EnhancedBinaryParser extends PureBinaryParser {
             return ast;
 
         } catch (error) {
-            // FIX: Universal Reporter - Auto-collect
-            error.isOperational = true;
             report(BinaryCodes.PARSER.SYNTAX(1033));
-            // ! NO_THROW: Return null แทน throw
             return null;
         }
     }
@@ -129,10 +123,7 @@ class EnhancedBinaryParser extends PureBinaryParser {
             return super.parseFunctionDeclaration(start);
 
         } catch (error) {
-            // FIX: Universal Reporter - Auto-collect
-            error.isOperational = true;
             report(BinaryCodes.PARSER.SYNTAX(4004));
-            // ! NO_THROW: Return null แทน throw
             return null;
         }
     }
@@ -164,8 +155,6 @@ class EnhancedBinaryParser extends PureBinaryParser {
             this.stats.quantumJumps++;
 
         } catch (error) {
-            // FIX: Universal Reporter - Auto-collect
-            error.isOperational = true;
             report(BinaryCodes.PARSER.VALIDATION(4005));
         }
     }

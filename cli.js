@@ -82,8 +82,7 @@ class ChahuadevCLI {
             return true;
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.SYSTEM.CONFIGURATION(15001), { error });
-            return false;
+            report(BinaryCodes.SYSTEM.CONFIGURATION(15001));
         }
     }
 
@@ -131,8 +130,7 @@ ${cliConfig.helpText.footer}`);
             
             if (!fs.existsSync(filePath)) {
                 // FIX: Universal Reporter - Auto-collect
-                report(BinaryCodes.IO.RESOURCE_NOT_FOUND(15002), { filePath });
-                return { fileName: filePath, violations: [], success: false, error: 'FILE_NOT_FOUND' };
+                report(BinaryCodes.IO.RESOURCE_NOT_FOUND(15002));
             }
 
             const content = fs.readFileSync(filePath, 'utf8');
@@ -149,8 +147,7 @@ ${cliConfig.helpText.footer}`);
             return results;
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.VALIDATOR.LOGIC(15003), { error, filePath });
-            return { fileName: filePath, violations: [], success: false, error: error.message || String(error) };
+            report(BinaryCodes.VALIDATOR.LOGIC(15003));
         }
     }
 
@@ -189,8 +186,7 @@ ${cliConfig.helpText.footer}`);
                     results.push({ file, ...result });
                 } catch (fileError) {
                     // FIX: Universal Reporter - Auto-collect
-                    report(BinaryCodes.VALIDATOR.LOGIC(15004), { error: fileError, file });
-                    results.push({ file, fileName: file, violations: [], success: false, error: fileError.message || String(fileError) });
+                    report(BinaryCodes.VALIDATOR.LOGIC(15004));
                 }
             }
 
@@ -207,8 +203,7 @@ ${cliConfig.helpText.footer}`);
             return results;
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.SYSTEM.RUNTIME(15005), { error, pattern });
-            return [];
+            report(BinaryCodes.SYSTEM.RUNTIME(15005));
         } finally {
             this.currentScanOptions = null;
         }
@@ -301,9 +296,7 @@ ${cliConfig.helpText.footer}`);
                 entries = fs.readdirSync(resolvedDir, { withFileTypes: true });
             } catch (error) {
                 // FIX: Universal Reporter - Auto-collect
-                report(BinaryCodes.IO.RESOURCE_UNAVAILABLE(15006), { error, directory: resolvedDir });
-                errorCount++;
-                return;
+                report(BinaryCodes.IO.RESOURCE_UNAVAILABLE(15006));
             }
 
             for (const entry of entries) {
@@ -321,8 +314,7 @@ ${cliConfig.helpText.footer}`);
                     }
                 } catch (itemError) {
                     // FIX: Universal Reporter - Auto-collect
-                    report(BinaryCodes.IO.RESOURCE_UNAVAILABLE(15007), { error: itemError, filePath: fullPath });
-                    errorCount++;
+                    report(BinaryCodes.IO.RESOURCE_UNAVAILABLE(15007));
                 }
             }
         };
@@ -347,8 +339,7 @@ ${cliConfig.helpText.footer}`);
             }
         } else {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.IO.RESOURCE_NOT_FOUND(15008), { pattern });
-            return files;
+            report(BinaryCodes.IO.RESOURCE_NOT_FOUND(15008));
         }
 
         if (this.shouldLogVerbose()) {
@@ -481,8 +472,7 @@ async function main() {
         
     } catch (error) {
         // FIX: Universal Reporter - Auto-collect
-        report(BinaryCodes.SYSTEM.RUNTIME(15009), { error, args, patterns });
-        return 1;
+        report(BinaryCodes.SYSTEM.RUNTIME(15009));
     }
 }
 
@@ -499,8 +489,7 @@ if (import.meta.url === `file:///${process.argv[1].replace(/\\/g, '/')}` ||
         return flushAndExit(exitCode ?? 0);
     }).catch(async error => {
         // FIX: Universal Reporter - Auto-collect
-        report(BinaryCodes.SYSTEM.RUNTIME(15010), { error });
-        await flushAndExit(1);
+        report(BinaryCodes.SYSTEM.RUNTIME(15010));
     });
 }
 

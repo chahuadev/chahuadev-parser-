@@ -47,10 +47,14 @@ export class BlankPaperTokenizer {
     constructor(grammarIndex) {
         if (!grammarIndex) {
             report(BinaryCodes.VALIDATOR.VALIDATION(5200));
-            throw new Error('BlankPaperTokenizer requires grammarIndex (Brain)');
+            this.brain = null;
+            this.input = '';
+            this.position = 0;
+            this.tokens = [];
+            return;
         }
         
-        this.brain = grammarIndex; // Brain knows everything
+        this.brain = grammarIndex;
         this.input = '';
         this.position = 0;
         this.line = 1;

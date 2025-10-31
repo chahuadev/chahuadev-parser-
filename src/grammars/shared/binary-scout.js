@@ -57,10 +57,7 @@ class BinaryScout {
                 RBRACE: grammarIndex.getPunctuationBinary('}'),
             };
         } catch (error) {
-            // FIX: Universal Reporter - Auto-collect
-            error.isOperational = true;
             report(BinaryCodes.SYSTEM.CONFIGURATION(1009));
-            // ! NO_THROW: Set BINARY to empty object to prevent crashes
             this.BINARY = {};
         }
     }
@@ -101,10 +98,7 @@ class BinaryScout {
             return this.structureMap;
 
         } catch (error) {
-            // FIX: Universal Reporter - Auto-collect
-            error.isOperational = true;
             report(BinaryCodes.PARSER.SYNTAX(1030));
-            // ! NO_THROW: Return empty map แทน throw
             return new Map();
         }
     }
@@ -139,10 +133,8 @@ class BinaryScout {
             return endPos;
 
         } catch (error) {
-            // FIX: Universal Reporter - Auto-collect
-            error.isOperational = true;
             report(BinaryCodes.PARSER.VALIDATION(1053));
-            return startPos; // Fallback: don't jump
+            return startPos;
         }
     }
 
@@ -179,8 +171,6 @@ class BinaryScout {
             return endPos;
 
         } catch (error) {
-            // FIX: Universal Reporter - Auto-collect
-            error.isOperational = true;
             report(BinaryCodes.PARSER.VALIDATION(1049));
             return startPos;
         }
@@ -217,8 +207,6 @@ class BinaryScout {
             return endPos;
 
         } catch (error) {
-            // FIX: Universal Reporter - Auto-collect
-            error.isOperational = true;
             report(BinaryCodes.PARSER.VALIDATION(1054));
             return startPos;
         }
@@ -270,8 +258,6 @@ class BinaryScout {
             return finalEndPos;
 
         } catch (error) {
-            // FIX: Universal Reporter - Auto-collect
-            error.isOperational = true;
             report(BinaryCodes.PARSER.VALIDATION(1050));
             return startPos;
         }
@@ -402,8 +388,6 @@ class BinaryScout {
                 }
             }
         } catch (error) {
-            // FIX: Universal Reporter - Auto-collect
-            error.isOperational = true;
             report(BinaryCodes.PARSER.VALIDATION(1055));
         }
 

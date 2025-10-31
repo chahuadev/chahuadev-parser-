@@ -13,10 +13,10 @@
 import { performance } from 'node:perf_hooks';
 import { report } from '../../error-handler/universal-reporter.js';
 import BinaryCodes from '../../error-handler/binary-codes.js';
-import PureBinaryParser from './pure-binary-parser.js';
+import BinaryParser from './binary-parser.js';
 
 // ! Sandbox parser: isolated copy of Architect logic for quantum experimentation only
-class SandboxBinaryParser extends PureBinaryParser {
+class SandboxBinaryParser extends BinaryParser {
     constructor(tokens, grammarIndex, options = {}) {
         super(tokens, options.source || '', grammarIndex);
     }

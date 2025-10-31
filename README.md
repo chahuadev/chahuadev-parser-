@@ -212,17 +212,17 @@ const binary = generateBinary('if', 'keyword'); // generates on-the-fly
 
 String error code: "ERR_SECURITY_PERMISSION_5001"
 
-  → 28 characters × 2 bytes (UTF-16) = 56 bytes
+   28 characters × 2 bytes (UTF-16) = 56 bytes
 
-  → Plus object overhead = ~70-80 bytes**Don't like it?** Write context manually - system doesn't forbid it:// New way (binary) - instant comparison
+   Plus object overhead = ~70-80 bytes**Don't like it?** Write context manually - system doesn't forbid it:// New way (binary) - instant comparison
 
 
 
 Binary error code: 4503874773783433n```javascript
 
-  → 8 bytes (64-bit integer)
+   8 bytes (64-bit integer)
 
-  → 60-80% memory savingsreport(code, { file: 'x.js', method: 'y', line: 10, error });const targetCode = BinaryCodes.SECURITY.PERMISSION(5001);[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+   60-80% memory savingsreport(code, { file: 'x.js', method: 'y', line: 10, error });const targetCode = BinaryCodes.SECURITY.PERMISSION(5001);[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 ```
 
@@ -340,11 +340,11 @@ const binary = generateBinary('if', 'keyword'); // generates on-the-fly
 
 ```
 
-1. BLANK PAPER     → No hardcoding - everything from config/grammar files
+1. BLANK PAPER      No hardcoding - everything from config/grammar files
 
-2. BINARY FIRST    → Numbers for memory efficiency (not speed in JS)## The Real Power: Instant Filtering & Categorization// Old way - manual (error-prone)
+2. BINARY FIRST     Numbers for memory efficiency (not speed in JS)## The Real Power: Instant Filtering & Categorization// Old way - manual (error-prone)
 
-3. ZERO FALLBACK   → Explicit errors - no silent failures
+3. ZERO FALLBACK    Explicit errors - no silent failures
 
 ```
 
@@ -446,7 +446,7 @@ report(code, { file: 'x.js', method: 'y', line: 10, error });
 
 BinaryCodes.SECURITY.PERMISSION(5001)
 
-// → 4503874773783433 (internal representation)});report(code, { file: 'x.js', method: 'y', line: 10, error });const targetCode = BinaryCodes.SECURITY.PERMISSION(5001);> Where every error speaks in numbers, every token carries meaning[![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen?style=flat-square)]()
+//  4503874773783433 (internal representation)});report(code, { file: 'x.js', method: 'y', line: 10, error });const targetCode = BinaryCodes.SECURITY.PERMISSION(5001);> Where every error speaks in numbers, every token carries meaning[![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen?style=flat-square)]()
 
 
 
@@ -462,7 +462,7 @@ const criticalSecurityErrors = filterByPattern(allErrors, binaryErrorGrammar, {
 
 **Pros:**
 
-- **Memory: 8 bytes vs 70 bytes (88% smaller)** ← Primary reason    domain: 'SECURITY',if (errorCode === targetCode) { ... }
+- **Memory: 8 bytes vs 70 bytes (88% smaller)**  Primary reason    domain: 'SECURITY',if (errorCode === targetCode) { ... }
 
 - Structured data (domain/category/severity embedded)
 
@@ -578,9 +578,9 @@ await index.loadGrammar();**Don't like it?** Keep using strings - slower but fin
 
 
 
-index.getBinary('if', 'keyword');         // → 0x01c7// Compare (integer comparison - instant)
+index.getBinary('if', 'keyword');         //  0x01c7// Compare (integer comparison - instant)
 
-index.identifyToken('async');             // → { type, category, binary }
+index.identifyToken('async');             //  { type, category, binary }
 
 ```if (domain === SECURITY_DOMAIN) { ... }  // O(1)### 4. Runtime Binary Generation
 
@@ -710,7 +710,7 @@ Chahuadev-Sentinel/**Don't like it?** Pre-generate and commit - faster but harde
 
 ### 1. Error Reporting
 
-```javascript// Binary-based (instant)1. BLANK PAPER     → No hardcoding - everything from config/grammar files
+```javascript// Binary-based (instant)1. BLANK PAPER      No hardcoding - everything from config/grammar files
 
 try {
 
@@ -718,7 +718,7 @@ try {
 
 } catch (error) {
 
-    report(BinaryCodes.VALIDATOR.VALIDATION(2001), { error, data });    domain: 'SECURITY',      // 1 bitwise shift + 1 comparison2. BINARY FIRST    → Numbers instead of strings for speed    file: 'auth.js',      // might typo
+    report(BinaryCodes.VALIDATOR.VALIDATION(2001), { error, data });    domain: 'SECURITY',      // 1 bitwise shift + 1 comparison2. BINARY FIRST     Numbers instead of strings for speed    file: 'auth.js',      // might typo
 
 }
 
@@ -726,7 +726,7 @@ try {
 
 
 
-### 2. Token Analysis    severity: 'CRITICAL'     // 1 bitwise shift + 1 comparison3. ZERO FALLBACK   → Explicit errors - no silent failures
+### 2. Token Analysis    severity: 'CRITICAL'     // 1 bitwise shift + 1 comparison3. ZERO FALLBACK    Explicit errors - no silent failures
 
 ```javascript
 
@@ -738,7 +738,7 @@ await jsIndex.loadGrammar();
 
 const token = jsIndex.identifyToken('async');
 
-// → { type: 'keyword', category: 'modifier', binary: 0x0a2e }// Result: ~20x faster
+//  { type: 'keyword', category: 'modifier', binary: 0x0a2e }// Result: ~20x faster
 
 ```
 
@@ -862,11 +862,11 @@ Test 1: RAW Bitwise (Pure O(1))### Why This MattersNo `npm install` needed - wor
 
 Test 2: String Filtering (V8-optimized)
 
-  Time: 5.180ms  ← WINNER**Small codebase:** Difference negligible  **Don't like it?** Write context manually - system doesn't forbid it:// แบบใหม่ (binary)
+  Time: 5.180ms   WINNER**Small codebase:** Difference negligible  **Don't like it?** Write context manually - system doesn't forbid it:// แบบใหม่ (binary)
 
   
 
-Test 3: Bitwise + Grammar Lookup**Large codebase:** 10,000+ errors/day → **binary filtering is 20-100x faster**
+Test 3: Bitwise + Grammar Lookup**Large codebase:** 10,000+ errors/day  **binary filtering is 20-100x faster**
 
   Time: 13.346ms
 
@@ -874,7 +874,7 @@ Test 3: Bitwise + Grammar Lookup**Large codebase:** 10,000+ errors/day → **bin
 
 
 
-**Why String is Faster:****Memory:** Binary codes = 8 bytes, Strings = 20-50 bytes → **60-80% smaller**
+**Why String is Faster:****Memory:** Binary codes = 8 bytes, Strings = 20-50 bytes  **60-80% smaller**
 
 - V8 engine heavily optimizes strings
 
@@ -910,15 +910,15 @@ Test 3: Bitwise + Grammar Lookup**Large codebase:** 10,000+ errors/day → **bin
 
 
 
----1. BLANK PAPER     → No hardcoding - everything from config/grammar files```
+---1. BLANK PAPER      No hardcoding - everything from config/grammar files```
 
 
 
-## Limitations (Honest Talk)2. BINARY FIRST    → Numbers instead of strings for speed
+## Limitations (Honest Talk)2. BINARY FIRST     Numbers instead of strings for speed
 
 
 
-1. **Not for beginners** - requires understanding of binary, stack traces, grammars3. ZERO FALLBACK   → Explicit errors - no silent failures**What it does:** Report errors with auto-captured file, method, line, column
+1. **Not for beginners** - requires understanding of binary, stack traces, grammars3. ZERO FALLBACK    Explicit errors - no silent failures**What it does:** Report errors with auto-captured file, method, line, column
 
 2. **High learning curve** - concepts differ from typical tools
 
@@ -1122,7 +1122,7 @@ npm install eslint prettier
 
 
 
----// → 0x0001000400001389 (internal representation)
+---//  0x0001000400001389 (internal representation)
 
 
 
@@ -1134,7 +1134,7 @@ npm install eslint prettier
 
 - [Offset Registry](./docs/OFFSET_REGISTRY.md)
 
-- [Contributing Guide](./docs/en/CONTRIBUTING.md)const code = BinaryCodes.SECURITY.PERMISSION(5001);// → 0x0001000400001389 (internal representation)**Don't like it?** Hardcode it - just means editing multiple places when changes needed
+- [Contributing Guide](./docs/en/CONTRIBUTING.md)const code = BinaryCodes.SECURITY.PERMISSION(5001);//  0x0001000400001389 (internal representation)**Don't like it?** Hardcode it - just means editing multiple places when changes needed
 
 - [Performance Benchmarks](./test-bitwise-filtering.js)
 
@@ -1208,7 +1208,7 @@ If you're building a large-scale, multi-language system where memory efficiency 
 
     SECURITY_PERMISSION: "SEC_PERM_5001"- Low memory (8 bytes)
 
-Choose wisely. 🎯
+Choose wisely. 
 
 };
 
@@ -1246,9 +1246,9 @@ await index.loadGrammar();
 
 
 
-index.getBinary('if', 'keyword');         // → 0x01c7**Alternative:** If you prefer strings:const binary = generateBinary('if', 'keyword'); // generates on-the-fly
+index.getBinary('if', 'keyword');         //  0x01c7**Alternative:** If you prefer strings:const binary = generateBinary('if', 'keyword'); // generates on-the-fly
 
-index.identifyToken('async');             // → { type, category, binary }
+index.identifyToken('async');             //  { type, category, binary }
 
 ``````javascript
 
@@ -1318,15 +1318,15 @@ await index.loadGrammar();
 
 ## Project Structure
 
-index.getBinary('if', 'keyword');         // → 0x01c7```1. BLANK PAPER     ไม่มี hardcode ใดๆ ทุกอย่างมาจาก grammar files2. **Binary Error System** - 64-bit error codes with ~98% collision-free confidence
+index.getBinary('if', 'keyword');         //  0x01c7```1. BLANK PAPER     ไม่มี hardcode ใดๆ ทุกอย่างมาจาก grammar files2. **Binary Error System** - 64-bit error codes with ~98% collision-free confidence
 
 ```
 
-Chahuadev-Sentinel/index.identifyToken('async');             // → { type, category, binary }
+Chahuadev-Sentinel/index.identifyToken('async');             //  { type, category, binary }
 
 ├── src/
 
-│   ├── error-handler/```1. BLANK PAPER     → No hardcoding - everything from config/grammar files
+│   ├── error-handler/```1. BLANK PAPER      No hardcoding - everything from config/grammar files
 
 │   │   ├── universal-reporter.js      # Auto-capture API
 
@@ -1334,7 +1334,7 @@ Chahuadev-Sentinel/index.identifyToken('async');             // → { type, cate
 
 │   │   ├── binary-code-utils.js       # Bitwise operations
 
-│   │   └── context-capture.js         # Stack trace parser**Supports:** 14 languages (JavaScript, TypeScript, Python, Java, Go, Rust, C++, C, PHP, Ruby, C#, Swift, Kotlin, JSX)2. BINARY FIRST    → Numbers instead of strings for speed// แบบใหม่ - auto-capture
+│   │   └── context-capture.js         # Stack trace parser**Supports:** 14 languages (JavaScript, TypeScript, Python, Java, Go, Rust, C++, C, PHP, Ruby, C#, Swift, Kotlin, JSX)2. BINARY FIRST     Numbers instead of strings for speed// แบบใหม่ - auto-capture
 
 │   │
 
@@ -1342,7 +1342,7 @@ Chahuadev-Sentinel/index.identifyToken('async');             // → { type, cate
 
 │   │   ├── grammar-index.js           # Multi-language loader
 
-│   │   ├── binary-generator.js        # Runtime binary gen**Pros:**3. ZERO FALLBACK   → Explicit errors - no silent failures
+│   │   ├── binary-generator.js        # Runtime binary gen**Pros:**3. ZERO FALLBACK    Explicit errors - no silent failures
 
 │   │   └── grammars/                  # 14 languages
 
@@ -1406,7 +1406,7 @@ await jsIndex.loadGrammar();
 
 const token = jsIndex.identifyToken('async');
 
-// → { type: 'keyword', category: 'modifier', binary: 0x0a2e }```bash## Quick Start
+//  { type: 'keyword', category: 'modifier', binary: 0x0a2e }```bash## Quick Start
 
 ```
 
@@ -1518,7 +1518,7 @@ node cli.js src/ --format json│   │   ├── binary-codes.js            #
 
 |--------|--------|-------|
 
-| Universal Reporter | Per report | 0.162ms |│   └── security/### 🔴 Universal Error Reporting
+| Universal Reporter | Per report | 0.162ms |│   └── security/###  Universal Error Reporting
 
 | Binary Comparison | Speed | Instant (O(1)) |
 
@@ -1634,7 +1634,7 @@ const MyErrorCodes = {
 
     // ... define as strings
 
-};// → { type: 'keyword', category: 'modifier', binary: 0x0a2e }
+};//  { type: 'keyword', category: 'modifier', binary: 0x0a2e }
 
 ```
 
@@ -1686,7 +1686,7 @@ const myKeywords = {
 
 # Use other tools
 
-npm install eslint prettier---### 🟡 Binary Error System**แก้ไข:** Generate runtime - แก้ grammar แล้วใช้ได้ทันที
+npm install eslint prettier---###  Binary Error System**แก้ไข:** Generate runtime - แก้ grammar แล้วใช้ได้ทันที
 
 ```
 
@@ -1750,7 +1750,7 @@ BinaryCodes.SECURITY.PERMISSION(5001)
 
 - [Contributing Guide](./docs/en/CONTRIBUTING.md)
 
-- `NO_CONSOLE` - No console.log// → 0x0001000400001389 (internal representation)const binary = generateBinary('if', 'keyword'); // Generate ทันที
+- `NO_CONSOLE` - No console.log//  0x0001000400001389 (internal representation)const binary = generateBinary('if', 'keyword'); // Generate ทันที
 
 ---
 
@@ -1857,7 +1857,7 @@ A: ESLint is a linter. We're a code intelligence platform. Different purposes.co
 
 
 
-**Q: Why create your own grammars?**      SECURITY_PERMISSION: "SEC_PERM_5001"1. BLANK PAPER     → ไม่ hardcode - ทุกอย่างมาจาก config/grammar files
+**Q: Why create your own grammars?**      SECURITY_PERMISSION: "SEC_PERM_5001"1. BLANK PAPER      ไม่ hardcode - ทุกอย่างมาจาก config/grammar files
 
 A: For consistency across languages and control over binary generation.
 
@@ -1865,7 +1865,7 @@ A: For consistency across languages and control over binary generation.
 
 ---
 
-```2. BINARY FIRST    → ใช้ตัวเลขแทน string เพื่อความเร็วgit clone https://github.com/chahuadev-com/Chahuadev-Sentinel.git- [Binary Error System](#binary-error-system)
+```2. BINARY FIRST     ใช้ตัวเลขแทน string เพื่อความเร็วgit clone https://github.com/chahuadev-com/Chahuadev-Sentinel.git- [Binary Error System](#binary-error-system)
 
 ## Who Should Use This
 
@@ -1873,7 +1873,7 @@ A: For consistency across languages and control over binary generation.
 
 **Good fit:**
 
-- Projects requiring high performance---3. ZERO FALLBACK   → Error ต้องชัดเจน - ห้าม silent fail
+- Projects requiring high performance---3. ZERO FALLBACK    Error ต้องชัดเจน - ห้าม silent fail
 
 - Teams willing to trade learning curve for control
 
@@ -1881,7 +1881,7 @@ A: For consistency across languages and control over binary generation.
 
 
 
-**Not good fit:**### 🟢 Smart Grammar Index```cd Chahuadev-Sentinel- [Architecture](#architecture)
+**Not good fit:**###  Smart Grammar Index```cd Chahuadev-Sentinel- [Architecture](#architecture)
 
 - Beginner developers
 
@@ -1913,11 +1913,11 @@ const MyErrorCodes = {await index.loadGrammar();ใช้ ESLint, Prettier ห�
 
 };
 
-```index.getBinary('if', 'keyword');         // → 0x01c7# Use immediately - no install needed- [VS Code Extension](#vs-code-extension)
+```index.getBinary('if', 'keyword');         //  0x01c7# Use immediately - no install needed- [VS Code Extension](#vs-code-extension)
 
 
 
-### Don't Like Auto-Capture?index.identifyToken('async');             // → { type, category, binary }
+### Don't Like Auto-Capture?index.identifyToken('async');             //  { type, category, binary }
 
 ```javascript
 
@@ -1985,7 +1985,7 @@ npm install eslint prettier
 
 **Time invested:** ~1 month  
 
-### 🔵 Offset Registry```
+###  Offset Registry```
 
 **Completed:**
 
@@ -2049,7 +2049,7 @@ import BinaryCodes from './src/error-handler/binary-codes.js';
 
 **Author:** Chahua Development Co., Ltd.  
 
-**Email:** chahuadev@gmail.com  ### 🔴 Universal Error Reporting
+**Email:** chahuadev@gmail.com  ###  Universal Error Reporting
 
 **Philosophy:** Binary-First, Blank Paper, Zero Fallback
 
@@ -2148,13 +2148,13 @@ try {report(code, { file: 'x.js', method: 'y', line: 10, error });
 
 const jsIndex = new SmartGrammarIndex('javascript');
 
-await jsIndex.loadGrammar();### 🟡 Binary Error System# Run CLI
+await jsIndex.loadGrammar();###  Binary Error System# Run CLI
 
 
 
 const token = jsIndex.identifyToken('async');
 
-// → { type: 'keyword', category: 'modifier', binary: 0x0a2e }
+//  { type: 'keyword', category: 'modifier', binary: 0x0a2e }
 
 ```**ทำอะไร:** Error code เป็นตัวเลข 64-bit แทน string#### 1. Universal Error Reportingnode cli.js --help
 
@@ -2180,7 +2180,7 @@ if (!security.validatePath(userPath)) {
 
 
 
----// → 0x0001000400001389```javascript### Basic Usage
+---//  0x0001000400001389```javascript### Basic Usage
 
 
 
@@ -2268,7 +2268,7 @@ node cli.js src/ --format json- ตรวจ collision ได้import { report 
 
 ---
 
-### 🟢 Smart Grammar Index**64-bit error codes: `[Domain 16][Category 16][Offset 32]`**        component: 'auth',
+###  Smart Grammar Index**64-bit error codes: `[Domain 16][Category 16][Offset 32]`**        component: 'auth',
 
 ## Why Not Use Existing Tools?
 
@@ -2300,13 +2300,13 @@ A: For consistency across languages and control over binary generation.
 
 ---
 
-index.getBinary('if', 'keyword');         // → 0x01c7//  0x0001000400001389 (64-bit integer));
+index.getBinary('if', 'keyword');         //  0x01c7//  0x0001000400001389 (64-bit integer));
 
 ## Who Should Use This
 
-index.identifyToken('async');             // → { type, category, binary }
+index.identifyToken('async');             //  { type, category, binary }
 
-✅ **Good fit:**
+ **Good fit:**
 
 - Projects requiring high performance``````
 
@@ -2316,7 +2316,7 @@ index.identifyToken('async');             // → { type, category, binary }
 
 
 
-❌ **Not good fit:****รองรับ:** 14 ภาษา (JavaScript, TypeScript, Python, Java, Go, Rust, C++, C, PHP, Ruby, C#, Swift, Kotlin, JSX)// New way (1 line - auto-captures everything)
+ **Not good fit:****รองรับ:** 14 ภาษา (JavaScript, TypeScript, Python, Java, Go, Rust, C++, C, PHP, Ruby, C#, Swift, Kotlin, JSX)// New way (1 line - auto-captures everything)
 
 - Beginner developers
 
@@ -2372,7 +2372,7 @@ report(code, {
 
 ```
 
-### 🔵 Offset Registryconst index = new SmartGrammarIndex('javascript');
+###  Offset Registryconst index = new SmartGrammarIndex('javascript');
 
 ### Don't Like Grammar System?
 
@@ -2424,25 +2424,25 @@ npm install eslint prettier
 
 **Completed:**
 
-- ✅ Universal Error Reporting**ทางเลือก:** ถ้าไม่ได้ใช้ binary system ไม่ต้องใช้ tool นี้
+-  Universal Error Reporting**ทางเลือก:** ถ้าไม่ได้ใช้ binary system ไม่ต้องใช้ tool นี้
 
-- ✅ Binary Error System
+-  Binary Error System
 
-- ✅ Smart Grammar Index (14 languages)```javascript
+-  Smart Grammar Index (14 languages)```javascript
 
-- ✅ Offset Registry
+-  Offset Registry
 
 ---
 
 **In Progress:**
 
-- ⏳ Full documentation**Features:**// Manual context building (verbose, error-prone)
+-  Full documentation**Features:**// Manual context building (verbose, error-prone)
 
-- ⏳ 100% test coverage
+-  100% test coverage
 
-- ⏳ VS Code Extension## โครงสร้างโปรเจกต์
+-  VS Code Extension## โครงสร้างโปรเจกต์
 
-- ⏳ NPM package
+-  NPM package
 
 -  14 languages (JavaScript, TypeScript, Python, Java, Go, Rust, C++, C, PHP, Ruby, C#, Swift, Kotlin, JSX)const context = {
 
@@ -2565,7 +2565,7 @@ await jsIndex.loadGrammar();**100% binary comparison - no string matching**repor
 
 const token = jsIndex.identifyToken('async');```
 
-// → { type: 'keyword', category: 'modifier', binary: 0x0a2e }
+//  { type: 'keyword', category: 'modifier', binary: 0x0a2e }
 
 ``````javascript
 
@@ -2717,7 +2717,7 @@ security.validatePath('/safe/path');      // Path traversal protection
 
 security.checkRateLimit('apiCall', 100);  // Rate limiting**Example:**
 
-✅ **เหมาะกับ:**
+ **เหมาะกับ:**
 
 - โปรเจกต์ที่ต้องการ performance สูงsecurity.sanitizeInput(userInput);        // Input sanitization```javascript
 
@@ -2727,7 +2727,7 @@ security.checkRateLimit('apiCall', 100);  // Rate limiting**Example:**
 
 
 
-❌ **ไม่เหมาะกับ:**// DOMAIN:   SECURITY (0x0001)
+ **ไม่เหมาะกับ:**// DOMAIN:   SECURITY (0x0001)
 
 - Beginner developers
 
@@ -2835,25 +2835,25 @@ npm install eslint prettier
 
 **ระบบที่เสร็จ:**
 
-- ✅ Universal Error Reporting
+-  Universal Error Reporting
 
-- ✅ Binary Error System
+-  Binary Error System
 
-- ✅ Smart Grammar Index (14 languages)```**Output:**
+-  Smart Grammar Index (14 languages)```**Output:**
 
-- ✅ Offset Registry
+-  Offset Registry
 
 Chahuadev-Sentinel/```
 
 **ระบบที่ยังทำไม่เสร็จ:**
 
-- ⏳ Full documentation├──  CORE SYSTEMS[SCAN] Scanning for offset usage...
+-  Full documentation├──  CORE SYSTEMS[SCAN] Scanning for offset usage...
 
-- ⏳ Test coverage 100%
+-  Test coverage 100%
 
-- ⏳ VS Code Extension│   ├── src/error-handler/
+-  VS Code Extension│   ├── src/error-handler/
 
-- ⏳ NPM package
+-  NPM package
 
 │   │   ├── universal-reporter.js      # Auto-capture API[SUMMARY] OFFSET SCAN SUMMARY
 

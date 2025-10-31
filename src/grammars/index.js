@@ -12,7 +12,7 @@
 // ============================================================================
 
 import { GrammarIndex } from './shared/grammar-index.js';
-import { PureBinaryParser } from './shared/pure-binary-parser.js';
+import { BinaryParser } from './shared/binary-parser.js';
 import EnhancedBinaryParser from './shared/enhanced-binary-parser.js';
 import { BinaryComputationTokenizer } from './shared/tokenizer-helper.js';
 import { report } from '../error-handler/universal-reporter.js';
