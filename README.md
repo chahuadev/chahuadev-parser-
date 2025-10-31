@@ -1,200 +1,397 @@
-<div align="center"><div align="center"><div align="center"><div align="center"><div align="center"><div align="center"><div align="center">
+# Chahuadev Sentinel<div align="center"><div align="center"><div align="center"><div align="center"><div align="center"><div align="center"><div align="center">
 
 
 
-# Chahuadev Sentinel
+**Central Brain for Code Analysis** - Universal Grammar System for Multi-Language Code Reading
 
 
 
-**FROM CHAOS TO CODE**# Chahuadev Sentinel
+##  What is This?# Chahuadev Sentinel
 
 
 
-[![Version](https://img.shields.io/badge/version-3.0.0--beta-blue)](https://github.com/chahuadev-com/Chahuadev-Sentinel)
-
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-
-[![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen)]()**FROM CHAOS TO CODE**# Chahuadev Sentinel
+**สมองกลางสำหรับอ่านโค้ดทุกภาษา** - Not a linter, not a formatter. This is a **universal code reading system** that understands code structure across multiple programming languages.
 
 
 
-> Code analysis tool using binary instead of strings - NOT for speed, but for memory efficiency  
+### Core System: `src/grammars/`**FROM CHAOS TO CODE**# Chahuadev Sentinel
 
-> Don't like it? Fork it - MIT License
 
-[![Version](https://img.shields.io/badge/version-3.0.0--beta-blue)](https://github.com/chahuadev-com/Chahuadev-Sentinel)
+
+The **main brain** that reads and understands code:
+
+
+
+- **Grammar Index** (`grammar-index.js`) - Central intelligence for all languages[![Version](https://img.shields.io/badge/version-3.0.0--beta-blue)](https://github.com/chahuadev-com/Chahuadev-Sentinel)
+
+- **Binary Parser** (`binary-parser.js`) - AST parser using structure-based approach
+
+- **Language Grammars** - JavaScript, TypeScript, Python, Java, C++, Go, Rust, Swift, Ruby, PHP, C#, Kotlin[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
+- **Binary Tokenizer** - Converts code into binary-tagged tokens
+
+- **Binary Scout** - Fast structure scanning using quantum jumps[![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen)]()**FROM CHAOS TO CODE**# Chahuadev Sentinel
+
+
+
+### Supplementary System: Error Handler
+
+
+
+**ของเสริม** - Automated error collection and logging:> Code analysis tool using binary instead of strings - NOT for speed, but for memory efficiency  
+
+
+
+- Binary error codes (64-bit architecture)> Don't like it? Fork it - MIT License
+
+- Auto-context capture from stack traces
+
+- Streaming log writer[![Version](https://img.shields.io/badge/version-3.0.0--beta-blue)](https://github.com/chahuadev-com/Chahuadev-Sentinel)
+
+- Universal reporter
 
 </div>
 
+##  Architecture
+
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
----
+```
 
-[![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen)]()**FROM CHAOS TO CODE**# Chahuadev Sentinel
+src/grammars/               CORE: สมองกลางอ่านโค้ด---
 
-## What It Does (Straight Talk)
+├── shared/
+
+│   ├── grammar-index.js    Brain: รู้ทุกภาษา[![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen)]()**FROM CHAOS TO CODE**# Chahuadev Sentinel
+
+│   ├── binary-parser.js    AST Parser
+
+│   ├── binary-scout.js     Fast Scanner## What It Does (Straight Talk)
+
+│   └── grammars/           Language Definitions
+
+│       ├── javascript.grammar.js
+
+│       ├── typescript.grammar.js
+
+│       ├── python.grammar.js### 1. Binary Error Reporting
+
+│       └── ... (11 languages)
+
+└── external/               Original TextMate grammars**Problem:** String error codes (`"ERR_SECURITY_5001"`) use 20-50 bytes each  > Code analysis tool using binary instead of strings - because it's faster  
 
 
 
-### 1. Binary Error Reporting
+src/error-handler/          SUPPLEMENTARY: Error System**Solution:** Use 64-bit integers instead - only 8 bytes (60-80% smaller)
 
-**Problem:** String error codes (`"ERR_SECURITY_5001"`) use 20-50 bytes each  > Code analysis tool using binary instead of strings - because it's faster  
+├── universal-reporter.js
 
-**Solution:** Use 64-bit integers instead - only 8 bytes (60-80% smaller)
+├── binary-codes.js> Don't like it? Fork it - MIT License
 
-> Don't like it? Fork it - MIT License
+├── error-collector.js
 
-```javascript
+└── context-capture.js```javascript
 
-// Old way (string) - 20-50 bytes per error[![Version](https://img.shields.io/badge/version-3.0.0--beta-blue)](https://github.com/chahuadev-com/Chahuadev-Sentinel)
+
+
+cli.js                      CLI Interface// Old way (string) - 20-50 bytes per error[![Version](https://img.shields.io/badge/version-3.0.0--beta-blue)](https://github.com/chahuadev-com/Chahuadev-Sentinel)
+
+```
 
 if (errorCode === "ERR_SECURITY_5001") { ... }
 
+##  How It Works
+
 </div>
+
+### 1. Grammar System (Main Brain)
 
 // New way (binary) - 8 bytes per error
 
-const targetCode = BinaryCodes.SECURITY.PERMISSION(5001);[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+```javascript
 
-if (errorCode === targetCode) { ... }
+import { GrammarIndex } from './src/grammars/shared/grammar-index.js';const targetCode = BinaryCodes.SECURITY.PERMISSION(5001);[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
----
 
-// Or use pattern matching
 
-if (matchBinaryCode(errorCode, 'SECURITY', 'PERMISSION')) { ... }[![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen)]()**FROM CHAOS TO CODE**# Chahuadev Sentinel  <img src="./logo.png" alt="Chahuadev Sentinel" width="150"/>
+const brain = new GrammarIndex();if (errorCode === targetCode) { ... }
 
-```
 
-## What It Does (Straight Talk)
 
-**Truth:** Binary is NOT faster than strings in JavaScript (V8 optimizes strings heavily)  
+// Brain knows all languages---
+
+const keywordInfo = brain.getKeywordInfo('class');
+
+// { binary: 2048, category: 'declaration', ... }// Or use pattern matching
+
+
+
+const operatorInfo = brain.getOperatorInfo('===');if (matchBinaryCode(errorCode, 'SECURITY', 'PERMISSION')) { ... }[![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen)]()**FROM CHAOS TO CODE**# Chahuadev Sentinel  <img src="./logo.png" alt="Chahuadev Sentinel" width="150"/>
+
+// { binary: 4, type: 'comparison', precedence: 7, ... }
+
+``````
+
+
+
+### 2. Binary Parser## What It Does (Straight Talk)
+
+
+
+```javascript**Truth:** Binary is NOT faster than strings in JavaScript (V8 optimizes strings heavily)  
+
+import { BinaryParser } from './src/grammars/shared/binary-parser.js';
 
 **Why we use it:** **Memory efficiency** - 60-80% smaller, structured data, type safety
 
+const tokens = /* from tokenizer */;
 
-
-### 2. Auto-Capture Context### 1. Binary Error Reporting
-
-**Problem:** Manual context writing is error-prone  
-
-**Solution:** Extract context from stack traces automatically**Problem:** String error codes (`"ERR_SECURITY_5001"`) are slow to compare  > Code analysis tool using binary instead of strings - because it's faster  
+const parser = new BinaryParser(tokens, sourceCode, grammarIndex);
 
 
 
-```javascript**Solution:** Use 64-bit integers instead - instant comparison
+const ast = parser.parse();### 2. Auto-Capture Context### 1. Binary Error Reporting
 
-// Old way - manual (error-prone)
+// Full AST with binary-tagged nodes
 
-reportError(code, {> Don't like it? Fork it - MIT License
-
-    file: 'auth.js',      // might typo
-
-    method: 'login',      // might forget```javascript
-
-    line: 42              // might be wrong
-
-});// Old way (string) - slow comparison[![Version](https://img.shields.io/badge/version-3.0.0--beta-blue)](https://github.com/chahuadev-com/Chahuadev-Sentinel)
+```**Problem:** Manual context writing is error-prone  
 
 
 
-// New way - auto-captureif (errorCode === "ERR_SECURITY_5001") { ... }
-
-report(code, { error }); // extracts everything from stack trace
-
-```</div>
+### 3. Error System (Supplementary)**Solution:** Extract context from stack traces automatically**Problem:** String error codes (`"ERR_SECURITY_5001"`) are slow to compare  > Code analysis tool using binary instead of strings - because it's faster  
 
 
-
-**Don't like it?** Write context manually - system doesn't forbid it:// New way (binary) - instant comparison
 
 ```javascript
 
+import { report } from './src/error-handler/universal-reporter.js';
+
+import BinaryCodes from './src/error-handler/binary-codes.js';```javascript**Solution:** Use 64-bit integers instead - instant comparison
+
+
+
+// Simple one-line error reporting// Old way - manual (error-prone)
+
+report(BinaryCodes.PARSER.SYNTAX(6001));
+
+// Auto-captures: file, line, method, contextreportError(code, {> Don't like it? Fork it - MIT License
+
+// Auto-sets: isOperational, severity, domain
+
+// Auto-logs: to appropriate file    file: 'auth.js',      // might typo
+
+```
+
+    method: 'login',      // might forget```javascript
+
+##  Installation
+
+    line: 42              // might be wrong
+
+```bash
+
+npm install});// Old way (string) - slow comparison[![Version](https://img.shields.io/badge/version-3.0.0--beta-blue)](https://github.com/chahuadev-com/Chahuadev-Sentinel)
+
+```
+
+
+
+##  Usage
+
+// New way - auto-captureif (errorCode === "ERR_SECURITY_5001") { ... }
+
+### Command Line
+
+report(code, { error }); // extracts everything from stack trace
+
+```bash
+
+# Scan current directory```</div>
+
+node cli.js
+
+
+
+# Scan specific directory
+
+node cli.js src/**Don't like it?** Write context manually - system doesn't forbid it:// New way (binary) - instant comparison
+
+
+
+# Scan with verbose output```javascript
+
+node cli.js --verbose
+
 report(code, { file: 'x.js', method: 'y', line: 10, error });const targetCode = BinaryCodes.SECURITY.PERMISSION(5001);[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
+# JSON output
+
+node cli.js --json```
 
 ```
 
 if (errorCode === targetCode) { ... }
 
+### Programmatic
+
 ### 3. Grammar-Based Tokenizer
 
-**Problem:** Hardcoded keywords in code = hard to maintain  ---
+```javascript
+
+import { GrammarIndex } from './src/grammars/shared/grammar-index.js';**Problem:** Hardcoded keywords in code = hard to maintain  ---
+
+import { BinaryParser } from './src/grammars/shared/binary-parser.js';
 
 **Solution:** Store in grammar files - change one file, done
 
-// Or use pattern matching
+// Initialize brain
 
-```javascript
+const brain = new GrammarIndex();// Or use pattern matching
 
-// Hardcoded (hard to maintain)if (matchBinaryCode(errorCode, grammar, 'SECURITY', 'PERMISSION')) { ... }[![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen)]()**FROM CHAOS TO CODE**#  Chahuadev Sentinel
 
-const keywords = { if: true, const: true, async: true };
 
-```
+// Parse code```javascript
 
-// Grammar-based (easy to maintain)
+const parser = new BinaryParser(tokens, source, brain);
 
-const keywords = grammar.keywords; // from javascript.grammar.js## What It Does (Straight Talk)
+const ast = parser.parse();// Hardcoded (hard to maintain)if (matchBinaryCode(errorCode, grammar, 'SECURITY', 'PERMISSION')) { ... }[![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen)]()**FROM CHAOS TO CODE**#  Chahuadev Sentinel
 
-```
 
-**Truth:** You never write `0x0001000400001389n` by hand - you use `BinaryCodes` API  
 
-**Don't like it?** Hardcode it - just means editing multiple places when changes needed
+// Analyze structureconst keywords = { if: true, const: true, async: true };
 
-**Don't like it?** Keep using strings - slower but fine for small codebases
+console.log(ast.body);
 
-### 4. Runtime Binary Generation
+``````
+
+
+
+##  Supported Languages// Grammar-based (easy to maintain)
+
+
+
+- JavaScript / JSXconst keywords = grammar.keywords; // from javascript.grammar.js## What It Does (Straight Talk)
+
+- TypeScript / TSX
+
+- Python```
+
+- Java
+
+- C / C++**Truth:** You never write `0x0001000400001389n` by hand - you use `BinaryCodes` API  
+
+- C#
+
+- Go**Don't like it?** Hardcode it - just means editing multiple places when changes needed
+
+- Rust
+
+- Swift**Don't like it?** Keep using strings - slower but fine for small codebases
+
+- Ruby
+
+- PHP### 4. Runtime Binary Generation
+
+- Kotlin
 
 **Problem:** Build-time generation = rebuild every change  
 
+##  Project Status
+
 **Solution:** Runtime generation - change grammar, use immediately
+
+**Active Development** - Grammar system is the core focus.
 
 ### 2. Auto-Capture Context### 1. Binary Error Reporting
 
-```javascript
+### What Works
 
-// No build needed**Problem:** Manual context writing is error-prone  
+-  Grammar Index (11 languages)```javascript
 
-const binary = generateBinary('if', 'keyword'); // generates on-the-fly
+-  Binary Parser (structure-based AST)
 
-```**Solution:** Extract context from stack traces automatically**Problem:** String error codes (`"ERR_SECURITY_5001"`) are slow to compare  > Code analysis tool using binary instead of strings - because it's faster  
+-  Binary Tokenizer// No build needed**Problem:** Manual context writing is error-prone  
+
+-  Error Handler (64-bit binary codes)
+
+-  CLI Interfaceconst binary = generateBinary('if', 'keyword'); // generates on-the-fly
 
 
+
+### In Development```**Solution:** Extract context from stack traces automatically**Problem:** String error codes (`"ERR_SECURITY_5001"`) are slow to compare  > Code analysis tool using binary instead of strings - because it's faster  
+
+-  Advanced semantic analysis
+
+-  Cross-language code patterns
+
+-  Performance optimization
 
 **Don't like it?** Pre-generate and commit - faster but harder to maintain
 
+##  Philosophy
 
+
+
+**สมองที่อ่านโค้ด ไม่ใช่เครื่องมือตรวจสอบ**
 
 ---```javascript**Solution:** Use 64-bit integers instead - instant comparison
 
+This is NOT:
 
+-  A linter (use ESLint for that)
 
-## The Truth About Binary Performance// Old way - manual (error-prone)
+-  A formatter (use Prettier for that)
 
-
-
-**Honest Benchmark Results (40,000 errors):**reportError(code, {> Don't like it? Fork it - MIT License
-
-
-
-| Method | Time | Winner |    file: 'auth.js',      // might typo
-
-|--------|------|--------|
-
-| String filtering | 5.2ms | Fastest |    method: 'login',      // might forget```javascript
-
-| Bitwise + Grammar lookup | 13.3ms | Medium |
-
-| Raw Bitwise (pure) | 22.7ms | Slowest |    line: 42              // might be wrong
+-  A type checker (use TypeScript for that)## The Truth About Binary Performance// Old way - manual (error-prone)
 
 
 
-**Why String is Faster in JavaScript:**});// Old way (string) - slow comparison[![Version](https://img.shields.io/badge/version-3.0.0--beta-blue)](https://github.com/chahuadev-com/Chahuadev-Sentinel)# Chahuadev Sentinel
+This IS:
 
-- V8 engine heavily optimizes string operations
+-  A universal code reader
 
-- `startsWith()` and `includes()` are native C++ code
+-  A multi-language AST parser**Honest Benchmark Results (40,000 errors):**reportError(code, {> Don't like it? Fork it - MIT License
+
+-  A grammar brain that understands code structure
+
+-  A foundation for building code analysis tools
+
+
+
+##  Contributing| Method | Time | Winner |    file: 'auth.js',      // might typo
+
+
+
+This is a learning project. Contributions welcome.|--------|------|--------|
+
+
+
+##  License| String filtering | 5.2ms | Fastest |    method: 'login',      // might forget```javascript
+
+
+
+MIT| Bitwise + Grammar lookup | 13.3ms | Medium |
+
+
+
+##  Author| Raw Bitwise (pure) | 22.7ms | Slowest |    line: 42              // might be wrong
+
+
+
+**Chahua Development Co., Ltd.**
+
+- Email: chahuadev@gmail.com
+
+- Repository: https://github.com/chahuadev-com/Chahuadev-Sentinel**Why String is Faster in JavaScript:**});// Old way (string) - slow comparison[![Version](https://img.shields.io/badge/version-3.0.0--beta-blue)](https://github.com/chahuadev-com/Chahuadev-Sentinel)# Chahuadev Sentinel
+
+
+
+---- V8 engine heavily optimizes string operations
+
+
+
+**Note**: Error handling system is supplementary. The main value is in `src/grammars/` - the brain that reads code.- `startsWith()` and `includes()` are native C++ code
+
 
 - String comparison is CPU-native, no BigInt overhead
 
