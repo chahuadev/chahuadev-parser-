@@ -1,31 +1,35 @@
 {
   "name": "chahuadev-sentinel",
   "displayName": "Chahuadev Sentinel",
-  "description": "Revolutionary code quality analyzer with Universal Error Reporting, 64-bit Binary Error System, and auto-context capture",
+  "description": "Universal Grammar System - Multi-language code reader with AST parsing, binary tokenization, and intelligent structure analysis",
   "version": "2.0.0-beta",
   "author": "Chahua Development Co., Ltd.",
   "license": "MIT",
   "type": "module",
   "keywords": [
-    "linter",
-    "code-quality",
+    "grammar",
+    "parser",
+    "ast",
+    "code-reader",
+    "multi-language",
+    "binary-tokenizer",
     "binary-error-system",
-    "universal-error-reporting",
-    "auto-context-capture",
+    "universal-reporter",
     "chahua",
-    "validation",
     "typescript",
     "javascript",
+    "python",
+    "java",
     "vscode-extension",
-    "cli-tool",
-    "security"
+    "cli-tool"
   ],
   "engines": {
     "vscode": "^1.74.0",
     "node": ">=22.0.0"
   },
   "categories": [
-    "Linters"
+    "Programming Languages",
+    "Other"
   ],
   "activationEvents": [
     "onLanguage:javascript",
@@ -37,122 +41,63 @@
   "contributes": {
     "commands": [
       {
-        "command": "chahuadev-sentinel.scanFile",
-        "title": "Scan Current File",
+        "command": "chahuadev-sentinel.parseFile",
+        "title": "Parse Current File (AST)",
         "category": "Chahuadev Sentinel"
       },
       {
-        "command": "chahuadev-sentinel.scanWorkspace",
-        "title": "Scan Entire Workspace",
+        "command": "chahuadev-sentinel.analyzeWorkspace",
+        "title": "Analyze Entire Workspace",
         "category": "Chahuadev Sentinel"
       },
       {
-        "command": "chahuadev-sentinel.toggleRules",
-        "title": "Configure Rules",
-        "category": "Chahuadev Sentinel"
-      },
-      {
-        "command": "chahuadev-sentinel.securityStatus",
-        "title": "Security Status",
+        "command": "chahuadev-sentinel.showGrammarInfo",
+        "title": "Show Grammar Information",
         "category": "Chahuadev Sentinel"
       }
     ],
     "configuration": {
       "title": "Chahuadev Sentinel",
       "properties": {
-        "chahuadev-sentinel.enableRealTimeScanning": {
+        "chahuadev-sentinel.enableRealTimeParsing": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable real-time AST parsing while typing"
+        },
+        "chahuadev-sentinel.parseOnSave": {
           "type": "boolean",
           "default": true,
-          "description": "Enable real-time scanning while typing"
+          "description": "Automatically parse files when saved"
         },
-        "chahuadev-sentinel.scanOnSave": {
+        "chahuadev-sentinel.showASTPreview": {
           "type": "boolean",
-          "default": true,
-          "description": "Automatically scan files when saved"
+          "default": false,
+          "description": "Show AST preview in side panel"
         },
-        "chahuadev-sentinel.notificationStyle": {
+        "chahuadev-sentinel.supportedLanguages": {
+          "type": "array",
+          "default": ["javascript", "typescript", "python", "java", "cpp", "go", "rust"],
+          "description": "Languages to parse (11 languages supported)"
+        },
+        "chahuadev-sentinel.parserMode": {
           "type": "string",
-          "enum": [
-            "subtle",
-            "normal",
-            "prominent"
-          ],
-          "default": "subtle",
-          "description": "Notification style (subtle = light blue, non-intrusive)"
-        },
-        "chahuadev-sentinel.rules.noMocking": {
-          "type": "boolean",
-          "default": true,
-          "description": "Enforce NO_MOCKING rule"
-        },
-        "chahuadev-sentinel.rules.noHardcode": {
-          "type": "boolean",
-          "default": true,
-          "description": "Enforce NO_HARDCODE rule"
-        },
-        "chahuadev-sentinel.rules.noSilentFallbacks": {
-          "type": "boolean",
-          "default": true,
-          "description": "Enforce NO_SILENT_FALLBACKS rule"
-        },
-        "chahuadev-sentinel.rules.noInternalCaching": {
-          "type": "boolean",
-          "default": true,
-          "description": "Enforce NO_INTERNAL_CACHING rule"
-        },
-        "chahuadev-sentinel.rules.noEmoji": {
-          "type": "boolean",
-          "default": true,
-          "description": "Enforce NO_EMOJI rule"
-        },
-        "chahuadev-sentinel.securityLevel": {
-          "type": "string",
-          "enum": [
-            "MINIMAL",
-            "STANDARD",
-            "FORTRESS"
-          ],
-          "default": "FORTRESS",
-          "description": "Security protection level"
-        },
-        "chahuadev-sentinel.scanPatterns.include": {
-          "type": "string",
-          "default": "**/*.{js,ts,jsx,tsx}",
-          "description": "File patterns to include in scans"
-        },
-        "chahuadev-sentinel.scanPatterns.exclude": {
-          "type": "string",
-          "default": "**/node_modules/**",
-          "description": "File patterns to exclude from scans"
-        },
-        "chahuadev-sentinel.scanThrottleMs": {
-          "type": "number",
-          "default": 500,
-          "description": "Throttle delay for real-time scanning (milliseconds)"
-        },
-        "chahuadev-sentinel.ui.highlightLength": {
-          "type": "number",
-          "default": 15,
-          "description": "Length of code to highlight for violations"
-        },
-        "chahuadev-sentinel.statusMessageDurationMs": {
-          "type": "number",
-          "default": 3000,
-          "description": "Duration to show status bar messages (milliseconds)"
+          "enum": ["structure", "full", "minimal"],
+          "default": "structure",
+          "description": "Parser mode: structure (default), full (with semantics), minimal (tokens only)"
         }
       }
     },
     "menus": {
       "editor/context": [
         {
-          "when": "editorLangId == javascript || editorLangId == typescript || editorLangId == javascriptreact || editorLangId == typescriptreact",
-          "command": "chahuadev-sentinel.scanFile",
+          "when": "editorLangId == javascript || editorLangId == typescript || editorLangId == python || editorLangId == java",
+          "command": "chahuadev-sentinel.parseFile",
           "group": "navigation"
         }
       ],
       "explorer/context": [
         {
-          "command": "chahuadev-sentinel.scanWorkspace",
+          "command": "chahuadev-sentinel.analyzeWorkspace",
           "group": "navigation"
         }
       ]
@@ -168,8 +113,8 @@
   ],
   "scripts": {
     "test": "node cli.js",
-    "lint": "node cli.js .",
-    "smoke": "node --test tests/cli-smoke.test.js"
+    "parse": "node cli.js .",
+    "demo": "node cli.js src/"
   },
   "repository": {
     "type": "git",

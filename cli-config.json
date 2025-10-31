@@ -2,14 +2,14 @@
   "messages": {
     "cliInitialized": "Chahuadev Sentinel CLI initialized",
     "initializationFailed": "Failed to initialize:",
-    "errorScanning": "Error scanning",
+    "errorParsing": "Error parsing",
     "noViolations": "No violations",
-    "scanningFiles": "Scanning files...", 
+    "scanningFiles": "Parsing files...", 
     "summaryHeader": "Summary:",
-    "filesScanned": "Files scanned:",
+    "filesScanned": "Files parsed:",
     "totalViolations": "Total violations:",
-    "qualityCheckFailed": "Quality check failed. Please fix the violations above.",
-    "qualityCheckPassed": "All files passed quality check!",
+    "parseCheckFailed": "Parsing encountered issues. Please check the errors above.",
+    "parseCheckPassed": "All files parsed successfully!",
     "cliExecutionFailed": "CLI execution failed:",
     "fileNotFound": "File not found:",
     "noFilesFound": "No files found matching pattern:",
@@ -22,10 +22,10 @@
     "INFO": "[INFO]"
   },
   "defaultPatterns": {
-    "include": "**/*.{js,ts,jsx,tsx}",
+    "include": "**/*.{js,ts,jsx,tsx,py,java,go,rb,php,rs,swift,kt,c,cpp,cs}",
     "exclude": "**/node_modules/**"
   },
-  "fileExtensions": [".js", ".ts", ".jsx", ".tsx"],
+  "fileExtensions": [".js", ".ts", ".jsx", ".tsx", ".py", ".java", ".go", ".rb", ".php", ".rs", ".swift", ".kt", ".c", ".cpp", ".cs"],
   "ignoreDirectories": ["node_modules", ".git", ".vscode", "dist", "build", "coverage", "logs", ".backups"],
   "fuzzySearch": {
     "maxLevenshteinDistance": 2,
@@ -45,7 +45,7 @@
     "contact": "chahuadev@gmail.com"
   },
   "helpText": {
-    "header": "Chahuadev Sentinel - Code Quality Checker",
+    "header": "Chahuadev Sentinel - Universal Grammar System & Code Reader",
     "usage": "Usage: chahuadev-sentinel [options] <files...>",
     "options": [
       "--help, -h          Show this help message",
@@ -56,8 +56,8 @@
       "--config <file>     Use custom configuration file"
     ],
     "examples": [
-      "chahuadev-sentinel src/                    # Scan src directory",
-      "chahuadev-sentinel **/*.js                 # Scan all JS files", 
+      "chahuadev-sentinel src/                    # Parse src directory",
+      "chahuadev-sentinel **/*.js                 # Parse all JS files", 
       "chahuadev-sentinel --json src/ > report.json    # JSON output",
       "chahuadev-sentinel --quiet **/*.ts         # Quiet mode"
     ],

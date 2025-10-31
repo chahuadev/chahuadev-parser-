@@ -9,12 +9,12 @@
   },
   "defaultSettings": {
     "securityLevel": "FORTRESS",
-    "scanPatterns": {
-      "include": "**/*.{js,ts,jsx,tsx}",
+    "parsePatterns": {
+      "include": "**/*.{js,ts,jsx,tsx,py,java,go,rb,php,rs,swift,kt,c,cpp,cs}",
       "exclude": "**/node_modules/**"
     },
     "timing": {
-      "scanThrottleMs": 500,
+      "parseThrottleMs": 500,
       "statusMessageDurationMs": 3000
     },
     "ui": {
@@ -25,18 +25,18 @@
   "messages": {
     "activation": " Chahuadev Sentinel Extension activated",
     "ready": " Chahuadev Sentinel ready for action",
-    "noActiveFile": " No active file to scan",
-    "scanCompleted": " Workspace scan completed: {scannedCount} files, {totalViolations} issues found",
-    "fileClean": " File is clean - no violations found",
-    "issuesFound": " Found {violationCount} quality issue{plural}",
-    "scanning": "Scanning workspace...",
-    "scanningFile": "Scanning {fileName}...",
+    "noActiveFile": " No active file to parse",
+    "parseCompleted": " Workspace parse completed: {parsedCount} files, {totalViolations} issues found",
+    "fileClean": " File parsed - no issues found",
+    "issuesFound": " Found {violationCount} issue{plural}",
+    "parsing": "Parsing workspace...",
+    "parsingFile": "Parsing {fileName}...",
     "securityStatus": " Security Status: FORTRESS LEVEL\n Events: {totalEvents} | Violations: {violations}\n Uptime: {uptime}s | Status: {status}",
     "securityInitFailed": "Chahuadev Sentinel: Security initialization failed",
-    "securityError": "Security error during scan",
+    "securityError": "Security error during parsing",
     "securityNotInitialized": "Security middleware not initialized",
     "securityStatusFailed": "Failed to retrieve security status",
-    "scanSuccess": "File scanned successfully"
+    "parseSuccess": "File parsed successfully"
   },
   "ruleMessages": {
     "short": {

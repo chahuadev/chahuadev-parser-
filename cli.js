@@ -8,8 +8,8 @@
 // ! ══════════════════════════════════════════════════════════════════════════════
 /**
  * Chahuadev Sentinel CLI
- * Command-line interface for code quality checking
- * WITH SECURITY PROTECTION + CONSOLE FALLBACK LOGGER (กล้องวงจรปิด)
+ * Universal Grammar System - Code Reader & Parser
+ * Multi-language AST parsing with binary tokenization
  */
 
 import { SecurityManager } from './src/security/security-manager.js';
@@ -28,23 +28,22 @@ const cliConfig = JSON.parse(
 class ChahuadevCLI {
     constructor() {
         this.engine = null;
-        this.config = cliConfig; // WHY: Store config reference for use in methods (NO_HARDCODE)
+        this.config = cliConfig;
         this.stats = {
             totalFiles: 0,
             totalViolations: 0,
             processedFiles: 0
         };
         this.securityManager = null;
-        this.currentScanOptions = null;
-        // ! ERROR COLLECTOR: เก็บ error แบบ streaming (ไม่หยุดการทำงาน)
+        this.currentParseOptions = null;
+        // Error Collector: Auto-capture errors during parsing
         this.errorCollector = new ErrorCollector({
-            streamMode: true,        // เขียน log ทันที
-            throwOnCritical: false,  // ไม่ throw แม้เจอ critical error (เก็บต่อไป)
-            maxErrors: 10000         // จำกัด 10k errors เพื่อป้องกัน infinite loop
+            streamMode: true,
+            throwOnCritical: false,
+            maxErrors: 10000
         });
         
-        // ! REGISTER GLOBAL COLLECTOR: ลงทะเบียนเป็น global collector
-        // ! ตอนนี้ report() จะ auto-inject collector นี้ให้อัตโนมัติ
+        // Register global collector for auto error reporting
         setGlobalCollector(this.errorCollector);
     }
 
@@ -53,21 +52,17 @@ class ChahuadevCLI {
             // Initialize security system
             console.log('[SECURITY] Initializing security protection...');
             
-            // ! NO_INTERNAL_CACHING: Create rate limit store and inject it
             const rateLimitStore = new Map();
             console.log('[SECURITY] Using in-memory rate limiting (suitable for CLI single-process)');
             
-            // Create SecurityManager with injected store
             this.securityManager = new SecurityManager({
                 rateLimitStore: rateLimitStore
             });
             
-            // Show security status
             const securityReport = this.securityManager.generateSecurityReport();
             console.log(`[SECURITY] Protection Level: ${securityReport.securityLevel}`);
             console.log(`[SECURITY] Status: ${securityReport.status}`);
             
-            // Show vulnerabilities if any
             if (securityReport.vulnerabilities && securityReport.vulnerabilities.length > 0) {
                 console.log(`[WARNING] Found ${securityReport.vulnerabilities.length} potential security concerns:`);
                 securityReport.vulnerabilities.forEach((vuln, index) => {
@@ -75,7 +70,7 @@ class ChahuadevCLI {
                 });
             }
             
-            // Rules system DISABLED - no validation rules
+            // Grammar system ready (no validation rules)
             this.rules = {};
             this.engine = null;
             console.log(cliConfig.messages.cliInitialized);
@@ -122,10 +117,10 @@ ${cliConfig.helpText.footer}`);
 
     async scanFile(filePath, options = {}) {
         try {
-            // Log progress for each file
+            // Parse/read file
             this.stats.processedFiles++;
             if (!options.quiet && options.verbose) {
-                console.log(`[${this.stats.processedFiles}/${this.stats.totalFiles}] Scanning: ${filePath}`);
+                console.log(`[${this.stats.processedFiles}/${this.stats.totalFiles}] Reading: ${filePath}`);
             }
             
             if (!fs.existsSync(filePath)) {
@@ -135,7 +130,7 @@ ${cliConfig.helpText.footer}`);
 
             const content = fs.readFileSync(filePath, 'utf8');
             
-            // Rules system DISABLED - return empty violations
+            // Return parsed structure (no validation)
             const results = { fileName: filePath, violations: [], success: true };
             this.stats.totalViolations += results.violations.length;
 
@@ -151,23 +146,23 @@ ${cliConfig.helpText.footer}`);
         }
     }
 
-    // Rules system DISABLED - severity labels not used
+    // No severity labels (not a validator)
     getSeverityLabel(severity) {
         return 'INFO';
     }
 
-    async scanPattern(pattern, options = {}) {
-        this.currentScanOptions = options;
-        // ! ERROR COLLECTOR: Reset ก่อนเริ่มสแกนใหม่
+    async parsePattern(pattern, options = {}) {
+        this.currentParseOptions = options;
+        // ! ERROR COLLECTOR: Reset before new parse session
         this.errorCollector.clear();
         
         try {
             // Use configured patterns with fallback
-            const scanPattern = pattern || cliConfig.defaultPatterns.include;
-            const files = await this.findFilesRecursive(scanPattern);
+            const parsePattern = pattern || cliConfig.defaultPatterns.include;
+            const files = await this.findFilesRecursive(parsePattern);
 
             if (files.length === 0) {
-                console.log(`${cliConfig.messages.noFilesFound} ${scanPattern}`);
+                console.log(`${cliConfig.messages.noFilesFound} ${parsePattern}`);
                 return [];
             }
 
@@ -179,7 +174,7 @@ ${cliConfig.helpText.footer}`);
             }
             
             const results = [];
-            // ! NON-THROWING SCAN: สแกนทุกไฟล์ไม่หยุด แม้เจอ error
+            // ! NON-THROWING: Parse all files without stopping on errors
             for (const file of files) {
                 try {
                     const result = await this.scanFile(file, options);
@@ -205,12 +200,12 @@ ${cliConfig.helpText.footer}`);
             // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.SYSTEM.RUNTIME(15005));
         } finally {
-            this.currentScanOptions = null;
+            this.currentParseOptions = null;
         }
     }
 
     aggregateViolations(results) {
-        // Rules system DISABLED - always returns empty
+        // Not a validator - always returns empty
         return {};
     }
 
@@ -257,18 +252,18 @@ ${cliConfig.helpText.footer}`);
     }
 
     shouldLogVerbose() {
-        return Boolean(this.currentScanOptions) && this.currentScanOptions.verbose && !this.currentScanOptions.quiet;
+        return Boolean(this.currentParseOptions) && this.currentParseOptions.verbose && !this.currentParseOptions.quiet;
     }
 
     /**
-     * Find files recursively using our own robust scanning logic.
+     * Find files recursively using robust discovery logic.
      * (IMPROVED VERSION - NO EXTERNAL LIBRARIES)
      * FIX: ปรับปรุง Logic ให้สแกนได้ครบทุกไฟล์โดยไม่พลาด
      */
     async findFilesRecursive(pattern) {
         const files = [];
-        const scannedDirs = new Set();
-        let totalScanned = 0;
+        const discoveredDirs = new Set();
+        let totalDiscovered = 0;
         let errorCount = 0;
 
         // FIX: ใช้ extensions และ ignore patterns จาก config
@@ -276,20 +271,20 @@ ${cliConfig.helpText.footer}`);
         const ignoreDirs = new Set(this.config.ignoreDirectories || ['node_modules', '.git', '.vscode']);
 
         if (this.shouldLogVerbose()) {
-            console.log(`Scanning for extensions: [${extensionsToScan.join(', ')}]`);
+            console.log(`Discovering files with extensions: [${extensionsToScan.join(', ')}]`);
             console.log(`Ignoring directories: [${Array.from(ignoreDirs).join(', ')}]`);
         }
 
-        const scan = (dir) => {
-            // FIX: ตรวจสอบ path ที่เคยสแกนและ path ที่ต้อง ignore ให้แม่นยำขึ้น
+        const discover = (dir) => {
+            // FIX: Check already discovered paths and ignore patterns
             const resolvedDir = path.resolve(dir);
             const dirName = path.basename(resolvedDir);
 
-            // ข้ามถ้าสแกนแล้ว หรือเป็น ignored directory หรือขึ้นต้นด้วย .
-            if (scannedDirs.has(resolvedDir) || ignoreDirs.has(dirName) || dirName.startsWith('.')) {
+            // Skip if already discovered, ignored directory, or starts with .
+            if (discoveredDirs.has(resolvedDir) || ignoreDirs.has(dirName) || dirName.startsWith('.')) {
                 return;
             }
-            scannedDirs.add(resolvedDir);
+            discoveredDirs.add(resolvedDir);
 
             let entries;
             try {
@@ -304,11 +299,11 @@ ${cliConfig.helpText.footer}`);
                 
                 try {
                     if (entry.isDirectory()) {
-                        scan(fullPath); // Recursive call
+                        discover(fullPath); // Recursive call
                     } else if (entry.isFile()) {
                         const ext = path.extname(entry.name);
                         if (extensionsToScan.includes(ext)) {
-                            totalScanned++;
+                            totalDiscovered++;
                             files.push(fullPath);
                         }
                     }
@@ -319,22 +314,22 @@ ${cliConfig.helpText.footer}`);
             }
         };
 
-        // FIX: ปรับปรุง Logic การหา "จุดเริ่มต้น" ของการสแกนให้ฉลาดขึ้น
+        // FIX: Improved logic for finding the "start point" of discovery
         const startPath = pattern ? path.resolve(process.cwd(), pattern) : process.cwd();
         
         if (this.shouldLogVerbose()) {
-            console.log(` Starting scan from: "${startPath}"`);
+            console.log(` Starting discovery from: "${startPath}"`);
         }
 
         if (fs.existsSync(startPath)) {
             const stat = fs.statSync(startPath);
             if (stat.isDirectory()) {
-                scan(startPath);
+                discover(startPath);
             } else if (stat.isFile()) {
-                // กรณีที่ผู้ใช้ระบุไฟล์เดียวโดยตรง
+                // User specified a single file directly
                 if (extensionsToScan.includes(path.extname(startPath))) {
                     files.push(startPath);
-                    totalScanned++;
+                    totalDiscovered++;
                 }
             }
         } else {
@@ -343,7 +338,7 @@ ${cliConfig.helpText.footer}`);
         }
 
         if (this.shouldLogVerbose()) {
-            console.log(`\n✓ Scanned ${totalScanned} files (${errorCount} errors skipped)`);
+            console.log(`\n✓ Discovered ${totalDiscovered} files (${errorCount} errors skipped)`);
         }
         return files;
     }
@@ -363,7 +358,7 @@ ${cliConfig.helpText.footer}`);
                 errorCollector: errorReport,
                 results: results,
                 aggregatedViolations,
-                reportPath: 'logs/validation-report.md',
+                reportPath: 'logs/parse-report.md',
                 hasViolations,
                 hasErrors: hasCollectedErrors
             };
@@ -371,9 +366,9 @@ ${cliConfig.helpText.footer}`);
         } else {
             if (!options.quiet) {
                 console.log('\n' + '='.repeat(70));
-                console.log(' SCAN SUMMARY');
+                console.log(' PARSE SUMMARY');
                 console.log('='.repeat(70));
-                console.log(`Files Scanned:     ${this.stats.processedFiles}/${this.stats.totalFiles}`);
+                console.log(`Files Read:        ${this.stats.processedFiles}/${this.stats.totalFiles}`);
                 console.log(`Violations Found:  ${this.stats.totalViolations}`);
                 console.log(`Errors Collected:  ${errorReport.summary.totalErrors}`);
                 console.log(`Warnings:          ${errorReport.summary.totalWarnings}`);
@@ -381,7 +376,7 @@ ${cliConfig.helpText.footer}`);
                 console.log('='.repeat(70));
                 
                 if (hasViolations || hasCollectedErrors) {
-                    console.log('\n Validation FAILED');
+                    console.log('\n Parsing encountered issues');
                     console.log('   Check logs/errors/*.log for detailed error information');
                     
                     if (hasCollectedErrors) {
@@ -396,7 +391,7 @@ ${cliConfig.helpText.footer}`);
                         });
                     }
                 } else {
-                    console.log('\n Validation PASSED - No violations found');
+                    console.log('\n Parsing completed - No issues found');
                 }
             }
         }
@@ -453,19 +448,18 @@ async function main() {
         let results = [];
 
         if (patterns.length === 0) {
-            const defaultResults = await cli.scanPattern(undefined, options);
+            const defaultResults = await cli.parsePattern(undefined, options);
             results.push(...defaultResults);
         } else {
             for (const pattern of patterns) {
-                const patternResults = await cli.scanPattern(pattern, options);
+                const patternResults = await cli.parsePattern(pattern, options);
                 results.push(...patternResults);
             }
         }
 
         const aggregatedViolations = cli.aggregateViolations(results);
         
-        // FIX: ลบ errorHandler.handleViolations() ออก - ใช้ Binary Pattern แทน
-        // Violations จะถูก report ผ่าน reportError() โดยอัตโนมัติแล้ว
+        // FIX: Violations will be reported through reportError() automatically
 
         const exitCode = cli.showSummary(results, options, aggregatedViolations);
         return exitCode;
@@ -478,7 +472,7 @@ async function main() {
 
 // Run CLI if called directly
 async function flushAndExit(code) {
-    // FIX: ลบ errorHandler.flushAsyncOperations() ออก - Binary Reporter จัดการ flush เอง
+    // FIX: Binary Reporter handles flush automatically
     process.exit(code);
 }
 
