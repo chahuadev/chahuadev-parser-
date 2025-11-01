@@ -151,20 +151,25 @@ ${cliConfig.helpText.footer}`);
             
             const language = languageMap[ext] || 'javascript';
             
-            // Use grammar system to tokenize/parse
+            // Use grammar system to tokenize and parse
             const tokens = await tokenize(content, language);
+            
+            // Create parser and parse tokens to AST
+            const parser = createQuantumParser(language);
+            const ast = parser ? parser.parse(tokens, content) : null;
             
             // Return parsed structure
             const results = { 
                 fileName: filePath, 
                 language: language,
                 tokens: tokens.length,
+                ast: ast ? 'generated' : 'not-available',
                 violations: [], 
                 success: true 
             };
 
             if (!options.quiet && options.verbose) {
-                console.log(`[PARSED] ${filePath} (${language}, ${tokens.length} tokens)`);
+                console.log(`[PARSED] ${filePath} (${language}, ${tokens.length} tokens, AST: ${ast ? 'OK' : 'N/A'})`);
             }
 
             return results;

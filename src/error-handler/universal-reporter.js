@@ -151,13 +151,10 @@ export function report(binaryCode, context = {}, options = {}) {
         const serialized = serialize(merged, serializeOptions);
         
         // ═══════════════════════════════════════════════════════════════
-        // Step 4: Report to binary error system
+        // Step 4: AUTO-INJECT Error Collector (MOVED UP!)
         // ═══════════════════════════════════════════════════════════════
-        reportError(binaryCode, serialized);
-        
-        // ═══════════════════════════════════════════════════════════════
-        // Step 5: AUTO-INJECT Error Collector (NEW!)
-        // ═══════════════════════════════════════════════════════════════
+        // FIX: Collector will call reportError() internally - no need to call here
+        // This prevents duplicate logging (report() + collector.collect() both calling reportError)
         
         // Auto-collection: Default to TRUE unless explicitly disabled
         const shouldCollect = options.collect !== false;
@@ -167,7 +164,7 @@ export function report(binaryCode, context = {}, options = {}) {
             const collector = options.collector 
                 || (options.context ? getCollector(options.context) : getGlobalCollector());
             
-            // Collect error with non-throwing mode
+            // Collect error with non-throwing mode (collector will call reportError internally)
             if (collector) {
                 try {
                     collector.collect(binaryCode, serialized, {
@@ -192,7 +189,13 @@ export function report(binaryCode, context = {}, options = {}) {
                         }
                     }
                 }
+            } else {
+                // No collector available - report directly (fallback)
+                reportError(binaryCode, serialized);
             }
+        } else {
+            // Collection explicitly disabled - report directly to log
+            reportError(binaryCode, serialized);
         }
         
         // ═══════════════════════════════════════════════════════════════

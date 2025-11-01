@@ -1,0 +1,34 @@
+﻿
+======================================================================
+เธเธฃเธดเธฉเธฑเธ— เธเธฒเธซเธฑเธง เธ”เธตเน€เธงเธฅเธฅเธญเธเน€เธกเธเธ•เน เธเธณเธเธฑเธ” (Chahua Development Co., Ltd.)
+Repository: https://github.com/chahuadev/chahuadev-Sentinel.git
+Version: 1.0.0
+License: MIT
+Contact: chahuadev@gmail.com
+======================================================================
+
+[SECURITY] Initializing security protection...
+[SECURITY] Using in-memory rate limiting (suitable for CLI single-process)
+[SECURITY] Protection Level: FORTRESS
+[SECURITY] Status: SECURE
+Chahuadev Sentinel CLI initialized
+
+======================================================================
+ PARSE SUMMARY
+======================================================================
+Files Read:        1/1
+Violations Found:  0
+Errors Collected:  3
+Warnings:          0
+Duration:          33ms
+======================================================================
+
+Parsing completed with errors
+
+Central Error System Information:
+  - All errors are automatically logged to logs/errors/*.log
+  - Logs are categorized by severity (critical, error, warning)
+  - Each error includes full context and stack trace
+
+Top 5 Files with Most Errors:
+   BlankPaperTokenizer.readOperatorOrPunctuation (file:///D:/Chahuadev/Chahuadev-Sentinel/src/grammars/shared/blank-paper-tokenizer.js: 3 errors

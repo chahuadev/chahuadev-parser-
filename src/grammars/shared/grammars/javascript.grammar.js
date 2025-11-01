@@ -553,6 +553,11 @@ export const javascriptGrammar = {
       "source": "tree-sitter",
       "description": ">>>= operator"
     },
+    "?": {
+      "type": "ternary",
+      "source": "manual-fix",
+      "description": "? ternary operator"
+    },
     "??": {
       "type": "other",
       "source": "tree-sitter",

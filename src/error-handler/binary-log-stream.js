@@ -81,13 +81,19 @@ function writeEmergencyLog(message) {
         }
         
         const timestamp = new Date().toISOString();
-        const logLine = `[${timestamp}] ${message}`;
+        const logLine = `[${timestamp}] ${message}\n`;
         const buffer = Buffer.from(logLine, 'utf8');
         fs.writeSync(_emergencyFd, buffer, 0, buffer.length);
     } catch (err) {
-        // Absolute last resort - if emergency log fails, write to stderr
-        // This is the ONLY place we allow process.stderr as final fallback
-        process.stderr.write(`[EMERGENCY-LOG-FAILED] ${message}`);
+        // Absolute last resort - Try one more time with fallback file
+        try {
+            const fallbackPath = './emergency-errors.log';
+            const fallbackLine = `[${new Date().toISOString()}] ${message}\n`;
+            fs.appendFileSync(fallbackPath, fallbackLine, 'utf8');
+        } catch (finalErr) {
+            // Only NOW write to stderr as truly final fallback
+            process.stderr.write(`[CRITICAL-LOG-SYSTEM-FAILURE] ${message}\n[ORIGINAL-ERROR] ${err.message}\n[FALLBACK-ERROR] ${finalErr.message}\n`);
+        }
     }
 }
 
@@ -167,8 +173,9 @@ function initLogStreams(baseDir = binaryErrorGrammar.config.baseLogDir) {
         };
 
     } catch (error) {
-        // FIX: Universal Reporter - Auto-collect
-        report(BinaryCodes.IO.RUNTIME(8001));
+        // ! CRITICAL: Cannot use report() here - circular dependency with BinaryErrorParser
+        // Use writeEmergencyLog directly instead
+        writeEmergencyLog(`[INIT-FAILED] Failed to initialize log streams: ${error.message}\n`);
         return {
             success: false,
             message: `Failed to initialize log streams: ${error.message}`,
@@ -228,8 +235,8 @@ function writeToStream(stream, message, metadata) {
             const metaStr = JSON.stringify(metadata);
             logLine += ` META=${metaStr}`;
         } catch (err) {
-            // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.SYSTEM.RUNTIME(8002));
+            // ! CRITICAL: Cannot use report() here - circular dependency
+            writeEmergencyLog(`[JSON-SERIALIZE-ERROR] Failed to serialize metadata: ${err.message}\n`);
             logLine += ` META=<unserializable>`;
         }
     }
@@ -245,8 +252,8 @@ function writeToStream(stream, message, metadata) {
         stream.bytesWritten += bytesWritten;
         stream.linesWritten += 1;
     } catch (error) {
-        // FIX: Universal Reporter - Auto-collect
-        report(BinaryCodes.IO.RUNTIME(8003));
+        // ! CRITICAL: Cannot use report() here - circular dependency
+        writeEmergencyLog(`[WRITE-STREAM-ERROR] Failed to write log: ${error.message}\n`);
         // Write to emergency log if critical
         if (stream.severityCode >= 32) {
             writeEmergencyLog(`[LOG-STREAM-ERROR] Failed to write to ${stream.path}: ${error.message}\n`);
@@ -406,8 +413,8 @@ function flushAll() {
         try {
             fs.fsyncSync(stream.fd);
         } catch (error) {
-            // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.IO.RUNTIME(8004));
+            // ! CRITICAL: Cannot use report() here - circular dependency
+            writeEmergencyLog(`[FLUSH-ERROR] Failed to flush stream: ${error.message}\n`);
         }
     }
 }
@@ -426,8 +433,8 @@ function closeAllStreams() {
             fs.writeSync(stream.fd, marker);
             fs.closeSync(stream.fd);
         } catch (error) {
-            // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.IO.RUNTIME(8005));
+            // ! CRITICAL: Cannot use report() here - circular dependency
+            writeEmergencyLog(`[CLOSE-STREAM-ERROR] Failed to close stream: ${error.message}\n`);
         }
     }
 
