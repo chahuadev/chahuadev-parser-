@@ -373,12 +373,14 @@ export async function tokenize(code, language = 'javascript') {
 }
 
 /**
- * Load GrammarIndex instance - ส่งต่อไป GrammarIndex
+ * Load GrammarIndex instance - ส่งต่อไป SmartGrammarIndex
  * @param {string} language - ภาษา (javascript, typescript, java, jsx)
- * @returns {Promise<Object>} GrammarIndex instance
+ * @returns {Promise<Object>} SmartGrammarIndex instance
  */
-export async function loadGrammarIndex(language) {
-    return await GrammarIndex.loadGrammar(language);
+export async function loadGrammarIndex(language = 'javascript') {
+    const index = new SmartGrammarIndex(language);
+    await index.loadGrammar();
+    return index;
 }
 
 /**

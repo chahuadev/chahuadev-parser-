@@ -36,6 +36,7 @@ class ChahuadevCLI {
         };
         this.securityManager = null;
         this.currentParseOptions = null;
+        this.grammarIndex = null; // Grammar Index for all languages
         // Error Collector: Auto-capture errors during parsing
         this.errorCollector = new ErrorCollector({
             streamMode: true,
@@ -49,6 +50,11 @@ class ChahuadevCLI {
 
     async initialize() {
         try {
+            // Load Grammar Index for all supported languages
+            console.log('[GRAMMAR] Loading grammar index for all languages...');
+            this.grammarIndex = await loadGrammarIndex();
+            console.log('[GRAMMAR] Grammar index loaded successfully');
+            
             // Initialize security system
             console.log('[SECURITY] Initializing security protection...');
             
@@ -154,9 +160,14 @@ ${cliConfig.helpText.footer}`);
             // Use grammar system to tokenize and parse
             const tokens = await tokenize(content, language);
             
-            // Create parser and parse tokens to AST
-            const parser = createQuantumParser(language);
-            const ast = parser ? parser.parse(tokens, content) : null;
+            // Create grammar index for parser
+            const { SmartGrammarIndex } = await import('./src/grammars/shared/grammar-index.js');
+            const grammarIndex = new SmartGrammarIndex(language);
+            await grammarIndex.loadGrammar();
+            
+            // Create parser with correct parameters: (tokens, source, grammarIndex, options)
+            const parser = createQuantumParser(tokens, content, grammarIndex);
+            const ast = parser ? parser : null;
             
             // Return parsed structure
             const results = { 
