@@ -31,6 +31,24 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 /**
+ * Structure Types - Binary codes for code structures
+ * Brain manages these constants (grammar-index.js only)
+ */
+export const STRUCTURE_TYPES = {
+    FUNCTION: 0xF001,
+    CLASS: 0xF002,
+    METHOD: 0xF003,
+    VARIABLE: 0xF004,
+    CONSTANT: 0xF005,
+    IMPORT: 0xF006,
+    EXPORT: 0xF007,
+    BLOCK: 0xF008,
+    EXPRESSION: 0xF009,
+    STATEMENT: 0xF00A,
+    UNKNOWN: 0xFFFF
+};
+
+/**
  * Smart Grammar Index - Binary Brain สำหรับ Multi-Language Grammar
  * 
  * FEATURES:
@@ -108,7 +126,7 @@ export class SmartGrammarIndex {
             
             if (!this.grammar) {
                 report(BinaryCodes.PARSER.CONFIGURATION(20001));
-                return false;
+
             }
             
             // Generate binary map from grammar (metadata  binary)
@@ -119,10 +137,10 @@ export class SmartGrammarIndex {
             
             this.loaded = true;
             return true;
-            
+                // FIX: Universal Reporter - Auto-collect            
         } catch (error) {
             report(BinaryCodes.PARSER.CONFIGURATION(20002));
-            return false;
+
         }
     }
 
@@ -244,6 +262,16 @@ export class SmartGrammarIndex {
     isPunctuation(punct) {
         if (!this.grammar || !this.grammar.punctuation) return false;
         return this.grammar.punctuation.hasOwnProperty(punct);
+    }
+
+    /**
+     * ตรวจสอบว่าเป็น comment หรือไม่ (by pattern)
+     * @param {string} pattern - Comment pattern ('//', '/*', etc.)
+     * @returns {boolean}
+     */
+    isComment(pattern) {
+        if (!this.grammar || !this.grammar.comments) return false;
+        return this.grammar.comments.hasOwnProperty(pattern);
     }
 
     /**
@@ -543,7 +571,7 @@ export class MultiLanguageGrammarManager {
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.IO.RUNTIME(10001));
-            return [];
+
         }
     }
 

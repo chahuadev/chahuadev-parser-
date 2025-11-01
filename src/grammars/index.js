@@ -7,14 +7,11 @@
 //======================================================================
 // Grammar Entry/Exit Point - NO LOGIC, ONLY ROUTING
 // ============================================================================
-// หน้าที่: ทางเข้า-ทางออกเท่านั้น ไม่มีโลจิกใดๆ
-// ส่งต่อ request ไปยัง grammar-index.js และรอรับ response กลับมา
-// ============================================================================
 
-import { SmartGrammarIndex } from './shared/grammar-index.js';
+import { SmartGrammarIndex, STRUCTURE_TYPES } from './shared/grammar-index.js';
 import { BinaryParser } from './shared/binary-parser.js';
-import EnhancedBinaryParser from './shared/enhanced-binary-parser.js';
-import { BlankPaperTokenizer } from './shared/blank-paper-tokenizer.js';
+import { QuantumEnhancedParser } from './shared/enhanced-parser.js';
+import { PureBinaryTokenizer } from './shared/binary-tokenizer.js';
 import { report } from '../error-handler/universal-reporter.js';
 import BinaryCodes from '../error-handler/binary-codes.js';
 import { ERROR_SEVERITY_FLAGS } from '../constants/severity-constants.js';
@@ -99,7 +96,6 @@ export async function createParser(rules, options = {}) {
     } catch (configError) {
         // FIX: Binary Error Pattern
         report(BinaryCodes.SYSTEM.CONFIGURATION(10001));
-        fileQuantumConfig = { ...DEFAULT_QUANTUM_CONFIG };
     }
 
     const optionQuantum = (options.quantum && typeof options.quantum === 'object') ? options.quantum : {};
@@ -149,7 +145,7 @@ export async function createParser(rules, options = {}) {
     };
     
     // Choose parser based on quantum option
-    const ParserClass = EnhancedBinaryParser;
+    const ParserClass = QuantumEnhancedParser;
     
     // Return factory that creates parser with tokens + source + grammarIndex
     return {
@@ -368,7 +364,7 @@ export async function tokenize(code, language = 'javascript') {
     await grammarIndex.loadGrammar();
     
     // Create tokenizer with grammar brain
-    const tokenizer = new BlankPaperTokenizer(grammarIndex);
+    const tokenizer = new PureBinaryTokenizer(grammarIndex);
     return tokenizer.tokenize(code);
 }
 
@@ -384,14 +380,14 @@ export async function loadGrammarIndex(language = 'javascript') {
 }
 
 /**
- * Create PureBinaryParser instance - ส่งต่อไป PureBinaryParser
+ * Create PureBinaryParser instance - ส่งต่อไป BinaryParser
  * @param {Array<Object>} tokens - Array of tokens
  * @param {string} source - Source code
  * @param {Object} grammarIndex - GrammarIndex instance
- * @returns {Object} PureBinaryParser instance
+ * @returns {Object} BinaryParser instance
  */
 export function createPureBinaryParser(tokens, source, grammarIndex) {
-    return new PureBinaryParser(tokens, source, grammarIndex);
+    return new BinaryParser(tokens, source, grammarIndex);
 }
 
 /**
@@ -400,16 +396,21 @@ export function createPureBinaryParser(tokens, source, grammarIndex) {
  * @param {string} source - Source code
  * @param {Object} grammarIndex - GrammarIndex instance
  * @param {Object} options - Parser options
- * @returns {Object} EnhancedBinaryParser instance
+ * @returns {Object} QuantumEnhancedParser instance
  */
 export function createQuantumParser(tokens, source, grammarIndex, options = {}) {
-    return new EnhancedBinaryParser(tokens, source, grammarIndex, {
+    return new QuantumEnhancedParser(tokens, source, grammarIndex, {
         useScout: true,
         quantumJumps: true,
         preAllocation: true,
         ...options
     });
 }
+
+// ============================================================================
+// EXPORTS - Binary constants from Brain (grammar-index.js)
+// ============================================================================
+export { STRUCTURE_TYPES };
 
 // ============================================================================
 // NO RE-EXPORTS - ทุก request ต้องผ่าน functions ข้างบนเท่านั้น

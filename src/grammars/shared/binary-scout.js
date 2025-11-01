@@ -14,6 +14,7 @@
 
 import { report } from '../../error-handler/universal-reporter.js';
 import BinaryCodes from '../../error-handler/binary-codes.js';
+import { STRUCTURE_TYPES } from './grammar-index.js';
 
 /**
  * Binary Scout - Quantum-inspired structure scanner
@@ -54,15 +55,12 @@ class BinaryScout {
                 SWITCH: grammarIndex.getKeywordBinary('switch'),
                 TRY: grammarIndex.getKeywordBinary('try'),
                 LBRACE: grammarIndex.getPunctuationBinary('{'),
-                RBRACE: grammarIndex.getPunctuationBinary('}'),
-            };
-        } catch (error) {
-            report(BinaryCodes.SYSTEM.CONFIGURATION(1009));
-            this.BINARY = {};
-        }
+            RBRACE: grammarIndex.getPunctuationBinary('}'),
+        };
+    } catch (error) {
+        report(BinaryCodes.SYSTEM.CONFIGURATION(1009));
     }
-
-    /**
+}    /**
      * Main scanning method - O(n) single pass
      * @returns {Map<number, StructureInfo>}
      */
@@ -99,7 +97,7 @@ class BinaryScout {
 
         } catch (error) {
             report(BinaryCodes.PARSER.SYNTAX(1030));
-            return new Map();
+
         }
     }
 
@@ -134,7 +132,7 @@ class BinaryScout {
 
         } catch (error) {
             report(BinaryCodes.PARSER.VALIDATION(1053));
-            return startPos;
+
         }
     }
 
@@ -172,7 +170,7 @@ class BinaryScout {
 
         } catch (error) {
             report(BinaryCodes.PARSER.VALIDATION(1049));
-            return startPos;
+
         }
     }
 
@@ -208,7 +206,7 @@ class BinaryScout {
 
         } catch (error) {
             report(BinaryCodes.PARSER.VALIDATION(1054));
-            return startPos;
+
         }
     }
 
@@ -259,7 +257,7 @@ class BinaryScout {
 
         } catch (error) {
             report(BinaryCodes.PARSER.VALIDATION(1050));
-            return startPos;
+
         }
     }
 
@@ -293,7 +291,6 @@ class BinaryScout {
         // No matching brace found - send to Binary Error System
         report(BinaryCodes.PARSER.SYNTAX(1051));
 
-        return -1;
     }
 
     /**
@@ -404,13 +401,13 @@ class BinaryScout {
     }
 
     /**
-     * Get all structures of specific type
-     * @param {string} type - Structure type
+     * Get structures by type (binary comparison)
+     * @param {number} structureType - Structure type binary code
      * @returns {Array<StructureInfo>}
      */
-    getStructuresByType(type) {
+    getStructuresByType(structureType) {
         return Array.from(this.structureMap.values())
-            .filter(s => s.type === type);
+            .filter(s => s.structureType === structureType);
     }
 
     /**
@@ -428,8 +425,8 @@ class BinaryScout {
         };
 
         for (const structure of this.structureMap.values()) {
-            if (structure.type === 'function') stats.functions++;
-            else if (structure.type === 'class') stats.classes++;
+            if (structure.structureType === STRUCTURE_TYPES.FUNCTION) stats.functions++;
+            else if (structure.structureType === STRUCTURE_TYPES.CLASS) stats.classes++;
             else stats.blocks++;
 
             if (structure.depth > stats.maxDepth) {

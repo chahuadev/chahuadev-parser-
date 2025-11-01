@@ -27,28 +27,23 @@ export function composeBinaryCode(domainCode, categoryCode, severityCode, source
     // Validate inputs
     if (!Number.isInteger(domainCode) || domainCode < 0 || domainCode > 0xFFFF) {
         // FIX: Universal Reporter - Auto-collect
-        report(BinaryCodes.VALIDATOR.VALIDATION(7001));
-        return null;
+        report(BinaryCodes.VALIDATOR.VALIDATION(7001));
     }
     if (!Number.isInteger(categoryCode) || categoryCode < 0 || categoryCode > 0xFFFF) {
         // FIX: Universal Reporter - Auto-collect
-        report(BinaryCodes.VALIDATOR.VALIDATION(7002));
-        return null;
+        report(BinaryCodes.VALIDATOR.VALIDATION(7002));
     }
     if (!Number.isInteger(severityCode) || severityCode < 0 || severityCode > 0xFF) {
         // FIX: Universal Reporter - Auto-collect
-        report(BinaryCodes.VALIDATOR.VALIDATION(7003));
-        return null;
+        report(BinaryCodes.VALIDATOR.VALIDATION(7003));
     }
     if (!Number.isInteger(sourceCode) || sourceCode < 0 || sourceCode > 0xFF) {
         // FIX: Universal Reporter - Auto-collect
-        report(BinaryCodes.VALIDATOR.VALIDATION(7004));
-        return null;
+        report(BinaryCodes.VALIDATOR.VALIDATION(7004));
     }
     if (!Number.isInteger(offset) || offset < 0 || offset > 0xFFFF) {
         // FIX: Universal Reporter - Auto-collect
-        report(BinaryCodes.VALIDATOR.VALIDATION(7005));
-        return null;
+        report(BinaryCodes.VALIDATOR.VALIDATION(7005));
     }
 
     // Use BigInt for 64-bit composition
@@ -100,23 +95,19 @@ export function composeBinaryCodeByName(
     // Validate lookup results
     if (!domain) {
         // FIX: Universal Reporter - Auto-collect
-        report(BinaryCodes.VALIDATOR.VALIDATION(7006));
-        return null;
+        report(BinaryCodes.VALIDATOR.VALIDATION(7006));
     }
     if (!category) {
         // FIX: Universal Reporter - Auto-collect
-        report(BinaryCodes.VALIDATOR.VALIDATION(7007));
-        return null;
+        report(BinaryCodes.VALIDATOR.VALIDATION(7007));
     }
     if (!severity) {
         // FIX: Universal Reporter - Auto-collect
-        report(BinaryCodes.VALIDATOR.VALIDATION(7008));
-        return null;
+        report(BinaryCodes.VALIDATOR.VALIDATION(7008));
     }
     if (!source) {
         // FIX: Universal Reporter - Auto-collect
-        report(BinaryCodes.VALIDATOR.VALIDATION(7009));
-        return null;
+        report(BinaryCodes.VALIDATOR.VALIDATION(7009));
     }
 
     // Compose using codes
@@ -189,13 +180,11 @@ export function createErrorCodeBuilder(binaryErrorGrammar, domainName, categoryN
 
     if (!domain) {
         // FIX: Universal Reporter - Auto-collect
-        report(BinaryCodes.VALIDATOR.VALIDATION(7010));
-        return null;
+        report(BinaryCodes.VALIDATOR.VALIDATION(7010));
     }
     if (!category) {
         // FIX: Universal Reporter - Auto-collect
-        report(BinaryCodes.VALIDATOR.VALIDATION(7011));
-        return null;
+        report(BinaryCodes.VALIDATOR.VALIDATION(7011));
     }
 
     // Determine default source from domain name

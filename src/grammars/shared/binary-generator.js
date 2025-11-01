@@ -57,7 +57,7 @@ export function generateBinary(token, category) {
     const range = BINARY_RANGES[category];
     if (!range) {
         report(BinaryCodes.SYSTEM.CONFIGURATION(5100));
-        return 0;
+
     }
     
     // Generate hash and map to range
@@ -140,7 +140,7 @@ export function getBinaryFor(token, category, grammar = null) {
     // Validate token exists in grammar (if grammar provided)
     if (grammar && grammar[category] && !grammar[category][token]) {
         report(BinaryCodes.PARSER.VALIDATION(5101));
-        return 0;
+
     }
     
     return generateBinary(token, category);

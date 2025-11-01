@@ -52,14 +52,10 @@ function reportError(binaryErrorCode, minimalContext = {}) {
     try {
         BigInt(binaryErrorCode); // ทดสอบก่อน - ถ้าผิดจะโยน SyntaxError
     } catch (conversionError) {
-        // ถ้าแปลงไม่ได้ = ส่ง string ที่ไม่ใช่ตัวเลขมา
-        reportError(META_INVALID_ERROR_CODE, {
-            invalidCodeAttempted: binaryErrorCode,
-            invalidCodeType: typeof binaryErrorCode,
-            conversionError: conversionError.message,
-            originalContext: minimalContext
-        });
-        return;
+        // FIX: Universal Reporter - Auto-collect
+        const { report } = require('./universal-reporter.js');
+        const BinaryCodes = require('./binary-codes.js').default;
+        report(BinaryCodes.VALIDATOR.VALIDATION(8002));
     }
 
     // ! เตรียม Payload แบบ Pure Binary (ไม่มี kind แล้ว - เป็น binary 100%)

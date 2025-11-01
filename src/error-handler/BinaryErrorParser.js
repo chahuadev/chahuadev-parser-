@@ -28,8 +28,10 @@ class BinaryErrorParser {
         const initResult = logStream.initLogStreams();
         
         if (!initResult.success) {
-            // Fallback to stderr if log stream init fails
-            process.stderr.write(`[BinaryErrorParser] Failed to initialize log streams: ${initResult.message}\n`);
+            // FIX: Universal Reporter - Auto-collect
+            const { report } = require('./universal-reporter.js');
+            const BinaryCodes = require('./binary-codes.js').default;
+            report(BinaryCodes.SYSTEM.INITIALIZATION(8003));
         }
         
         // Build Map Lookups for Performance (NO_LOOP_EVERY_TIME)
@@ -319,7 +321,10 @@ class BinaryErrorParser {
                     try {
                         valueStr = JSON.stringify(value);
                     } catch (circularError) {
-                        valueStr = '<circular>';
+                        // FIX: Universal Reporter - Auto-collect
+                        const { report } = require('./universal-reporter.js');
+                        const BinaryCodes = require('./binary-codes.js').default;
+                        report(BinaryCodes.SERIALIZER.CIRCULAR_REFERENCE(8004));
                     }
                 } else {
                     valueStr = String(value);

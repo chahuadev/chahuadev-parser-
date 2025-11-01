@@ -29,7 +29,7 @@ async function loadDependencies() {
  *     // { file: 'my-file.js', method: 'myFunction', line: 42, column: 10 }
  * }
  */
-export function captureContext() {
+export async function captureContext() {
     try {
         // Create error to get stack trace
         const error = new Error();
@@ -65,11 +65,8 @@ export function captureContext() {
         
     } catch (error) {
         // FIX: Universal Reporter - Auto-collect
-        loadDependencies().then(({ report, BinaryCodes }) => {
-            report(BinaryCodes.SYSTEM.RUNTIME(9001));
-        });
-        // Fallback: Error during capture
-        return createUnknownContext(`Capture failed: ${error.message}`);
+        const { report, BinaryCodes } = await loadDependencies();
+        report(BinaryCodes.SYSTEM.RUNTIME(9001));
     }
 }
 
@@ -193,7 +190,7 @@ function createUnknownContext(reason) {
  *     return captureContextWithSkip(1);
  * }
  */
-export function captureContextWithSkip(skipFrames = 0) {
+export async function captureContextWithSkip(skipFrames = 0) {
     try {
         const error = new Error();
         const stack = error.stack;
@@ -222,10 +219,8 @@ export function captureContextWithSkip(skipFrames = 0) {
         
     } catch (error) {
         // FIX: Universal Reporter - Auto-collect
-        loadDependencies().then(({ report, BinaryCodes }) => {
-            report(BinaryCodes.SYSTEM.RUNTIME(9002));
-        });
-        return createUnknownContext(`Capture failed: ${error.message}`);
+        const { report, BinaryCodes } = await loadDependencies();
+        report(BinaryCodes.SYSTEM.RUNTIME(9002));
     }
 }
 
@@ -243,7 +238,7 @@ export function captureContextWithSkip(skipFrames = 0) {
  * //   ...
  * // ]
  */
-export function captureFullStack() {
+export async function captureFullStack() {
     try {
         const error = new Error();
         const stack = error.stack;
@@ -269,10 +264,8 @@ export function captureFullStack() {
         
     } catch (error) {
         // FIX: Universal Reporter - Auto-collect
-        loadDependencies().then(({ report, BinaryCodes }) => {
-            report(BinaryCodes.SYSTEM.RUNTIME(9003));
-        });
-        return [];
+        const { report, BinaryCodes } = await loadDependencies();
+        report(BinaryCodes.SYSTEM.RUNTIME(9003));
     }
 }
 

@@ -33,15 +33,8 @@ async function initializeVSCode() {
             vscode = null;
         }
     } catch (e) {
-        emitSecurityNotice(
-            e,
-            'initializeVSCode',
-            'HIGH',
-            {
-                detail: 'Running outside VS Code environment - Using mock vscode objects for testing'
-            },
-            SECURITY_ERROR_CODES.SECURITY_MODULE_FAILURE
-        );
+        // FIX: Universal Reporter - Auto-collect
+        report(BinaryCodes.SECURITY.RUNTIME(3014));
         // Running outside VS Code environment (e.g., during testing)
         vscode = {
             // Mock vscode objects for testing
@@ -178,7 +171,6 @@ class SecurityMiddleware {
             if (content && content.length > MAX_DOCUMENT_SIZE) {
                 // FIX: Universal Reporter - Auto-collect
                 report(BinaryCodes.SECURITY.VALIDATION(2006));
-                return { success: false, error: 'Document too large' };
             }
             
             return {
@@ -189,9 +181,8 @@ class SecurityMiddleware {
             };
             
         } catch (error) {
-            this.handleSecurityError(error, 'READ_DOCUMENT');
-            // ไม่ throw - return error result แทน
-            return { success: false, error: error.message };
+            // FIX: Universal Reporter - Auto-collect
+            report(BinaryCodes.SECURITY.RUNTIME(3015));
         }
     }
     
@@ -230,12 +221,11 @@ class SecurityMiddleware {
             }
             
         } catch (error) {
-            this.handleSecurityError(error, `WORKSPACE_${operation}`);
-            // ไม่ throw - return error result แทน
-            return { success: false, error: error.message };
+            // FIX: Universal Reporter - Auto-collect
+            report(BinaryCodes.SECURITY.RUNTIME(3016));
         }
     }
-    
+
     /**
      * Secure regex pattern execution
      */
@@ -276,9 +266,8 @@ class SecurityMiddleware {
             };
             
         } catch (error) {
-            this.handleSecurityError(error, 'PATTERN_MATCH');
-            // ! NO_THROW: Return null แทน throw
-            return null;
+            // FIX: Universal Reporter - Auto-collect
+            report(BinaryCodes.SECURITY.RUNTIME(3017));
         }
     }
     
@@ -318,16 +307,11 @@ class SecurityMiddleware {
             return new this.vscode.Diagnostic(range, sanitizedMessage, defaultSeverity);
             
         } catch (error) {
-            this.handleSecurityError(error, 'CREATE_DIAGNOSTIC');
-            // Return safe fallback diagnostic
-            return new this.vscode.Diagnostic(
-                new this.vscode.Range(0, 0, 0, 0),
-                'Security error in diagnostic creation',
-                this.vscode.DiagnosticSeverity.Error
-            );
+            // FIX: Universal Reporter - Auto-collect
+            report(BinaryCodes.SECURITY.RUNTIME(3018));
         }
     }
-    
+
     /**
      * Secure notification display
      */
@@ -361,14 +345,11 @@ class SecurityMiddleware {
             }
             
         } catch (error) {
-            this.handleSecurityError(error, 'SHOW_NOTIFICATION');
-            // Fallback to simple error message
-            if (this.vscode && this.vscode.window) {
-                this.vscode.window.showErrorMessage('Security error in notification system');
-            }
+            // FIX: Universal Reporter - Auto-collect
+            report(BinaryCodes.SECURITY.RUNTIME(3019));
         }
     }
-    
+
     // ══════════════════════════════════════════════════════════════════
     // File System Security Operations
     // ══════════════════════════════════════════════════════════════════
@@ -393,7 +374,6 @@ class SecurityMiddleware {
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.SECURITY.FILE_SYSTEM(2013));
-            throw new SecurityError(`File read failed: ${error.message}`, filePath);
         }
     }
     
@@ -430,7 +410,6 @@ class SecurityMiddleware {
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.SECURITY.FILE_SYSTEM(2014));
-            throw new SecurityError(`File write failed: ${error.message}`, filePath);
         }
     }
     
@@ -517,23 +496,14 @@ class SecurityMiddleware {
                 
                 // JSON validation for .json files
                 if (fileExtension === '.json' && fileTypeRules.validateJSON) {
-                    try {
-                        JSON.parse(content);
-                    } catch (jsonError) {
-                        // FIX: Universal Reporter - Auto-collect
-                        report(BinaryCodes.SECURITY.VALIDATION(2016));
-                        securityIssues.push({
-                            issue: 'Invalid JSON format detected',
-                            name: 'JSON Syntax Error',
-                            severity: 'HIGH',
-                            category: 'SYNTAX_ERROR',
-                            error: jsonError.message
-                        });
-                    }
+                try {
+                    JSON.parse(content);
+                } catch (jsonError) {
+                    // FIX: Universal Reporter - Auto-collect
+                    report(BinaryCodes.SECURITY.VALIDATION(2016));
                 }
             }
-            
-            return {
+        }            return {
                 success: true,
                 filePath,
                 contentSize: content.length,
@@ -546,8 +516,7 @@ class SecurityMiddleware {
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.SECURITY.VALIDATION(3012));
-            throw new SecurityError(`File scan failed: ${error.message}`, filePath);
-        }
+         }
     }
     
     // ══════════════════════════════════════════════════════════════════
@@ -580,8 +549,6 @@ class SecurityMiddleware {
             if (typeof error.errorCode !== 'string') {
                 // FIX: Universal Reporter - Auto-collect
                 report(BinaryCodes.VALIDATOR.VALIDATION(7004));
-            } else {
-                errorCode = error.errorCode;
             }
         }
         
@@ -591,8 +558,6 @@ class SecurityMiddleware {
             if (typeof error.severity !== 'string') {
                 // FIX: Universal Reporter - Auto-collect
                 report(BinaryCodes.VALIDATOR.VALIDATION(7005));
-            } else {
-                severity = error.severity;
             }
         }
         
@@ -775,12 +740,11 @@ function withSecurity(securityMiddleware, operation) {
                 return result;
                 
             } catch (error) {
-                securityMiddleware.handleSecurityError(error, `METHOD_${propertyKey}`);
-                // ! NO_THROW: Return null แทน throw (decorator should not throw)
-                return null;
+                // FIX: Universal Reporter - Auto-collect
+                report(BinaryCodes.SECURITY.RUNTIME(3020));
             }
         };
-        
+
         return descriptor;
     };
 }

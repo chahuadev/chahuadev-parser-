@@ -86,8 +86,7 @@ class BinaryProphet {
         const successfulUniverses = hypotheses.filter(hypothesis => hypothesis.success);
         if (successfulUniverses.length === 0) {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.PARSER.VALIDATION(1025));
-            return null;
+            report(BinaryCodes.PARSER.VALIDATION(1025));
         }
 
         successfulUniverses.sort((a, b) => b.confidence - a.confidence);
@@ -140,14 +139,7 @@ class BinaryProphet {
             };
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.PARSER.VALIDATION(1029));
-            return {
-                assumption: 'method',
-                success: false,
-                confidence: 0,
-                universesSimulated: 1,
-                reason: 'PARSING_FAILED'
-            };
+            report(BinaryCodes.PARSER.VALIDATION(1029));
         }
     }
 
@@ -191,14 +183,7 @@ class BinaryProphet {
             };
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.PARSER.VALIDATION(6004));
-            return {
-                assumption: 'arrow',
-                success: false,
-                confidence: 0,
-                universesSimulated: 1,
-                reason: 'PARSING_FAILED'
-            };
+            report(BinaryCodes.PARSER.VALIDATION(6004));
         }
     }
 

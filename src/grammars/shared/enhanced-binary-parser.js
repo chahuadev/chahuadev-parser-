@@ -82,13 +82,12 @@ class EnhancedBinaryParser extends BinaryParser {
                     this.stats.scoutTime = performance.now() - scoutStartTime;
                 } catch (scoutError) {
                     report(BinaryCodes.PARSER.VALIDATION(1018));
-                    this.structureMap = new Map();
                 }
             }
 
             // Phase 2: Architecture phase (main parse)
             const parseStartTime = performance.now();
-            const ast = super.parse(tokens, source);
+            const ast = super.parse(); // parse() uses this.tokens and this.source from constructor
             this.stats.parseTime = performance.now() - parseStartTime;
             
             // Calculate total time
@@ -97,8 +96,18 @@ class EnhancedBinaryParser extends BinaryParser {
             return ast;
 
         } catch (error) {
+            // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.PARSER.SYNTAX(1033));
-            return null;
+            
+            // Return empty AST on error
+            return {
+                type: 'Program',
+                body: [],
+                sourceType: 'module',
+                sourceCode: this.source,
+                tokens: this.tokens,
+                parseErrors: [{ message: 'Parser crashed', error }]
+            };
         }
     }
 
@@ -124,7 +133,6 @@ class EnhancedBinaryParser extends BinaryParser {
 
         } catch (error) {
             report(BinaryCodes.PARSER.SYNTAX(4004));
-            return null;
         }
     }
 

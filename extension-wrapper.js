@@ -25,10 +25,6 @@ async function activate(context) {
         const { report } = await import('./src/error-handler/universal-reporter.js');
         const { default: BinaryCodes } = await import('./src/error-handler/binary-codes.js');
         report(BinaryCodes.EXTENSION.RUNTIME(12001));
-        
-        const vscode = require('vscode');
-        vscode.window.showErrorMessage('Chahuadev Sentinel: Failed to initialize extension - ' + error.message);
-        throw error;
     }
 }
 
@@ -41,7 +37,6 @@ async function deactivate() {
         const { report } = await import('./src/error-handler/universal-reporter.js');
         const { default: BinaryCodes } = await import('./src/error-handler/binary-codes.js');
         report(BinaryCodes.EXTENSION.RUNTIME(12002));
-        throw error;
     }
 }
 

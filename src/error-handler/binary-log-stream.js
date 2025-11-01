@@ -85,15 +85,10 @@ function writeEmergencyLog(message) {
         const buffer = Buffer.from(logLine, 'utf8');
         fs.writeSync(_emergencyFd, buffer, 0, buffer.length);
     } catch (err) {
-        // Absolute last resort - Try one more time with fallback file
-        try {
-            const fallbackPath = './emergency-errors.log';
-            const fallbackLine = `[${new Date().toISOString()}] ${message}\n`;
-            fs.appendFileSync(fallbackPath, fallbackLine, 'utf8');
-        } catch (finalErr) {
-            // Only NOW write to stderr as truly final fallback
-            process.stderr.write(`[CRITICAL-LOG-SYSTEM-FAILURE] ${message}\n[ORIGINAL-ERROR] ${err.message}\n[FALLBACK-ERROR] ${finalErr.message}\n`);
-        }
+        // FIX: Universal Reporter - Auto-collect
+        const { report } = require('./universal-reporter.js');
+        const BinaryCodes = require('./binary-codes.js').default;
+        report(BinaryCodes.IO.WRITE_FAILED(8001));
     }
 }
 

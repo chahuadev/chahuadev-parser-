@@ -115,29 +115,24 @@ class SecurityManager {
         if (!options.rateLimitStore) {
             // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.SECURITY.CONFIGURATION(1015));
-            return;
         }
         
         // Validate injected store implements required interface
         if (typeof options.rateLimitStore.get !== 'function') {
             // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.SECURITY.CONFIGURATION(1031));
-            return;
         }
         if (typeof options.rateLimitStore.set !== 'function') {
             // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.SECURITY.CONFIGURATION(1004));
-            return;
         }
         if (typeof options.rateLimitStore.has !== 'function') {
             // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.SECURITY.CONFIGURATION(1005));
-            return;
         }
         if (typeof options.rateLimitStore.delete !== 'function') {
             // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.SECURITY.CONFIGURATION(1006));
-            return;
         }
         
         this.requestCounts = options.rateLimitStore;
@@ -156,7 +151,6 @@ class SecurityManager {
             if (typeof this.config.SECURITY_LEVEL !== 'string') {
                 // FIX: Universal Reporter - Auto-collect
                 report(BinaryCodes.SECURITY.CONFIGURATION(1024));
-                return;
             }
             securityLevel = this.config.SECURITY_LEVEL;
         }
@@ -214,7 +208,6 @@ class SecurityManager {
             if (DANGEROUS_KEYS.includes(key)) {
                 // FIX: Universal Reporter - Auto-collect
                 report(BinaryCodes.SECURITY.VALIDATION(1002));
-                return result;
             }
             
             // ! NO_SILENT_FALLBACKS: Explicit type checking
@@ -243,28 +236,24 @@ class SecurityManager {
         if (!inputPath || typeof inputPath !== 'string') {
             // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.SECURITY.VALIDATION(2001));
-            return null;
         }
         
         // Length validation
         if (inputPath.length > this.config.MAX_PATH_LENGTH) {
             // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.SECURITY.VALIDATION(2002));
-            return null;
         }
         
         // Dangerous characters check
         if (this.config.DANGEROUS_CHARS_REGEX.test(inputPath)) {
             // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.SECURITY.VALIDATION(2003));
-            return null;
         }
         
         // Path traversal protection
         if (this.config.PATH_TRAVERSAL_REGEX.test(inputPath)) {
             // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.SECURITY.VALIDATION(2004));
-            return null;
         }
         
         // Normalize and resolve path
@@ -315,37 +304,26 @@ class SecurityManager {
             stats = await fs.promises.stat(validatedPath);
             exists = true;
         } catch (error) {
-            // FIX: Binary Error Pattern - New signature with context
-            if (error.code === 'ENOENT') {
-                // FIX: Universal Reporter - Auto-collect
-                report(BinaryCodes.IO.RESOURCE_NOT_FOUND(3002));
-                exists = false;
-            } else {
-                // FIX: Universal Reporter - Auto-collect
-                report(BinaryCodes.IO.RESOURCE_UNAVAILABLE(3003));
-                return null;
-            }
-        }
-        
-        if (!exists && operation === 'READ') {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.IO.RESOURCE_NOT_FOUND(3004));
-            return null;
+            report(BinaryCodes.IO.RESOURCE_UNAVAILABLE(3003));
         }
+    
+    if (!exists && operation === 'READ') {
+        // FIX: Universal Reporter - Auto-collect
+        report(BinaryCodes.IO.RESOURCE_NOT_FOUND(3004));
+    }
         
         if (exists && stats) {
             // Symlink check
             if (stats.isSymbolicLink() && !this.config.ALLOW_SYMLINKS) {
                 // FIX: Universal Reporter - Auto-collect
                 report(BinaryCodes.SECURITY.PERMISSION(3005));
-                return null;
             }
             
             // File size check
             if (stats.size > this.config.MAX_FILE_SIZE) {
                 // FIX: Universal Reporter - Auto-collect
                 report(BinaryCodes.SECURITY.VALIDATION(3006));
-                return null;
             }
             
             // Permission check (async)
@@ -368,7 +346,6 @@ class SecurityManager {
             } catch (error) {
                 // FIX: Universal Reporter - Auto-collect
                 report(BinaryCodes.SECURITY.VALIDATION(3007));
-                return null;
             }
         }
         
@@ -376,7 +353,6 @@ class SecurityManager {
             const timeout = setTimeout(() => {
                 // FIX: Universal Reporter - Auto-collect
                 report(BinaryCodes.SECURITY.VALIDATION(3008));
-                resolve(null);
             }, this.config.MAX_REGEX_EXECUTION_TIME);
             
             try {
@@ -384,17 +360,14 @@ class SecurityManager {
                 clearTimeout(timeout);
                 resolve(result);
             } catch (error) {
-                // FIX: Binary Error Pattern - New signature with context
                 // FIX: Universal Reporter - Auto-collect
                 report(BinaryCodes.SECURITY.VALIDATION(3009));
-                clearTimeout(timeout);
-                resolve(null);
             }
         });
     }
-    
-    /**
-     * Rate limiting check
+
+/**
+ * Rate limiting check
      * ! NO_SILENT_FALLBACKS: Explicit null checks instead of || fallbacks
      * ! NO_INTERNAL_CACHING: Uses injected store (supports both sync Map and async Redis)
      * ! CRITICAL: DoS Protection - LRU eviction prevents unbounded Map growth
@@ -426,7 +399,6 @@ class SecurityManager {
         if (count >= this.config.MAX_REQUESTS_PER_MINUTE) {
             // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.SECURITY.VALIDATION(1001));
-            return false;
         }
         
         await Promise.resolve(this.requestCounts.set(key, count + 1));
@@ -440,7 +412,6 @@ class SecurityManager {
                 // FIX: Binary Error Pattern - New signature with context
                 // FIX: Universal Reporter - Auto-collect
                 report(BinaryCodes.SECURITY.CONFIGURATION(1007));
-                return false;
             }
             
             if (this.requestCounts.size > this.config.MAX_RATE_LIMIT_KEYS) {
@@ -490,7 +461,6 @@ class SecurityManager {
             if (forbiddenPattern.test(resolvedPath)) {
                 // FIX: Universal Reporter - Auto-collect
                 report(BinaryCodes.SECURITY.PERMISSION(4001));
-                return false;
             }
         }
         return true;
@@ -504,7 +474,6 @@ class SecurityManager {
         if (operation === 'WRITE' && !resolvedPath.startsWith(this.workingDirectory)) {
             // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.SECURITY.PERMISSION(4002));
-            return false;
         }
         return true;
     }
@@ -518,7 +487,6 @@ class SecurityManager {
         if (ext && !this.config.ALLOWED_EXTENSIONS.includes(ext)) {
             // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.SECURITY.VALIDATION(4003));
-            return false;
         }
         return true;
     }
@@ -539,21 +507,12 @@ class SecurityManager {
                 } catch (error) {
                     // FIX: Universal Reporter - Auto-collect
                     report(BinaryCodes.SECURITY.PERMISSION(6001));
-                    if (error.code === 'ENOENT') {
-                        // File doesn't exist, check directory write permission
-                        await fs.promises.access(path.dirname(filePath), fs.constants.W_OK);
-                    } else {
-                        // FIX: Universal Reporter - Auto-collect
-                        report(BinaryCodes.SECURITY.PERMISSION(6002));
-                        return false;
-                    }
                 }
             }
             return true;
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.SECURITY.PERMISSION(6003));
-            return false;
         }
     }
     

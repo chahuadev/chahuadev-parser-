@@ -130,7 +130,6 @@ ${cliConfig.helpText.footer}`);
             if (!fs.existsSync(filePath)) {
                 // FIX: Universal Reporter - Auto-collect
                 report(BinaryCodes.IO.RESOURCE_NOT_FOUND(15002));
-                return { fileName: filePath, violations: [], success: false, error: 'File not found' };
             }
 
             const content = fs.readFileSync(filePath, 'utf8');
@@ -167,7 +166,7 @@ ${cliConfig.helpText.footer}`);
             
             // Create parser with correct parameters: (tokens, source, grammarIndex, options)
             const parser = createQuantumParser(tokens, content, grammarIndex);
-            const ast = parser ? parser : null;
+            const ast = parser.parse(); // parse() uses tokens/source from constructor
             
             // Return parsed structure
             const results = { 
@@ -187,7 +186,6 @@ ${cliConfig.helpText.footer}`);
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.PARSER.SYNTAX(15003));
-            return { fileName: filePath, violations: [], success: false, error: error.message };
         }
     }
 
@@ -250,8 +248,6 @@ ${cliConfig.helpText.footer}`);
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
             report(BinaryCodes.SYSTEM.RUNTIME(15005));
-        } finally {
-            this.currentParseOptions = null;
         }
     }
 

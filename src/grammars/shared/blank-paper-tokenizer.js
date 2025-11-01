@@ -23,6 +23,20 @@ import BinaryCodes from '../../error-handler/binary-codes.js';
 import { getBinaryFor } from './binary-generator.js';
 
 /**
+ * Type Bits - Category identification (fast bit check)
+ * Use high bits to identify category without string comparison
+ */
+const TYPE_BITS = {
+    IDENTIFIER:   0b00000000,  // 0x00 - Generic identifier
+    NUMBER:       0b00010000,  // 0x10 - Numeric literal
+    STRING:       0b00100000,  // 0x20 - String literal
+    COMMENT:      0b00110000,  // 0x30 - Comment
+    KEYWORD:      0b01000000,  // 0x40 - Keyword (with specific binary)
+    OPERATOR:     0b01010000,  // 0x50 - Operator (with specific binary)
+    PUNCTUATION:  0b01100000   // 0x60 - Punctuation (with specific binary)
+};
+
+/**
  * Character Type - Uses charCode only (NO string comparison)
  */
 const CHAR_CODES = {
@@ -47,12 +61,12 @@ export class BlankPaperTokenizer {
     constructor(grammarIndex) {
         if (!grammarIndex) {
             report(BinaryCodes.VALIDATOR.VALIDATION(5200));
-            this.brain = null;
-            this.input = '';
-            this.position = 0;
-            this.tokens = [];
-            return;
         }
+        
+        this.brain = grammarIndex;
+        this.input = '';
+        this.position = 0;
+        this.tokens = [];
         
         this.brain = grammarIndex;
         this.input = '';
@@ -243,9 +257,6 @@ export class BlankPaperTokenizer {
         
         // Brain doesn't recognize it - unknown character
         report(BinaryCodes.PARSER.SYNTAX(5201));
-        const char = this.input[start];
-        this.advance();
-        return this.createToken('UNKNOWN', char, 0, start, startLine, startColumn);
     }
     
     /**
@@ -364,7 +375,7 @@ export class BlankPaperTokenizer {
                     
                     // Unclosed block comment
                     report(BinaryCodes.PARSER.SYNTAX(5202));
-                    return true;
+
                 }
             }
         }

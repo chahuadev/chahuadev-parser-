@@ -28,8 +28,8 @@ const PATTERNS = {
     //  report() ที่ผิด - ไม่มี semicolon ท้ายบรรทัด
     wrongReportNoSemicolon: /report\s*\(\s*BinaryCodes\.[A-Z_]+\.[A-Z_]+\s*\(\s*\d+\s*\)\s*\)\s*$/,
     
-    //  report() ที่ผิด - มีอะไรต่อท้าย
-    wrongReportExtra: /report\s*\(\s*BinaryCodes\.[A-Z_]+\.[A-Z_]+\s*\(\s*\d+\s*\)\s*\)\s*;.+/,
+    //  report() ที่ผิด - มีอะไรต่อท้าย (ยกเว้น comment)
+    wrongReportExtra: /report\s*\(\s*BinaryCodes\.[A-Z_]+\.[A-Z_]+\s*\(\s*\d+\s*\)\s*\)\s*;(?!\s*(?:\/\/|$)).+/,
     
     //  ต้นแอปเปิ้ลกำหนดสถานะ
     setOperational: /error\.isOperational\s*=/,
@@ -97,6 +97,7 @@ class Scanner {
                 wrongReportContext: 0,
                 wrongReportNoSemicolon: 0,
                 wrongReportExtra: 0,
+                codeAfterReport: 0,
                 setOperational: 0,
                 silentCatch: 0,
                 catchNoReport: 0,
@@ -125,11 +126,34 @@ class Scanner {
         // Scan line by line
         lines.forEach((line, idx) => {
             const num = idx + 1;
+            const nextLine = lines[idx + 1];
             
             // Check correct pattern FIRST
             const isCorrect = PATTERNS.correctReport.test(line);
             
             if (isCorrect) {
+                // ตรวจสอบบรรทัดถัดไป - ต้องเป็น }, }); หรือว่างเท่านั้น
+                if (nextLine !== undefined) {
+                    const trimmedNext = nextLine.trim();
+                    const validNext = trimmedNext === '' || 
+                                    trimmedNext === '}' ||
+                                    trimmedNext === '});' ||
+                                    trimmedNext === '})' ||
+                                    trimmedNext.startsWith('//') ||
+                                    trimmedNext.startsWith('/*') ||
+                                    /^[\s]*report\s*\(/.test(trimmedNext);
+                    
+                    if (!validNext && trimmedNext !== '') {
+                        result.issues.push({ 
+                            line: num, 
+                            type: 'code-after-report', 
+                            code: `${line.trim()} [NEXT: ${trimmedNext.substring(0, 40)}]` 
+                        });
+                        this.stats.violations.codeAfterReport = (this.stats.violations.codeAfterReport || 0) + 1;
+                        return;
+                    }
+                }
+                
                 result.correctReports++;
                 this.stats.correctReports++;
                 return; // ถูกต้อง ข้ามไป
@@ -144,7 +168,7 @@ class Scanner {
                 if (!line.trim().endsWith(');')) {
                     result.issues.push({ line: num, type: 'wrong-report-no-semicolon', code: line.trim() });
                     this.stats.violations.wrongReportNoSemicolon++;
-                } else if (line.trim().match(/\)\s*;.+/)) {
+                } else if (PATTERNS.wrongReportExtra.test(line)) {
                     result.issues.push({ line: num, type: 'wrong-report-extra', code: line.trim() });
                     this.stats.violations.wrongReportExtra++;
                 }
@@ -247,7 +271,7 @@ class Scanner {
             console.log(`   ปัญหา: ${file.issues.length} | ถูกต้อง: ${file.correctReports} | ป้าย: ${file.correctLabels}`);
             
             const critical = file.issues.filter(i => 
-                ['wrong-report-context', 'wrong-report-no-semicolon', 'wrong-report-extra', 
+                ['code-after-report', 'wrong-report-context', 'wrong-report-no-semicolon', 'wrong-report-extra', 
                  'set-operational', 'silent-catch', 'catch-no-report'].includes(i.type)
             );
             const high = file.issues.filter(i => 
@@ -279,6 +303,7 @@ class Scanner {
         
         const v = this.stats.violations;
         console.log('\n CRITICAL:');
+        console.log(`      โค้ดหลัง report():       ${v.codeAfterReport || 0}`);
         console.log(`    report() มี context:        ${v.wrongReportContext}`);
         console.log(`    report() ไม่มี semicolon:   ${v.wrongReportNoSemicolon}`);
         console.log(`    report() มีอะไรต่อท้าย:     ${v.wrongReportExtra}`);
@@ -316,6 +341,7 @@ class Scanner {
     
     getMessage(type) {
         const messages = {
+            'code-after-report': '  มีโค้ดหลัง report() - บรรทัดถัดไปต้องเป็น } เท่านั้น!',
             'wrong-report-context': ' report() มี context object',
             'wrong-report-no-semicolon': ' report() ไม่มี semicolon',
             'wrong-report-extra': ' report() มีอะไรต่อท้าย',

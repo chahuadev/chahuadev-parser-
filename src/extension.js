@@ -83,8 +83,6 @@ function activate(context) {
         
     } catch (error) {
         report(BinaryCodes.SYSTEM.CONFIGURATION(1047));
-        vscode.window.showErrorMessage(extensionConfig.messages.securityInitFailed);
-        // ไม่ throw - report() จัดการแล้ว
     }
     
     // ! Real-time scanning on document change (throttled with security)
@@ -116,8 +114,6 @@ function activate(context) {
             await securityMiddleware.showSecureNotification(extensionConfig.messages.scanSuccess);
         } catch (error) {
             report(BinaryCodes.SECURITY.RUNTIME(5004));
-            await securityMiddleware.showSecureNotification(extensionConfig.messages.securityError, 'error');
-            // ไม่ throw - report() จัดการแล้ว
         }
     });
     
@@ -509,7 +505,6 @@ async function showSecurityStatus() {
         
     } catch (error) {
         report(BinaryCodes.SECURITY.RUNTIME(5015));
-        vscode.window.showErrorMessage(extensionConfig.messages.securityStatusFailed);
     }
 }
 
