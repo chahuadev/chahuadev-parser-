@@ -5,6 +5,8 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { binaryErrorGrammar } from './binary-error.grammar.js';
+import { report } from './universal-reporter.js';
+import BinaryCodes from './binary-codes.js';
 
 /**
  * ประกอบ 64-bit Binary Error Code จาก Components
@@ -24,19 +26,29 @@ import { binaryErrorGrammar } from './binary-error.grammar.js';
 export function composeBinaryCode(domainCode, categoryCode, severityCode, sourceCode, offset) {
     // Validate inputs
     if (!Number.isInteger(domainCode) || domainCode < 0 || domainCode > 0xFFFF) {
-        throw new Error(`Invalid domainCode: ${domainCode} (must be 0-65535)`);
+        // FIX: Universal Reporter - Auto-collect
+        report(BinaryCodes.VALIDATOR.VALIDATION(7001));
+        return null;
     }
     if (!Number.isInteger(categoryCode) || categoryCode < 0 || categoryCode > 0xFFFF) {
-        throw new Error(`Invalid categoryCode: ${categoryCode} (must be 0-65535)`);
+        // FIX: Universal Reporter - Auto-collect
+        report(BinaryCodes.VALIDATOR.VALIDATION(7002));
+        return null;
     }
     if (!Number.isInteger(severityCode) || severityCode < 0 || severityCode > 0xFF) {
-        throw new Error(`Invalid severityCode: ${severityCode} (must be 0-255)`);
+        // FIX: Universal Reporter - Auto-collect
+        report(BinaryCodes.VALIDATOR.VALIDATION(7003));
+        return null;
     }
     if (!Number.isInteger(sourceCode) || sourceCode < 0 || sourceCode > 0xFF) {
-        throw new Error(`Invalid sourceCode: ${sourceCode} (must be 0-255)`);
+        // FIX: Universal Reporter - Auto-collect
+        report(BinaryCodes.VALIDATOR.VALIDATION(7004));
+        return null;
     }
     if (!Number.isInteger(offset) || offset < 0 || offset > 0xFFFF) {
-        throw new Error(`Invalid offset: ${offset} (must be 0-65535)`);
+        // FIX: Universal Reporter - Auto-collect
+        report(BinaryCodes.VALIDATOR.VALIDATION(7005));
+        return null;
     }
 
     // Use BigInt for 64-bit composition
@@ -87,16 +99,24 @@ export function composeBinaryCodeByName(
 
     // Validate lookup results
     if (!domain) {
-        throw new Error(`Domain not found in grammar: ${domainName}`);
+        // FIX: Universal Reporter - Auto-collect
+        report(BinaryCodes.VALIDATOR.VALIDATION(7006));
+        return null;
     }
     if (!category) {
-        throw new Error(`Category not found in grammar: ${categoryName}`);
+        // FIX: Universal Reporter - Auto-collect
+        report(BinaryCodes.VALIDATOR.VALIDATION(7007));
+        return null;
     }
     if (!severity) {
-        throw new Error(`Severity not found in grammar: ${severityName}`);
+        // FIX: Universal Reporter - Auto-collect
+        report(BinaryCodes.VALIDATOR.VALIDATION(7008));
+        return null;
     }
     if (!source) {
-        throw new Error(`Source not found in grammar: ${sourceName}`);
+        // FIX: Universal Reporter - Auto-collect
+        report(BinaryCodes.VALIDATOR.VALIDATION(7009));
+        return null;
     }
 
     // Compose using codes
@@ -168,10 +188,14 @@ export function createErrorCodeBuilder(binaryErrorGrammar, domainName, categoryN
     const category = binaryErrorGrammar.categories[categoryName];
 
     if (!domain) {
-        throw new Error(`Domain not found: ${domainName}`);
+        // FIX: Universal Reporter - Auto-collect
+        report(BinaryCodes.VALIDATOR.VALIDATION(7010));
+        return null;
     }
     if (!category) {
-        throw new Error(`Category not found: ${categoryName}`);
+        // FIX: Universal Reporter - Auto-collect
+        report(BinaryCodes.VALIDATOR.VALIDATION(7011));
+        return null;
     }
 
     // Determine default source from domain name
@@ -321,17 +345,17 @@ export function decomposeBinaryCode(binaryCode) {
  * @example
  * // Filter by domain only
  * if (matchBinaryCode(errorCode, 'SECURITY')) {
- *     console.log('This is a SECURITY error');
+ *     // Handle SECURITY error
  * }
  * 
  * // Filter by domain + category
  * if (matchBinaryCode(errorCode, 'SECURITY', 'PERMISSION')) {
- *     console.log('This is a SECURITY.PERMISSION error');
+ *     // Handle SECURITY.PERMISSION error
  * }
  * 
  * // Filter by domain + category + severity
  * if (matchBinaryCode(errorCode, 'SECURITY', 'PERMISSION', 'ERROR')) {
- *     console.log('This is a SECURITY.PERMISSION.ERROR');
+ *     // Handle SECURITY.PERMISSION.ERROR
  * }
  */
 export function matchBinaryCode(binaryCode, domainName, categoryName = null, severityName = null) {

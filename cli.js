@@ -16,6 +16,7 @@ import { SecurityManager } from './src/security/security-manager.js';
 import { report, setGlobalCollector } from './src/error-handler/universal-reporter.js';
 import BinaryCodes from './src/error-handler/binary-codes.js';
 import { ErrorCollector } from './src/error-handler/error-collector.js';
+import { loadGrammarIndex, tokenize, createQuantumParser } from './src/grammars/index.js';
 
 import fs from 'fs';
 import path from 'path';
@@ -27,7 +28,6 @@ const cliConfig = JSON.parse(
 
 class ChahuadevCLI {
     constructor() {
-        this.engine = null;
         this.config = cliConfig;
         this.stats = {
             totalFiles: 0,
@@ -70,9 +70,7 @@ class ChahuadevCLI {
                 });
             }
             
-            // Grammar system ready (no validation rules)
-            this.rules = {};
-            this.engine = null;
+            // Grammar system ready
             console.log(cliConfig.messages.cliInitialized);
             return true;
         } catch (error) {
@@ -120,33 +118,63 @@ ${cliConfig.helpText.footer}`);
             // Parse/read file
             this.stats.processedFiles++;
             if (!options.quiet && options.verbose) {
-                console.log(`[${this.stats.processedFiles}/${this.stats.totalFiles}] Reading: ${filePath}`);
+                console.log(`[${this.stats.processedFiles}/${this.stats.totalFiles}] Parsing: ${filePath}`);
             }
             
             if (!fs.existsSync(filePath)) {
                 // FIX: Universal Reporter - Auto-collect
                 report(BinaryCodes.IO.RESOURCE_NOT_FOUND(15002));
+                return { fileName: filePath, violations: [], success: false, error: 'File not found' };
             }
 
             const content = fs.readFileSync(filePath, 'utf8');
             
-            // Return parsed structure (no validation)
-            const results = { fileName: filePath, violations: [], success: true };
-            this.stats.totalViolations += results.violations.length;
+            // Detect language from file extension
+            const ext = path.extname(filePath).toLowerCase();
+            const languageMap = {
+                '.js': 'javascript',
+                '.jsx': 'javascript',
+                '.ts': 'typescript',
+                '.tsx': 'typescript',
+                '.py': 'python',
+                '.java': 'java',
+                '.go': 'go',
+                '.rb': 'ruby',
+                '.php': 'php',
+                '.rs': 'rust',
+                '.swift': 'swift',
+                '.kt': 'kotlin',
+                '.c': 'c',
+                '.cpp': 'cpp',
+                '.cs': 'csharp'
+            };
+            
+            const language = languageMap[ext] || 'javascript';
+            
+            // Use grammar system to tokenize/parse
+            const tokens = await tokenize(content, language);
+            
+            // Return parsed structure
+            const results = { 
+                fileName: filePath, 
+                language: language,
+                tokens: tokens.length,
+                violations: [], 
+                success: true 
+            };
 
             if (!options.quiet && options.verbose) {
-                const prefix = results.violations.length > 0 ? '[VIOLATIONS]' : '[PASS]';
-                console.log(`${prefix} ${filePath}`);
+                console.log(`[PARSED] ${filePath} (${language}, ${tokens.length} tokens)`);
             }
 
             return results;
         } catch (error) {
             // FIX: Universal Reporter - Auto-collect
-            report(BinaryCodes.VALIDATOR.LOGIC(15003));
+            report(BinaryCodes.PARSER.SYNTAX(15003));
+            return { fileName: filePath, violations: [], success: false, error: error.message };
         }
     }
 
-    // No severity labels (not a validator)
     getSeverityLabel(severity) {
         return 'INFO';
     }
@@ -170,7 +198,10 @@ ${cliConfig.helpText.footer}`);
             
             if (!options.quiet && options.verbose) {
                 console.log(`\n${cliConfig.messages.scanningFiles} (${files.length} files)`);
-                console.log(`Error Collector: Streaming mode enabled (non-throwing)`);
+                console.log(`\nCentral Error Reporting System:`);
+                console.log(`  - Errors are automatically captured and logged`);
+                console.log(`  - Check 'logs/errors/*.log' for detailed error information`);
+                console.log(`  - Non-throwing mode: Parser continues on errors\n`);
             }
             
             const results = [];
@@ -185,14 +216,18 @@ ${cliConfig.helpText.footer}`);
                 }
             }
 
-            // ! SUMMARY: Show error collector stats
+            // Show error collector stats summary
             if (!options.quiet && options.verbose) {
                 const report = this.errorCollector.generateReport();
-                console.log(`\n Error Collection Summary:`);
-                console.log(`   Total Errors: ${report.summary.totalErrors}`);
-                console.log(`   Total Warnings: ${report.summary.totalWarnings}`);
-                console.log(`   Duration: ${report.summary.duration}`);
-                console.log(`   Check logs/errors/*.log for details`);
+                console.log(`\n========================================`);
+                console.log(`CENTRAL ERROR SYSTEM - SUMMARY`);
+                console.log(`========================================`);
+                console.log(`Total Errors:   ${report.summary.totalErrors}`);
+                console.log(`Total Warnings: ${report.summary.totalWarnings}`);
+                console.log(`Duration:       ${report.summary.duration}`);
+                console.log(`========================================`);
+                console.log(`\nDetailed logs: logs/errors/*.log`);
+                console.log(`Error files are auto-categorized by severity\n`);
             }
 
             return results;
@@ -205,7 +240,6 @@ ${cliConfig.helpText.footer}`);
     }
 
     aggregateViolations(results) {
-        // Not a validator - always returns empty
         return {};
     }
 
@@ -376,11 +410,14 @@ ${cliConfig.helpText.footer}`);
                 console.log('='.repeat(70));
                 
                 if (hasViolations || hasCollectedErrors) {
-                    console.log('\n Parsing encountered issues');
-                    console.log('   Check logs/errors/*.log for detailed error information');
+                    console.log('\nParsing completed with errors');
+                    console.log('\nCentral Error System Information:');
+                    console.log('  - All errors are automatically logged to logs/errors/*.log');
+                    console.log('  - Logs are categorized by severity (critical, error, warning)');
+                    console.log('  - Each error includes full context and stack trace');
                     
                     if (hasCollectedErrors) {
-                        console.log(`\n Top Errors by File:`);
+                        console.log(`\nTop 5 Files with Most Errors:`);
                         const byFile = errorReport.byFile;
                         const topFiles = Object.entries(byFile)
                             .sort((a, b) => b[1].length - a[1].length)
@@ -391,7 +428,7 @@ ${cliConfig.helpText.footer}`);
                         });
                     }
                 } else {
-                    console.log('\n Parsing completed - No issues found');
+                    console.log('\nParsing completed successfully - No errors detected');
                 }
             }
         }

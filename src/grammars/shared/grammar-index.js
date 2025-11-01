@@ -541,6 +541,8 @@ export class MultiLanguageGrammarManager {
                 .map(file => file.replace('.grammar.js', ''));
                 
         } catch (error) {
+            // FIX: Universal Reporter - Auto-collect
+            report(BinaryCodes.IO.RUNTIME(10001));
             return [];
         }
     }

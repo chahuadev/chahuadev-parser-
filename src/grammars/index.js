@@ -11,10 +11,10 @@
 // ส่งต่อ request ไปยัง grammar-index.js และรอรับ response กลับมา
 // ============================================================================
 
-import { GrammarIndex } from './shared/grammar-index.js';
+import { SmartGrammarIndex } from './shared/grammar-index.js';
 import { BinaryParser } from './shared/binary-parser.js';
 import EnhancedBinaryParser from './shared/enhanced-binary-parser.js';
-import { BinaryComputationTokenizer } from './shared/tokenizer-helper.js';
+import { BlankPaperTokenizer } from './shared/blank-paper-tokenizer.js';
 import { report } from '../error-handler/universal-reporter.js';
 import BinaryCodes from '../error-handler/binary-codes.js';
 import { ERROR_SEVERITY_FLAGS } from '../constants/severity-constants.js';
@@ -73,10 +73,10 @@ const mergeSection = (baseSection, overrideSection) => {
  * @returns {Promise<Object>} Parser factory with parse method
  */
 export async function createParser(rules, options = {}) {
-    const grammarCandidate = await GrammarIndex.loadGrammar('javascript');
-    const grammarIndex = (grammarCandidate instanceof GrammarIndex)
+    const grammarCandidate = await SmartGrammarIndex.loadGrammar('javascript');
+    const grammarIndex = (grammarCandidate instanceof SmartGrammarIndex)
         ? grammarCandidate
-        : new GrammarIndex(grammarCandidate);
+        : new SmartGrammarIndex(grammarCandidate);
     
     // ! MIGRATION: JSON  ES Module for Parser Config
     // ! OLD: readFileSync('parser-config.json') + JSON.parse()
@@ -178,7 +178,7 @@ export async function createParser(rules, options = {}) {
  * @returns {Promise<Object|null>}
  */
 export async function getJavaScriptGrammar() {
-    return await GrammarIndex.loadGrammar('javascript');
+    return await SmartGrammarIndex.loadGrammar('javascript');
 }
 
 /**
@@ -186,7 +186,7 @@ export async function getJavaScriptGrammar() {
  * @returns {Promise<Object|null>}
  */
 export async function getTypeScriptGrammar() {
-    return await GrammarIndex.loadGrammar('typescript');
+    return await SmartGrammarIndex.loadGrammar('typescript');
 }
 
 /**
@@ -194,7 +194,7 @@ export async function getTypeScriptGrammar() {
  * @returns {Promise<Object|null>}
  */
 export async function getJavaGrammar() {
-    return await GrammarIndex.loadGrammar('java');
+    return await SmartGrammarIndex.loadGrammar('java');
 }
 
 /**
@@ -202,7 +202,87 @@ export async function getJavaGrammar() {
  * @returns {Promise<Object|null>}
  */
 export async function getJSXGrammar() {
-    return await GrammarIndex.loadGrammar('jsx');
+    return await SmartGrammarIndex.loadGrammar('jsx');
+}
+
+/**
+ * Request Python Grammar - ส่งต่อไป grammar-index.js
+ * @returns {Promise<Object|null>}
+ */
+export async function getPythonGrammar() {
+    return await SmartGrammarIndex.loadGrammar('python');
+}
+
+/**
+ * Request Go Grammar - ส่งต่อไป grammar-index.js
+ * @returns {Promise<Object|null>}
+ */
+export async function getGoGrammar() {
+    return await SmartGrammarIndex.loadGrammar('go');
+}
+
+/**
+ * Request Ruby Grammar - ส่งต่อไป grammar-index.js
+ * @returns {Promise<Object|null>}
+ */
+export async function getRubyGrammar() {
+    return await SmartGrammarIndex.loadGrammar('ruby');
+}
+
+/**
+ * Request PHP Grammar - ส่งต่อไป grammar-index.js
+ * @returns {Promise<Object|null>}
+ */
+export async function getPHPGrammar() {
+    return await SmartGrammarIndex.loadGrammar('php');
+}
+
+/**
+ * Request Rust Grammar - ส่งต่อไป grammar-index.js
+ * @returns {Promise<Object|null>}
+ */
+export async function getRustGrammar() {
+    return await SmartGrammarIndex.loadGrammar('rust');
+}
+
+/**
+ * Request Swift Grammar - ส่งต่อไป grammar-index.js
+ * @returns {Promise<Object|null>}
+ */
+export async function getSwiftGrammar() {
+    return await SmartGrammarIndex.loadGrammar('swift');
+}
+
+/**
+ * Request Kotlin Grammar - ส่งต่อไป grammar-index.js
+ * @returns {Promise<Object|null>}
+ */
+export async function getKotlinGrammar() {
+    return await SmartGrammarIndex.loadGrammar('kotlin');
+}
+
+/**
+ * Request C Grammar - ส่งต่อไป grammar-index.js
+ * @returns {Promise<Object|null>}
+ */
+export async function getCGrammar() {
+    return await SmartGrammarIndex.loadGrammar('c');
+}
+
+/**
+ * Request C++ Grammar - ส่งต่อไป grammar-index.js
+ * @returns {Promise<Object|null>}
+ */
+export async function getCppGrammar() {
+    return await SmartGrammarIndex.loadGrammar('cpp');
+}
+
+/**
+ * Request C# Grammar - ส่งต่อไป grammar-index.js
+ * @returns {Promise<Object|null>}
+ */
+export async function getCSharpGrammar() {
+    return await SmartGrammarIndex.loadGrammar('csharp');
 }
 
 /**
@@ -210,7 +290,7 @@ export async function getJSXGrammar() {
  * @returns {Promise<Object>}
  */
 export async function getCompleteGrammar() {
-    return await GrammarIndex.loadAllGrammars();
+    return await SmartGrammarIndex.loadAllGrammars();
 }
 
 /**
@@ -221,7 +301,7 @@ export async function getCompleteGrammar() {
  * @returns {Promise<Object>}
  */
 export async function searchGrammar(language, sectionName, itemName) {
-    return await GrammarIndex.search(language, sectionName, itemName);
+    return await SmartGrammarIndex.search(language, sectionName, itemName);
 }
 
 /**
@@ -232,7 +312,7 @@ export async function searchGrammar(language, sectionName, itemName) {
  * @returns {Promise<Object>}
  */
 export async function searchBySectionNumber(language, sectionNumber, itemName) {
-    return await GrammarIndex.searchBySection(language, sectionNumber, itemName);
+    return await SmartGrammarIndex.searchBySection(language, sectionNumber, itemName);
 }
 
 /**
@@ -242,7 +322,7 @@ export async function searchBySectionNumber(language, sectionNumber, itemName) {
  * @returns {Promise<Object>}
  */
 export async function getSectionInfo(language, sectionName) {
-    return await GrammarIndex.getSectionMetadata(language, sectionName);
+    return await SmartGrammarIndex.getSectionMetadata(language, sectionName);
 }
 
 /**
@@ -253,7 +333,7 @@ export async function getSectionInfo(language, sectionName) {
  * @returns {Promise<Object>} ผลลัพธ์การค้นหา
  */
 export async function searchByType(language, type, itemName) {
-    return await GrammarIndex.searchByType(language, type, itemName);
+    return await SmartGrammarIndex.searchByType(language, type, itemName);
 }
 
 /**
@@ -263,7 +343,7 @@ export async function searchByType(language, type, itemName) {
  * @returns {Promise<Array<Object>>} ผลลัพธ์ทั้งหมด
  */
 export async function batchSearch(language, requests) {
-    return await GrammarIndex.batchSearch(language, requests);
+    return await SmartGrammarIndex.batchSearch(language, requests);
 }
 
 /**
@@ -273,17 +353,22 @@ export async function batchSearch(language, requests) {
  * @returns {Promise<Object>} { found, type, section, data }
  */
 export async function identifyType(language, itemName) {
-    return await GrammarIndex.identifyType(language, itemName);
+    return await SmartGrammarIndex.identifyType(language, itemName);
 }
 
 /**
- * Tokenize source code - ส่งต่อไป BinaryComputationTokenizer
+ * Tokenize source code - ส่งต่อไป BlankPaperTokenizer
  * @param {string} code - Source code to tokenize
- * @param {Object} grammarIndex - Optional GrammarIndex instance (if not provided, will use default)
- * @returns {Array<Object>} Array of tokens with binary values
+ * @param {string} language - Language name (javascript, python, java, etc.)
+ * @returns {Promise<Array<Object>>} Array of tokens with binary values
  */
-export function tokenize(code, grammarIndex = null) {
-    const tokenizer = new BinaryComputationTokenizer(grammarIndex || 'javascript');
+export async function tokenize(code, language = 'javascript') {
+    // Create grammar index for the language
+    const grammarIndex = new SmartGrammarIndex(language);
+    await grammarIndex.loadGrammar();
+    
+    // Create tokenizer with grammar brain
+    const tokenizer = new BlankPaperTokenizer(grammarIndex);
     return tokenizer.tokenize(code);
 }
 

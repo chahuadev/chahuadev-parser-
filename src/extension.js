@@ -72,8 +72,6 @@ function activate(context) {
             policies: Object.keys(policies)
         });
         
-        // Rules system DISABLED - no validation engine
-        
         // ! Create diagnostic collection for subtle blue notifications
         diagnosticCollection = vscode.languages.createDiagnosticCollection('chahuadev-sentinel');
         context.subscriptions.push(diagnosticCollection);

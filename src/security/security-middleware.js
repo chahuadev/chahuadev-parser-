@@ -412,6 +412,8 @@ class SecurityMiddleware {
                 backupPath = filePath + '.security-backup.' + Date.now();
                 await fs.copyFile(filePath, backupPath);
             } catch (error) {
+                // FIX: Universal Reporter - Auto-collect
+                report(BinaryCodes.IO.RESOURCE_NOT_FOUND(11001));
                 // File doesn't exist, no backup needed
             }
             

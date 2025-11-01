@@ -8,7 +8,7 @@
       "repo": "tree-sitter/tree-sitter-python",
       "grammarUrl": "https://raw.githubusercontent.com/tree-sitter/tree-sitter-python/master/src/grammar.json",
       "version": "0.20.4",
-      "lastUpdated": "2025-10-30T13:17:48.353Z",
+      "lastUpdated": "2025-11-01T01:10:58.010Z",
       "status": "ready"
     },
     "go": {
@@ -17,7 +17,7 @@
       "repo": "tree-sitter/tree-sitter-go",
       "grammarUrl": "https://raw.githubusercontent.com/tree-sitter/tree-sitter-go/master/src/grammar.json",
       "version": "0.19.1",
-      "lastUpdated": "2025-10-30T13:17:49.715Z",
+      "lastUpdated": "2025-11-01T01:10:59.523Z",
       "status": "ready"
     },
     "rust": {
@@ -26,7 +26,7 @@
       "repo": "tree-sitter/tree-sitter-rust",
       "grammarUrl": "https://raw.githubusercontent.com/tree-sitter/tree-sitter-rust/master/src/grammar.json",
       "version": "0.20.4",
-      "lastUpdated": "2025-10-30T13:17:51.127Z",
+      "lastUpdated": "2025-11-01T01:11:01.082Z",
       "status": "ready"
     },
     "cpp": {
@@ -35,7 +35,7 @@
       "repo": "tree-sitter/tree-sitter-cpp",
       "grammarUrl": "https://raw.githubusercontent.com/tree-sitter/tree-sitter-cpp/master/src/grammar.json",
       "version": "0.20.0",
-      "lastUpdated": "2025-10-30T13:17:52.547Z",
+      "lastUpdated": "2025-11-01T01:11:02.440Z",
       "status": "ready"
     },
     "c": {
@@ -44,7 +44,7 @@
       "repo": "tree-sitter/tree-sitter-c",
       "grammarUrl": "https://raw.githubusercontent.com/tree-sitter/tree-sitter-c/master/src/grammar.json",
       "version": "0.20.6",
-      "lastUpdated": "2025-10-30T13:18:11.393Z",
+      "lastUpdated": "2025-11-01T01:11:03.842Z",
       "status": "ready"
     },
     "php": {
@@ -53,7 +53,7 @@
       "repo": "tree-sitter/tree-sitter-php",
       "grammarUrl": "https://raw.githubusercontent.com/tree-sitter/tree-sitter-php/master/php/src/grammar.json",
       "version": "0.21.0",
-      "lastUpdated": "2025-10-30T13:17:53.926Z",
+      "lastUpdated": "2025-11-01T01:11:05.237Z",
       "status": "ready"
     },
     "ruby": {
@@ -62,7 +62,7 @@
       "repo": "tree-sitter/tree-sitter-ruby",
       "grammarUrl": "https://raw.githubusercontent.com/tree-sitter/tree-sitter-ruby/master/src/grammar.json",
       "version": "0.20.0",
-      "lastUpdated": "2025-10-30T13:17:55.285Z",
+      "lastUpdated": "2025-11-01T01:11:06.613Z",
       "status": "ready"
     },
     "swift": {
@@ -71,7 +71,7 @@
       "repo": "alex-pinkus/tree-sitter-swift",
       "grammarUrl": "https://raw.githubusercontent.com/alex-pinkus/tree-sitter-swift/main/src/grammar.json",
       "version": "0.5.0",
-      "lastUpdated": "2025-10-30T13:18:45.340Z",
+      "lastUpdated": "2025-11-01T01:11:07.989Z",
       "status": "ready"
     },
     "kotlin": {
@@ -80,7 +80,7 @@
       "repo": "fwcd/tree-sitter-kotlin",
       "grammarUrl": "https://raw.githubusercontent.com/fwcd/tree-sitter-kotlin/main/src/grammar.json",
       "version": "0.3.1",
-      "lastUpdated": "2025-10-30T13:18:59.722Z",
+      "lastUpdated": "2025-11-01T01:11:09.371Z",
       "status": "ready"
     },
     "scala": {
@@ -99,7 +99,7 @@
       "repo": "tree-sitter/tree-sitter-c-sharp",
       "grammarUrl": "https://raw.githubusercontent.com/tree-sitter/tree-sitter-c-sharp/master/src/grammar.json",
       "version": "0.20.0",
-      "lastUpdated": "2025-10-30T13:18:43.963Z",
+      "lastUpdated": "2025-11-01T01:11:10.778Z",
       "status": "ready"
     },
     "javascript": {
@@ -108,7 +108,7 @@
       "repo": "tree-sitter/tree-sitter-javascript",
       "grammarUrl": "https://raw.githubusercontent.com/tree-sitter/tree-sitter-javascript/master/src/grammar.json",
       "version": "0.20.1",
-      "lastUpdated": "2025-10-30T13:21:02.248Z",
+      "lastUpdated": "2025-11-01T01:11:12.139Z",
       "status": "ready"
     },
     "typescript": {
@@ -117,7 +117,7 @@
       "repo": "tree-sitter/tree-sitter-typescript",
       "grammarUrl": "https://raw.githubusercontent.com/tree-sitter/tree-sitter-typescript/master/typescript/src/grammar.json",
       "version": "0.20.3",
-      "lastUpdated": "2025-10-30T13:21:03.699Z",
+      "lastUpdated": "2025-11-01T01:11:13.525Z",
       "status": "ready"
     },
     "java": {
@@ -126,7 +126,7 @@
       "repo": "tree-sitter/tree-sitter-java",
       "grammarUrl": "https://raw.githubusercontent.com/tree-sitter/tree-sitter-java/master/src/grammar.json",
       "version": "0.20.2",
-      "lastUpdated": "2025-10-30T13:21:05.054Z",
+      "lastUpdated": "2025-11-01T01:11:14.892Z",
       "status": "ready"
     }
   },

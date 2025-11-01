@@ -8,6 +8,18 @@ import { binaryErrorGrammar } from './binary-error.grammar.js';
 import { binaryErrorCatalog } from './binary-error-catalog.js';
 import logStream from './binary-log-stream.js';
 
+// Dynamic import to avoid circular dependency
+let reportFunc, BinaryCodes;
+async function loadDependencies() {
+    if (!reportFunc) {
+        const reporterModule = await import('./universal-reporter.js');
+        reportFunc = reporterModule.report;
+        const codesModule = await import('./binary-codes.js');
+        BinaryCodes = codesModule.default;
+    }
+    return { report: reportFunc, BinaryCodes };
+}
+
 class BinaryErrorParser {
     constructor() {
         this.errorLog = [];
@@ -352,7 +364,7 @@ class BinaryErrorParser {
         error.binaryCode = binaryCode;
         error.errorObject = errorObject;
         error.humanReadable = humanReadable;
-        error.isOperational = true;
+        // FIX: Workers set isOperational automatically - trees don't touch it
         error.severity = metadata.severity?.label || 'UNKNOWN';
         error.exitCode = metadata.severity?.exitCode || 1;
 

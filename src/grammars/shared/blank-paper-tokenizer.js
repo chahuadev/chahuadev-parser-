@@ -89,6 +89,11 @@ export class BlankPaperTokenizer {
         // Skip whitespace
         this.skipWhitespace();
         
+        // Ask Brain: Is this a comment? If yes, skip it
+        if (this.skipComment()) {
+            return this.nextToken(); // Recursively get next non-comment token
+        }
+        
         if (this.position >= this.input.length) {
             return null;
         }
@@ -285,6 +290,86 @@ export class BlankPaperTokenizer {
                 break;
             }
         }
+    }
+    
+    /**
+     * Skip comment - Ask Brain what patterns are comments
+     * Returns true if comment was skipped
+     */
+    skipComment() {
+        if (!this.brain || !this.brain.grammar || !this.brain.grammar.comments) {
+            return false; // No comment definitions
+        }
+        
+        const comments = this.brain.grammar.comments;
+        
+        // Try each comment pattern (longest first)
+        const patterns = Object.keys(comments).sort((a, b) => b.length - a.length);
+        
+        for (const pattern of patterns) {
+            const commentDef = comments[pattern];
+            const patternLen = pattern.length;
+            
+            // Check if current position matches this comment pattern
+            const substr = this.input.substring(this.position, this.position + patternLen);
+            if (substr === pattern) {
+                // Found comment start - skip until end pattern
+                this.position += patternLen;
+                this.column += patternLen;
+                
+                const endPattern = commentDef.endPattern;
+                
+                // Line comment (ends with newline)
+                if (commentDef.type === 'line') {
+                    while (this.position < this.input.length) {
+                        const charCode = this.input.charCodeAt(this.position);
+                        if (charCode === CHAR_CODES.LF || charCode === CHAR_CODES.CR) {
+                            break; // Don't consume newline
+                        }
+                        this.position++;
+                        this.column++;
+                    }
+                    return true;
+                }
+                
+                // Block comment (ends with specific pattern)
+                if (commentDef.type === 'block' || commentDef.type === 'jsx') {
+                    const endLen = endPattern.length;
+                    while (this.position < this.input.length - endLen + 1) {
+                        // Check for end pattern
+                        const endSubstr = this.input.substring(this.position, this.position + endLen);
+                        if (endSubstr === endPattern) {
+                            this.position += endLen;
+                            this.column += endLen;
+                            return true;
+                        }
+                        
+                        // Track line numbers inside comments
+                        const charCode = this.input.charCodeAt(this.position);
+                        if (charCode === CHAR_CODES.LF) {
+                            this.line++;
+                            this.column = 1;
+                        } else if (charCode === CHAR_CODES.CR) {
+                            this.line++;
+                            this.column = 1;
+                            if (this.input.charCodeAt(this.position + 1) === CHAR_CODES.LF) {
+                                this.position++;
+                            }
+                        } else {
+                            this.column++;
+                        }
+                        
+                        this.position++;
+                    }
+                    
+                    // Unclosed block comment
+                    report(BinaryCodes.PARSER.SYNTAX(5202));
+                    return true;
+                }
+            }
+        }
+        
+        return false; // Not a comment
     }
     
     /**

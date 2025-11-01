@@ -5,6 +5,18 @@
 // ! Magic: Uses Error().stack to detect caller without manual input
 // ! ═══════════════════════════════════════════════════════════════════════════════
 
+// Dynamic import to avoid circular dependency
+let reportFunc, BinaryCodes;
+async function loadDependencies() {
+    if (!reportFunc) {
+        const reporterModule = await import('./universal-reporter.js');
+        reportFunc = reporterModule.report;
+        const codesModule = await import('./binary-codes.js');
+        BinaryCodes = codesModule.default;
+    }
+    return { report: reportFunc, BinaryCodes };
+}
+
 /**
  * Auto-capture context from stack trace
  * Finds the first caller outside error-handler/ directory
@@ -52,6 +64,10 @@ export function captureContext() {
         return createUnknownContext('No valid caller in stack trace');
         
     } catch (error) {
+        // FIX: Universal Reporter - Auto-collect
+        loadDependencies().then(({ report, BinaryCodes }) => {
+            report(BinaryCodes.SYSTEM.RUNTIME(9001));
+        });
         // Fallback: Error during capture
         return createUnknownContext(`Capture failed: ${error.message}`);
     }
@@ -205,6 +221,10 @@ export function captureContextWithSkip(skipFrames = 0) {
         return createUnknownContext('No valid caller in stack trace');
         
     } catch (error) {
+        // FIX: Universal Reporter - Auto-collect
+        loadDependencies().then(({ report, BinaryCodes }) => {
+            report(BinaryCodes.SYSTEM.RUNTIME(9002));
+        });
         return createUnknownContext(`Capture failed: ${error.message}`);
     }
 }
@@ -248,6 +268,10 @@ export function captureFullStack() {
         return contexts;
         
     } catch (error) {
+        // FIX: Universal Reporter - Auto-collect
+        loadDependencies().then(({ report, BinaryCodes }) => {
+            report(BinaryCodes.SYSTEM.RUNTIME(9003));
+        });
         return [];
     }
 }

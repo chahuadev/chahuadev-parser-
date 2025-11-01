@@ -6,6 +6,8 @@
 import fs from 'fs';
 import path from 'path';
 import { binaryErrorGrammar } from './binary-error.grammar.js';
+import { report } from './universal-reporter.js';
+import BinaryCodes from './binary-codes.js';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // GLOBAL STATE - File Descriptors & Stream Configuration
@@ -165,6 +167,8 @@ function initLogStreams(baseDir = binaryErrorGrammar.config.baseLogDir) {
         };
 
     } catch (error) {
+        // FIX: Universal Reporter - Auto-collect
+        report(BinaryCodes.IO.RUNTIME(8001));
         return {
             success: false,
             message: `Failed to initialize log streams: ${error.message}`,
@@ -224,6 +228,8 @@ function writeToStream(stream, message, metadata) {
             const metaStr = JSON.stringify(metadata);
             logLine += ` META=${metaStr}`;
         } catch (err) {
+            // FIX: Universal Reporter - Auto-collect
+            report(BinaryCodes.SYSTEM.RUNTIME(8002));
             logLine += ` META=<unserializable>`;
         }
     }
@@ -239,7 +245,8 @@ function writeToStream(stream, message, metadata) {
         stream.bytesWritten += bytesWritten;
         stream.linesWritten += 1;
     } catch (error) {
-        // Silent fail - don't throw in log system to avoid infinite loops
+        // FIX: Universal Reporter - Auto-collect
+        report(BinaryCodes.IO.RUNTIME(8003));
         // Write to emergency log if critical
         if (stream.severityCode >= 32) {
             writeEmergencyLog(`[LOG-STREAM-ERROR] Failed to write to ${stream.path}: ${error.message}\n`);
@@ -399,7 +406,8 @@ function flushAll() {
         try {
             fs.fsyncSync(stream.fd);
         } catch (error) {
-            // Silent fail
+            // FIX: Universal Reporter - Auto-collect
+            report(BinaryCodes.IO.RUNTIME(8004));
         }
     }
 }
@@ -418,7 +426,8 @@ function closeAllStreams() {
             fs.writeSync(stream.fd, marker);
             fs.closeSync(stream.fd);
         } catch (error) {
-            // Silent fail on cleanup
+            // FIX: Universal Reporter - Auto-collect
+            report(BinaryCodes.IO.RUNTIME(8005));
         }
     }
 

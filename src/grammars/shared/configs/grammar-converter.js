@@ -81,6 +81,20 @@ export function convertTreeSitterGrammar(treeSitterGrammar, language) {
         });
     }
     
+    // Section 04: Comments (auto-detect based on language)
+    const comments = getCommentsForLanguage(language);
+    if (comments && Object.keys(comments).length > 0) {
+        sectionNumber++;
+        
+        addSection(chahuaGrammar, sectionNumber, 'comments', {
+            title: `【SECTION ${String(sectionNumber).padStart(2, '0')}】${capitalizeFirst(language)} Comments`,
+            description: `Comment syntax for ${capitalizeFirst(language)}`,
+            purpose: `Define comment patterns for tokenizer to skip`,
+            items: Object.keys(comments).length,
+            data: comments
+        });
+    }
+    
     // อัพเดท total sections
     chahuaGrammar.__grammar_total_sections = sectionNumber;
     
@@ -88,6 +102,7 @@ export function convertTreeSitterGrammar(treeSitterGrammar, language) {
     console.log(`  - Keywords: ${chahuaGrammar.keywords ? Object.keys(chahuaGrammar.keywords).length : 0}`);
     console.log(`  - Operators: ${chahuaGrammar.operators ? Object.keys(chahuaGrammar.operators).length : 0}`);
     console.log(`  - Punctuation: ${chahuaGrammar.punctuation ? Object.keys(chahuaGrammar.punctuation).length : 0}`);
+    console.log(`  - Comments: ${chahuaGrammar.comments ? Object.keys(chahuaGrammar.comments).length : 0}`);
     
     return chahuaGrammar;
 }
@@ -379,4 +394,76 @@ export async function convertFromTreeSitter(languageName, treeSitterGrammarPath)
     console.log(` Conversion complete: ${savedFile}`);
     
     return grammarWithBinary;
+}
+
+/**
+ * Get comment syntax for each language
+ */
+function getCommentsForLanguage(language) {
+    const commentPatterns = {
+        // C-style languages (JavaScript, TypeScript, Java, C, C++, C#, Go, Rust, Swift, Kotlin, PHP)
+        javascript: {
+            "//": { type: "line", pattern: "//", description: "Single-line comment", endPattern: "\\n" },
+            "/*": { type: "block", pattern: "/*", description: "Multi-line comment", endPattern: "*/" }
+        },
+        typescript: {
+            "//": { type: "line", pattern: "//", description: "Single-line comment", endPattern: "\\n" },
+            "/*": { type: "block", pattern: "/*", description: "Multi-line comment", endPattern: "*/" }
+        },
+        jsx: {
+            "//": { type: "line", pattern: "//", description: "Single-line comment", endPattern: "\\n" },
+            "/*": { type: "block", pattern: "/*", description: "Multi-line comment", endPattern: "*/" },
+            "{/*": { type: "jsx", pattern: "{/*", description: "JSX comment", endPattern: "*/}" }
+        },
+        java: {
+            "//": { type: "line", pattern: "//", description: "Single-line comment", endPattern: "\\n" },
+            "/*": { type: "block", pattern: "/*", description: "Multi-line comment", endPattern: "*/" }
+        },
+        c: {
+            "//": { type: "line", pattern: "//", description: "Single-line comment", endPattern: "\\n" },
+            "/*": { type: "block", pattern: "/*", description: "Multi-line comment", endPattern: "*/" }
+        },
+        cpp: {
+            "//": { type: "line", pattern: "//", description: "Single-line comment", endPattern: "\\n" },
+            "/*": { type: "block", pattern: "/*", description: "Multi-line comment", endPattern: "*/" }
+        },
+        csharp: {
+            "//": { type: "line", pattern: "//", description: "Single-line comment", endPattern: "\\n" },
+            "/*": { type: "block", pattern: "/*", description: "Multi-line comment", endPattern: "*/" }
+        },
+        go: {
+            "//": { type: "line", pattern: "//", description: "Single-line comment", endPattern: "\\n" },
+            "/*": { type: "block", pattern: "/*", description: "Multi-line comment", endPattern: "*/" }
+        },
+        rust: {
+            "//": { type: "line", pattern: "//", description: "Single-line comment", endPattern: "\\n" },
+            "/*": { type: "block", pattern: "/*", description: "Multi-line comment", endPattern: "*/" }
+        },
+        swift: {
+            "//": { type: "line", pattern: "//", description: "Single-line comment", endPattern: "\\n" },
+            "/*": { type: "block", pattern: "/*", description: "Multi-line comment", endPattern: "*/" }
+        },
+        kotlin: {
+            "//": { type: "line", pattern: "//", description: "Single-line comment", endPattern: "\\n" },
+            "/*": { type: "block", pattern: "/*", description: "Multi-line comment", endPattern: "*/" }
+        },
+        php: {
+            "//": { type: "line", pattern: "//", description: "Single-line comment", endPattern: "\\n" },
+            "#": { type: "line", pattern: "#", description: "Shell-style comment", endPattern: "\\n" },
+            "/*": { type: "block", pattern: "/*", description: "Multi-line comment", endPattern: "*/" }
+        },
+        // Python-style (Python)
+        python: {
+            "#": { type: "line", pattern: "#", description: "Single-line comment", endPattern: "\\n" },
+            '"""': { type: "block", pattern: '"""', description: "Multi-line string/docstring", endPattern: '"""' },
+            "'''": { type: "block", pattern: "'''", description: "Multi-line string/docstring", endPattern: "'''" }
+        },
+        // Ruby
+        ruby: {
+            "#": { type: "line", pattern: "#", description: "Single-line comment", endPattern: "\\n" },
+            "=begin": { type: "block", pattern: "=begin", description: "Multi-line comment", endPattern: "=end" }
+        }
+    };
+    
+    return commentPatterns[language] || {};
 }

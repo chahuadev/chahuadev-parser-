@@ -10,6 +10,16 @@ import { binaryErrorGrammar } from './binary-error.grammar.js';
 // Export binary-code-utils สำหรับสร้าง Binary Code
 export * from './binary-code-utils.js';
 
+// Dynamic import to avoid circular dependency
+let BinaryCodes;
+async function loadBinaryCodes() {
+    if (!BinaryCodes) {
+        const module = await import('./binary-codes.js');
+        BinaryCodes = module.default;
+    }
+    return BinaryCodes;
+}
+
 // Meta Error Code (NO_HARDCODE: อ่านจาก Grammar)
 const META_INVALID_ERROR_CODE = binaryErrorGrammar.meta.META_INVALID_ERROR_CODE;
 
@@ -68,8 +78,6 @@ export { reportError };
 // ═══════════════════════════════════════════════════════════════════════════════
 // Helper Functions - ทำให้การรายงาน Error สั้นและง่ายขึ้น
 // ═══════════════════════════════════════════════════════════════════════════════
-
-import BinaryCodes from './binary-codes.js';
 
 /**
  * Normalize Error Object - แปลง Error เป็น Context Object

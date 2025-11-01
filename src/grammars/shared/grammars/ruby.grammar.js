@@ -9,11 +9,12 @@ export const rubyGrammar = {
   "__grammar_title": "Ruby Language Grammar Definition",
   "__grammar_description": "Complete grammar rules for Ruby - Auto-converted from Tree-sitter",
   "__grammar_purpose": "Grammar definition for Ruby language tokenization and parsing",
-  "__grammar_total_sections": 3,
+  "__grammar_total_sections": 4,
   "__grammar_sections": [
     "keywords",
     "operators",
-    "punctuation"
+    "punctuation",
+    "comments"
   ],
   "__grammar_used_by": [
     "GrammarIndex",
@@ -622,6 +623,34 @@ export const rubyGrammar = {
       "type": "brace",
       "source": "tree-sitter",
       "description": "} punctuation"
+    }
+  },
+  "__section_04": "══════════════════════════════════════════════════════════════════════════════",
+  "__section_04_number": "04",
+  "__section_04_name": "comments",
+  "__section_04_title": "【SECTION 04】Ruby Comments",
+  "__section_04_language": "Ruby",
+  "__section_04_total_items": 2,
+  "__section_04_description": "Comment syntax for Ruby",
+  "__section_04_purpose": "Define comment patterns for tokenizer to skip",
+  "__section_04_responsibility": "Handle comments for tokenization",
+  "__section_04_used_by": [
+    "BlankPaperTokenizer",
+    "GrammarIndex"
+  ],
+  "__section_04_footer": "══════════════════════════════════════════════════════════════════════════════",
+  "comments": {
+    "#": {
+      "type": "line",
+      "pattern": "#",
+      "description": "Single-line comment",
+      "endPattern": "\\n"
+    },
+    "=begin": {
+      "type": "block",
+      "pattern": "=begin",
+      "description": "Multi-line comment",
+      "endPattern": "=end"
     }
   }
 };
